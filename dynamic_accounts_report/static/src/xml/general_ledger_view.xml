@@ -1,0 +1,243 @@
+<templates>
+    <t t-name="GeneralTemp">
+        <div>
+            <div class="table_view_tb" style="right:20px;" />
+        </div>
+    </t>
+    <t t-name="GLTable">
+        <div>
+            <div class="table_main_view">
+                <table cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th colspan="6">Account</th>
+                            <th class="text-right">Debit</th>
+                            <th class="text-right">Credit</th>
+                            <th class="text-right">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="report_lines" t-as="account">
+                            <t t-set="common_id" t-value="0" />
+                            <tr
+                                style="border: 1.5px solid black;"
+                                class="gl-line"
+                                data-toggle="collapse"
+                                t-att-data-account-id="account['id']"
+                                t-attf-data-target=".a{{account['id']}}"
+                            >
+                                <td colspan="6" style="border: 0px solid black;">
+                                    <i
+                                        class="fa fa-caret-down"
+                                        role="img"
+                                        aria-label="Unfolded"
+                                        title="Unfolded"
+                                    />
+                                    <span>
+                                        <t t-esc="account['code']" />
+                                        -
+                                        <t t-esc="account['name']" />
+                                    </span>
+                                </td>
+
+                                <t t-if="currency[1] == 'before'">
+                                    <td class="text-right">
+                                        <t t-if="account['debit'] == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="currency[0]" />
+                                            <t t-esc="account['debit']" />
+                                        </t>
+                                    </td>
+                                    <td class="text-right">
+                                        <t t-if="account['credit'] == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="currency[0]" />
+                                            <t t-esc="account['credit']" />
+                                        </t>
+                                    </td>
+                                    <td class="text-right">
+                                        <t t-if="account['balance'] == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="currency[0]" />
+                                            <t t-esc="account['balance']" />
+                                        </t>
+                                    </td>
+                                </t>
+                                <t t-else="">
+                                    <td class="text-right">
+                                        <t t-if="account['debit'] == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account['debit']" />
+                                            <t t-esc="currency[0]" />
+                                        </t>
+                                    </td>
+                                    <td class="text-right">
+                                        <t t-if="account['credit'] == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account['credit']" />
+                                            <t t-esc="currency[0]" />
+                                        </t>
+                                    </td>
+                                    <td class="text-right">
+                                        <t t-if="account['balance'] == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account['balance']" />
+                                            <t t-esc="currency[0]" />
+                                        </t>
+                                    </td>
+                                </t>
+                                <t t-set="common_id" t-value="'a'+account['id']" />
+                            </tr>
+                            <tr t-attf-class="collapse a{{account['id']}}">
+                                <td colspan="10">
+                                    <ul>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="SubSection">
+        <div class="gl-table-div">
+            <table
+                class="table table-sm o_main_table"
+                style="border: 0px solid black;display compact;"
+            >
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>JRNL</th>
+                        <th>Partner</th>
+                        <th>Move</th>
+                        <th>Entry Label</th>
+                        <th class="text-right">Debit</th>
+                        <th class="text-right">Credit</th>
+                        <th class="text-right">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="account_data" t-as="account_line">
+                        <t t-set="style" t-value="''" />
+                        <t t-set="style_right" t-value="'text-align:right;'" />
+                        <tr>
+                            <td>
+                                <t t-if="account_line.ldate">
+                                    <div class="dropdown dropdown-toggle">
+                                        <a data-toggle="dropdown" href="#">
+                                            <span class="caret" />
+                                            <span>
+                                                <t t-esc="account_line.ldate" />
+                                            </span>
+                                        </a>
+                                        <ul
+                                            class="dropdown-menu"
+                                            role="menu"
+                                            aria-labelledby="dropdownMenu"
+                                        >
+                                            <li>
+                                                <a
+                                                    class="view-account-move"
+                                                    tabindex="-1"
+                                                    href="#"
+                                                    t-att-data-move-id="account_line.move_id"
+                                                >
+                                                    View Source move
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </t>
+                            </td>
+                            <td>
+                                <t t-esc="account_line.lcode" />
+                            </td>
+                            <td>
+                                <t t-esc="account_line.partner_name" />
+                            </td>
+                            <td t-att-style="style">
+                                <t t-esc="account_line.move_name" />
+                            </td>
+                            <td t-att-style="style">
+                                <t t-esc="account_line.lname" />
+                            </td>
+                            <t t-if="currency_position == 'before'">
+                                <td t-att-style="style_right" class="amt">
+                                    <t t-if="account_line.debit == 0">
+                                        <span>-</span>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="account_line.currency_code" />
+                                        <t t-esc="account_line.debit" />
+                                    </t>
+                                </td>
+                                <td t-att-style="style_right" class="amt">
+                                    <t t-if="account_line.credit == 0">
+                                        <span>-</span>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="account_line.currency_code" />
+                                        <t t-esc="account_line.credit" />
+                                    </t>
+                                </td>
+                                <td t-att-style="style_right" class="amt">
+                                    <t t-if="account_line.balance == 0">
+                                        <span>-</span>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="account_line.currency_code" />
+                                        <t t-esc="account_line.balance" />
+                                    </t>
+                                </td>
+                            </t>
+                            <t t-else="">
+                                <td t-att-style="style_right" class="amt">
+                                    <t t-if="account_line.debit == 0">
+                                        <span>-</span>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="account_line.debit" />
+                                        <t t-esc="account_line.currency_code" />
+                                    </t>
+                                </td>
+                                <td t-att-style="style_right" class="amt">
+                                    <t t-if="account_line.credit == 0">
+                                        <span>-</span>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="account_line.credit" />
+                                        <t t-esc="account_line.currency_code" />
+                                    </t>
+                                </td>
+                                <td t-att-style="style_right" class="amt">
+                                    <t t-if="account_line.balance == 0">
+                                        <span>-</span>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="account_line.balance" />
+                                        <t t-esc="account_line.currency_code" />
+                                    </t>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+</templates>
