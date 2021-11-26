@@ -1,0 +1,18 @@
+<odoo>
+    <template id="assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script
+                type="text/javascript"
+                src="/dynamic_accounts_report/static/src/js/action_manager.js"
+            />
+            <script
+                type="text/javascript"
+                src="/dynamic_accounts_report/static/src/js/financial_reports.js"
+            />
+            <script
+                type="text/javascript"
+                src="/dynamic_accounts_report/static/src/js/general_ledger.js"
+            />
+        </xpath>
+    </template>
+</odoo>
