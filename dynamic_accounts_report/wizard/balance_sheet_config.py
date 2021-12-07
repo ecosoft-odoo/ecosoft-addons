@@ -49,7 +49,7 @@ class BalanceSheet(models.TransientModel):
                 else:
                     vals += [account]
 
-                cr.execute(search_query, tuple(vals))
+                cr.execute(search_query, tuple(vals))  # pylint: disable=sql-injection
                 items = cr.dictfetchall()
 
                 for j in items:
@@ -132,7 +132,7 @@ class BalanceSheet(models.TransientModel):
             )
             params = (tuple(accounts._ids),) + tuple(where_params)
 
-            self.env.cr.execute(request, params)
+            self.env.cr.execute(request, params)  # pylint: disable=sql-injection
             for row in self.env.cr.dictfetchall():
                 res[row["id"]] = row
 
@@ -176,17 +176,18 @@ class BalanceSheet(models.TransientModel):
             elif report.type == "account_report" and report.account_report_id:
                 # it's the amount of the linked report
                 res2 = self._compute_report_balance(report.account_report_id)
-                for key, value in res2.items():
+                for _key, value in res2.items():
                     for field in fields:
                         res[report.id][field] += value[field]
             elif report.type == "sum":
                 # it's the sum of the children of this account.report
                 res2 = self._compute_report_balance(report.children_ids)
-                for key, value in res2.items():
+                for _key, value in res2.items():
                     for field in fields:
                         res[report.id][field] += value[field]
         return res
 
+    # flake8: noqa: C901
     def get_account_lines(self, data):
 
         lines = []

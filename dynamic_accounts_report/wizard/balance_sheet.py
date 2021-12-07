@@ -281,6 +281,7 @@ class BalanceSheetView(models.TransientModel):
         filters["operating_unit_list"] = data.get("operating_unit_list")
         return filters
 
+    # flake8: noqa: C901
     def _get_accounts(self, accounts, init_balance, display_account, data):
         cr = self.env.cr
         MoveLine = self.env["account.move.line"]
@@ -364,7 +365,7 @@ class BalanceSheetView(models.TransientModel):
             params = tuple(where_params)
         else:
             params = (tuple(accounts.ids),) + tuple(where_params)
-        cr.execute(sql, params)
+        cr.execute(sql, params)  # pylint: disable=sql-injection
 
         for row in cr.dictfetchall():
             balance = 0
