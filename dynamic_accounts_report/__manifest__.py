@@ -7,8 +7,9 @@
     "version": "14.0.1.0.0",
     "category": "Accounting",
     "license": "AGPL-3",
-    "author": "Cybrosys Techno Solutions, Ecosoft",
-    "depends": ["account", "account_operating_unit"],
+    "author": "Cybrosys Techno Solutions, Ecosoft, Odoo Community Association (OCA)",
+    "website": "https://github.com/OCA/ecosoft-addons",
+    "depends": ["account_operating_unit"],
     "data": [
         "security/ir.model.access.csv",
         "data/account_financial_report_data.xml",
