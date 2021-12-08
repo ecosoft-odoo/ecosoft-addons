@@ -8,7 +8,7 @@
     "category": "Accounting",
     "license": "AGPL-3",
     "author": "Cybrosys Techno Solutions, Ecosoft, Odoo Community Association (OCA)",
-    "website": "https://github.com/OCA/ecosoft-addons",
+    "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": ["account_operating_unit"],
     "data": [
         "security/ir.model.access.csv",
