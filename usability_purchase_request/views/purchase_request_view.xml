@@ -11,6 +11,20 @@
             <xpath expr="//field[@name='operating_unit_id']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
+            <xpath
+                expr="//field[@name='line_ids']/form//field[@name='analytic_account_id']"
+                position="after"
+            >
+                <field name="operating_unit_id" groups="operating_unit.group_multi_operating_unit" />
+            </xpath>
+            <xpath
+                expr="//field[@name='line_ids']/form//field[@name='analytic_account_id']"
+                position="attributes"
+            >
+                <attribute name="domain">
+                    ['|', ('operating_unit_ids', '=', operating_unit_id), ('operating_unit_ids', '=', False)]
+                </attribute>
+            </xpath>
         </field>
     </record>
 
