@@ -49,4 +49,16 @@
         </field>
     </record>
 
+    <!-- Search -->
+    <record id="view_account_invoice_filter" model="ir.ui.view">
+        <field name="name">account.invoice.select</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='salesperson']" position="after">
+                <filter string="Partner" name="partner" domain="[]" context="{'group_by': 'partner_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
