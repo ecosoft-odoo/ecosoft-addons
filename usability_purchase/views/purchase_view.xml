@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="purchase_order_form" model="ir.ui.view">
+        <field name="name">purchase.order.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_operating_unit.purchase_order_form" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//page[@name='products']/field[@name='order_line']/tree/field[@name='account_analytic_id']"
+                position="before"
+            >
+                <field name="operating_unit_id" />
+            </xpath>
+            <xpath
+                expr="//page[@name='products']/field[@name='order_line']/tree/field[@name='account_analytic_id']"
+                position="attributes"
+            >
+                <attribute name="domain">
+                    ['|', ('company_id', '=', False), ('company_id', '=',
+                    parent.company_id), '|', ('operating_unit_ids', '=',
+                    operating_unit_id), ('operating_unit_ids',
+                    '=', False)]
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
