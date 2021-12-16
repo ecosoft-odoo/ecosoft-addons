@@ -8,10 +8,11 @@
     "license": "AGPL-3",
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
-    "depends": ["purchase",
+    "depends": [
+        "purchase",
         "account_asset_management",
     ],
-    "data": [],
+    "data": ["views/purchase_view.xml"],
     "installable": True,
     "maintainers": ["ps-tubtim"],
     "development_status": "Alpha",
