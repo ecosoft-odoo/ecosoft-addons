@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_data_map_type_all,access_data_map_type_all,model_data_map_type,,1,0,0,0
+access_data_map_type_settings,access_data_map_type_settings,model_data_map_type,base.group_system,1,1,1,1
+access_data_map_all,access_data_map_all,model_data_map,,1,0,0,0
+access_data_map_settings,access_data_map_settings,model_data_map,base.group_system,1,1,1,1
