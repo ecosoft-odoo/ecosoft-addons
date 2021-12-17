@@ -13,7 +13,8 @@ class AccountMove(models.Model):
         for rec in self:
             for line in rec.invoice_line_ids:
                 if (
-                    line.operating_unit_id
+                    line.analytic_account_id
+                    and line.operating_unit_id
                     not in line.analytic_account_id.operating_unit_ids
                 ):
                     raise UserError(
