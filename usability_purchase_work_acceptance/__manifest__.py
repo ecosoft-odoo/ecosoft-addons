@@ -6,7 +6,7 @@
     "summary": "Manage fields on purchase work acceptance",
     "version": "14.0.1.0.0",
     "license": "AGPL-3",
-    "author": "Ecosoft",
+    "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": [
         "budget_activity",
