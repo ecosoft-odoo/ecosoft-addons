@@ -12,7 +12,6 @@
         "purchase",
         "account_asset_management",
         "l10n_th_gov_purchase_guarantee",
-        "hii_user_role",
     ],
     "data": ["views/purchase_view.xml"],
     "installable": True,
