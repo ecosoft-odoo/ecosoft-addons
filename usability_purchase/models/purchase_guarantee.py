@@ -16,10 +16,18 @@ class PurchaseGuarantee(models.Model):
         res = super().fields_view_get(
             view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu
         )
-        procurement_groups = [
-            "hii_user_role.group_role_procurement_officer",
-            "hii_user_role.group_role_procurement_head",
-        ]
+        # Find external id of role procurement officer and procurement head
+        datas = self.env["ir.model.data"].search(
+            [
+                (
+                    "name",
+                    "in",
+                    ["group_role_procurement_officer", "group_role_procurement_head"],
+                )
+            ]
+        )
+        procurement_groups = [data.complete_name for data in datas]
+        # No create, edit, delete if the user not in procurement groups
         if not any([self.env.user.has_group(pg) for pg in procurement_groups]):
             if view_type in ["form", "tree"]:
                 doc = etree.XML(res["arch"])
