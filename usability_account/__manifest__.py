@@ -14,7 +14,6 @@
     ],
     "data": [
         "views/account_move_views.xml",
-        "wizards/account_payment_register_views.xml",
     ],
     "installable": True,
     "maintainers": ["Saran440"],
