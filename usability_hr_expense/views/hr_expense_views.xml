@@ -260,6 +260,9 @@
         <field
             name="domain"
         >['|', ('advance', '=', True), ('advance_sheet_id', '!=', False)]</field>
+        <field
+            name="context"
+        >{'search_default_approved': True, 'search_default_to_post': True}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
             Create a new expense report
