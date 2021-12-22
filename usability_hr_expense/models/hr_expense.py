@@ -24,6 +24,16 @@ class HRExpenseSheet(models.Model):
         readonly=True,
         states={"draft": [("readonly", False)]},
     )
+    invisible_cancel_button = fields.Boolean(
+        compute="_compute_invisible_cancel",
+    )
+
+    @api.depends("state")
+    def _compute_invisible_cancel(self):
+        for rec in self:
+            rec.invisible_cancel_button = False
+            if rec.state == "post" or (rec.state == "done" and rec.advance_sheet_id):
+                rec.invisible_cancel_button = True
 
     @api.constrains("operating_unit_id")
     def check_operating_unit_id(self):
