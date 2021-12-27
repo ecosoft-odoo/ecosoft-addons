@@ -29,6 +29,8 @@ class PurchaseOrder(models.Model):
             invoice = self.env["account.move"].browse(res["res_id"])
             # Trigger onchange account
             # eg. onchange asset profile following account
-            for line in invoice.invoice_line_ids:
-                line._onchange_account_id()
+            for line in invoice.invoice_line_ids.filtered(
+                lambda l: l.account_id.asset_profile_id
+            ):
+                line.asset_profile_id = line.account_id.asset_profile_id
         return res
