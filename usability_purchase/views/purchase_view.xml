@@ -21,6 +21,7 @@
                     operating_unit_id), ('operating_unit_ids',
                     '=', False)]
                 </attribute>
+                <attribute name="required">True</attribute>
             </xpath>
         </field>
     </record>
