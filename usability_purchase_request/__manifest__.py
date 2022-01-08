@@ -10,7 +10,7 @@
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": [
         "budget_activity_purchase_request",
-        "budget_allocation_fund_purchase_request",
+        "budget_source_fund_purchase_request",
         "purchase_request_operating_unit",
     ],
     "data": ["views/purchase_request_view.xml"],
