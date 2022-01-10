@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_withholding_tax_cert_form" model="ir.ui.view">
+        <field name="name">view.withholding.tax.cert.form</field>
+        <field name="model">withholding.tax.cert</field>
+        <field name="inherit_id" ref="l10n_th_account_tax.view_withholding_tax_cert_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='wht_line']//field[@name='wht_cert_income_type']" position="before">
+                <field name="income_tax_form" invisible="1" />
+            </xpath>
+            <xpath expr="//field[@name='wht_line']//field[@name='wht_cert_income_type']" position="attributes">
+                <attribute name="attrs">
+                    {'readonly': [('income_tax_form', 'in', ['pnd54'])], 'required': [('income_tax_form', 'not in', ['pnd54'])]}
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
