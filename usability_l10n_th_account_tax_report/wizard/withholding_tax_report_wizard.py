@@ -8,7 +8,8 @@ class WithHoldingTaxReportWizard(models.TransientModel):
     _inherit = "withholding.tax.report.wizard"
 
     income_tax_form = fields.Selection(
-        selection_add=[("pnd54", "PND54"),],
+        selection_add=[
+            ("pnd54", "PND54"),
+        ],
         ondelete={"pnd54": "cascade"},
     )
-    
