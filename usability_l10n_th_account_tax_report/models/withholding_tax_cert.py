@@ -9,15 +9,26 @@ class WithholdingTaxCert(models.Model):
     _inherit = "withholding.tax.cert"
 
     income_tax_form = fields.Selection(
-        selection_add=[("pnd54", "PND54"),],
+        selection_add=[
+            ("pnd54", "PND54"),
+        ],
         ondelete={"pnd54": "cascade"},
     )
+
+    def _get_report_base_filename(self):
+        self.ensure_one()
+        if self.income_tax_form == "pnd54":
+            raise UserError(_("PND54 cannot print WHT Certificates."))
+        else:
+            super()._get_report_base_filename()
 
     def action_done(self):
         for rec in self:
             if rec.income_tax_form != "pnd54":
                 if any(not line.wht_cert_income_type for line in rec.wht_line):
-                    raise UserError(_("Please select Type of Income on every withholding moves."))
+                    raise UserError(
+                        _("Please select Type of Income on every withholding moves.")
+                    )
         return super().action_done()
 
 
