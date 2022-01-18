@@ -19,7 +19,7 @@ class AccountMove(models.Model):
                 ):
                     raise UserError(
                         _(
-                            "Configuration error. The Operating Unit in"
-                            " the Analytic Account Line must be the same."
+                            "Configuration error. The Operating Unit in "
+                            "the Analytic Account Line must be the same."
                         )
                     )
