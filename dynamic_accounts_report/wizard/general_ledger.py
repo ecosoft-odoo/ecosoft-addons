@@ -385,7 +385,7 @@ class GeneralView(models.TransientModel):
                     l.amount_currency, l.ref AS lref,
                     l.name AS lname, COALESCE(l.debit,0) AS debit,
                     COALESCE(l.credit,0) AS credit,
-                    COALESCE(SUM(l.balance),0) AS balance,\
+                    COALESCE((debit-credit),0) AS balance,\
                     m.name AS move_name, c.symbol AS currency_code,
                     c.position AS currency_position, p.name AS partner_name\
                     FROM account_move_line l\
