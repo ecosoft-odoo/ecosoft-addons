@@ -494,6 +494,7 @@ class BalanceSheetView(models.TransientModel):
                 "strict_range": False,
                 "company_id": self.company_id,
                 "lang": "en_US",
+                "active_test": False,
             },
         }
 
