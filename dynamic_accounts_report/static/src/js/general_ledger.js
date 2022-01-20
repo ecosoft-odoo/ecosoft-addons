@@ -40,6 +40,7 @@ odoo.define("dynamic_accounts_report.general_ledger", function (require) {
                     model: "account.general.ledger",
                     method: "view_report",
                     args: [[self.wizard_id], action_title],
+                    context: {active_test: false},
                 }).then(function (datas) {
                     _.each(datas.report_lines, function (rep_lines) {
                         rep_lines.debit = self.format_currency(
@@ -93,6 +94,7 @@ odoo.define("dynamic_accounts_report.general_ledger", function (require) {
                     model: "account.general.ledger",
                     method: "view_report",
                     args: [[self.wizard_id], action_title],
+                    context: {active_test: false},
                 }).then(function (data) {
                     _.each(data.report_lines, function (rep_lines) {
                         _.each(rep_lines.move_lines, function (move_line) {
