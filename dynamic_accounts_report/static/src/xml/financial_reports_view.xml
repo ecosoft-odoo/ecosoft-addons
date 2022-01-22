@@ -1,6 +1,6 @@
 <templates>
     <t t-name="dfr_template_new">
-        <div>
+        <div style="position: absolute;width: 100%;">
             <div>
                 <div class="filter_view_dfr" />
             </div>
