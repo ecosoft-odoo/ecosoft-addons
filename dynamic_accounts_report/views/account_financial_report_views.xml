@@ -106,6 +106,11 @@
         <field name="tag">dfr_n</field>
     </record>
 
+    <record id="action_dynamic_cashflow" model="ir.actions.client">
+        <field name="name">Cash Flow</field>
+        <field name="tag">dfr_n</field>
+    </record>
+
     <menuitem
         id="dynamic_report_accounting"
         sequence="19"
@@ -126,6 +131,14 @@
         action="action_dynamic_profit_and_loss"
         name="Profit and Loss"
         sequence="0"
+        parent="dynamic_report_accounting"
+    />
+
+    <menuitem
+        id="menu_cashflow"
+        action="action_dynamic_cashflow"
+        name="Cash Flow"
+        sequence="2"
         parent="dynamic_report_accounting"
     />
 </odoo>
