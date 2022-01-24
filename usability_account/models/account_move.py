@@ -15,6 +15,7 @@ class AccountMove(models.Model):
                 if (
                     line.analytic_account_id
                     and line.operating_unit_id
+                    and line.operating_unit_id
                     not in line.analytic_account_id.operating_unit_ids
                 ):
                     raise UserError(
