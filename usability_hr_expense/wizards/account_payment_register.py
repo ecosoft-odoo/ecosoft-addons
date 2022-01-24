@@ -1,7 +1,8 @@
 # Copyright 2021 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import models
+from odoo import _, models
+from odoo.exceptions import UserError
 
 
 class AccountPaymentRegister(models.TransientModel):
@@ -9,6 +10,10 @@ class AccountPaymentRegister(models.TransientModel):
 
     def _update_moveline_operating_unit(self, payments, payment, reconciled_moves):
         """ Update OU in all move line """
+        if reconciled_moves.mapped("operating_unit_id").ids > 1:
+            raise UserError(
+                _("You can not register payment with operating unit more than 1")
+            )
         res = super()._update_moveline_operating_unit(
             payments, payment, reconciled_moves
         )
