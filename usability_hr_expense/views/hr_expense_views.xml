@@ -103,7 +103,7 @@
         <field name="model">hr.expense.sheet</field>
         <field
             name="inherit_id"
-            ref="budget_allocation_fund_expense.view_hr_expense_sheet_form"
+            ref="budget_source_fund_expense.view_hr_expense_sheet_form"
         />
         <field name="arch" type="xml">
             <!-- required fields -->
@@ -231,7 +231,7 @@
         <field name="model">hr.expense</field>
         <field
             name="inherit_id"
-            ref="budget_allocation_fund_expense.hr_expense_view_form"
+            ref="budget_source_fund_expense.hr_expense_view_form"
         />
         <field name="arch" type="xml">
             <!-- required fields -->

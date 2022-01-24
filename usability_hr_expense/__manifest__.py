@@ -9,7 +9,7 @@
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": [
-        "budget_allocation_fund_advance_clearing",
+        "budget_source_fund_advance_clearing",
         "budget_activity_advance_clearing",
         "hr_expense_operating_unit",
         "hr_expense_advance_clearing",

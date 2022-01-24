@@ -38,7 +38,7 @@
     <record id="view_move_form_fund" model="ir.ui.view">
         <field name="name">account.move.form.fund</field>
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="budget_allocation_fund.view_move_form" />
+        <field name="inherit_id" ref="budget_source_fund.view_move_form" />
         <field name="arch" type="xml">
             <xpath
                 expr="//field[@name='invoice_line_ids']/tree/field[@name='fund_id']"

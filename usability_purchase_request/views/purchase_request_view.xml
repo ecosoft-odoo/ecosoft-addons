@@ -82,7 +82,7 @@
         <field name="model">purchase.request</field>
         <field
             name="inherit_id"
-            ref="budget_allocation_fund_purchase_request.view_purchase_request_form"
+            ref="budget_source_fund_purchase_request.view_purchase_request_form"
         />
         <field name="arch" type="xml">
             <xpath

@@ -10,7 +10,7 @@
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": [
         "budget_activity",
-        "budget_allocation_fund",
+        "budget_source_fund",
     ],
     "data": [
         "views/account_move_views.xml",
