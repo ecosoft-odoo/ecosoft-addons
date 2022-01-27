@@ -10,7 +10,7 @@ class AccountPaymentRegister(models.TransientModel):
 
     def _update_moveline_operating_unit(self, payments, payment, reconciled_moves):
         """ Update OU in all move line """
-        if reconciled_moves.mapped("operating_unit_id").ids > 1:
+        if len(reconciled_moves.mapped("operating_unit_id").ids) > 1:
             raise UserError(
                 _("You can not register payment with operating unit more than 1")
             )
