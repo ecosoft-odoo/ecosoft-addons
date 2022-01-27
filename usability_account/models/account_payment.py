@@ -11,6 +11,7 @@ class AccountPayment(models.Model):
     def _prepare_move_line_default_vals(self, write_off_line_vals=None):
         """ Add OU in all lines """
         line_vals_list = super()._prepare_move_line_default_vals(write_off_line_vals)
+        operating_unit = False
         # case expense
         if self.expense_sheet_ids:
             operating_unit = self.expense_sheet_ids.mapped("operating_unit_id")
