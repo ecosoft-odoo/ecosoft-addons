@@ -16,6 +16,7 @@ except ImportError:
 
 class BalanceSheetView(models.TransientModel):
     _name = "dynamic.balance.sheet.report"
+    _description = "Dynamic Balance Sheet Report"
 
     company_id = fields.Many2one(
         comodel_name="res.company",
