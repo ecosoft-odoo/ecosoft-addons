@@ -9,6 +9,7 @@ from odoo.exceptions import UserError
 
 class GeneralView(models.TransientModel):
     _name = "account.general.ledger"
+    _description = "Dynamic Account General Ledger Report"
 
     company_id = fields.Many2one(
         comodel_name="res.company",

@@ -6,6 +6,7 @@ from odoo import api, models
 
 class InsReportBalanceSheet(models.AbstractModel):
     _name = "report.dynamic_accounts_report.balance_sheet"
+    _description = "Dynamic Balance Sheet Abstract"
 
     @api.model
     def _get_report_values(self, docids, data=None):
