@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
+    <record
+        id="purchase_request_tier_validation.view_purchase_request_form_inherit_tier"
+        model="ir.ui.view"
+    >
+        <field name="active" eval="False" />
+    </record>
+
     <record id="view_purchase_request_form_operating_unit" model="ir.ui.view">
         <field name="name">purchase.request.form</field>
         <field name="model">purchase.request</field>
