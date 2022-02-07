@@ -13,6 +13,7 @@
         "budget_activity_advance_clearing",
         "hr_expense_operating_unit",
         "hr_expense_advance_clearing",
+        "hr_expense_cancel",
     ],
     "data": ["views/hr_expense_views.xml", "views/account_move_views.xml"],
     "installable": True,
