@@ -8,10 +8,7 @@
         <field name="arch" type="xml">
             <xpath expr="//footer" position="before">
                 <group name="report_extension">
-                    <field
-                        name="map_type_id"
-                        domain="[('model', '=', 'trial_balance')]"
-                    />
+                    <field name="map_type_id" domain="[('model', '=', 'open_items')]" />
                 </group>
             </xpath>
         </field>

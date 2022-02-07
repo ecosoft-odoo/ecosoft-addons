@@ -13,7 +13,7 @@
                 <group name="report_extension">
                     <field
                         name="map_type_id"
-                        domain="[('model', '=', 'trial_balance')]"
+                        domain="[('model', '=', 'aged_partner_balance')]"
                     />
                 </group>
             </xpath>
