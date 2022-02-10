@@ -9,7 +9,7 @@ class RdWithHoldingTaxReportWizard(models.TransientModel):
     _description = "RD Withholding Tax Report Wizard"
 
     income_tax_form = fields.Selection(
-        selection=[("pnd3", "PND3"), ("pnd3a", "PND3a"), ("pnd53", "PND53")],
+        selection=[("pnd3", "PND3"), ("pnd53", "PND53")],
         string="Income Tax Form",
         required=True,
     )

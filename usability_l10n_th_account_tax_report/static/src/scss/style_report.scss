@@ -1,6 +1,6 @@
 .o_report_rd_withholding_tax_report_pnd3 {
     font-family: "THSarabun";
-    font-size: 16px;
+    font-size: 18px;
 
     .company_vat {
         position: fixed;
@@ -14,13 +14,21 @@
     }
     .num_page_from {
         position: fixed;
-        margin-left: 1090px;
+        margin-left: 1080px;
         top: 48px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 45px;
+        height: 24px;
     }
     .num_page_to {
         position: fixed;
-        margin-left: 1190px;
+        margin-left: 1180px;
         top: 48px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 50px;
+        height: 24px;
     }
     .wht_line {
         position: fixed;
@@ -86,16 +94,15 @@
         margin-left: 3px;
         box-sizing: content-box;
         text-align: right;
-        width: 36px;
+        width: 33px;
         height: 24px;
-        font-size: 14px;
     }
     .wht_line_base {
         margin-top: 6px;
         margin-left: 3px;
         box-sizing: content-box;
         text-align: right;
-        width: 141px;
+        width: 139px;
         height: 24px;
     }
     .wht_line_amount {
@@ -112,6 +119,171 @@
         box-sizing: content-box;
         text-align: center;
         width: 30px;
+        height: 24px;
+    }
+    .total_base {
+        position: fixed;
+        margin-left: 925px;
+        top: 681px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 139px;
+        height: 24px;
+    }
+    .total_amount {
+        position: fixed;
+        margin-left: 1067px;
+        top: 681px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 146px;
+        height: 24px;
+    }
+    .box-vat {
+        box-sizing: content-box;
+        width: 17px;
+        height: 21px;
+        text-align: center;
+        margin-bottom: 0px;
+        padding-left: 1px;
+    }
+    .vat_tab {
+        margin-left: 9px;
+    }
+}
+
+.o_report_rd_withholding_tax_report_pnd53 {
+    font-family: "THSarabun";
+    font-size: 18px;
+
+    .company_vat {
+        position: fixed;
+        margin-left: 590px;
+        top: 21px;
+    }
+    .company_branch {
+        position: fixed;
+        margin-left: 918px;
+        top: 21px;
+    }
+    .num_page_from {
+        position: fixed;
+        margin-left: 1074px;
+        top: 48px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 45px;
+        height: 24px;
+    }
+    .num_page_to {
+        position: fixed;
+        margin-left: 1176px;
+        top: 48px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 50px;
+        height: 24px;
+    }
+    .wht_line {
+        position: fixed;
+        margin-left: 30px;
+        top: 168px;
+        width: 1230px;
+        height: 525px;
+    }
+    .wht_line_number {
+        margin-top: 6px;
+        margin-left: 20px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 48px;
+        height: 24px;
+    }
+    .wht_line_vat {
+        margin-top: 2px;
+        margin-left: 30px;
+    }
+    .wht_line_branch {
+        margin-top: 2px;
+        margin-left: 179px;
+    }
+    .wht_line_name {
+        margin-top: 1px;
+        margin-left: 36px;
+        box-sizing: content-box;
+        width: 400px;
+        height: 20px;
+    }
+    .wht_line_address {
+        margin-top: 0px;
+        margin-left: 42px;
+        box-sizing: content-box;
+        width: 400px;
+        height: 36px;
+    }
+    .wht_line_date {
+        margin-top: 25px;
+        margin-left: 14px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 90px;
+        height: 24px;
+    }
+    .wht_line_desc {
+        margin-top: 25px;
+        margin-left: 24px;
+        box-sizing: content-box;
+        width: 172px;
+        height: 24px;
+    }
+    .wht_line_percent {
+        margin-top: 25px;
+        margin-left: 3px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 30px;
+        height: 24px;
+    }
+    .wht_line_base {
+        margin-top: 25px;
+        margin-left: 3px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 141px;
+        height: 24px;
+    }
+    .wht_line_amount {
+        margin-top: 25px;
+        margin-left: 3px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 145px;
+        height: 24px;
+    }
+    .wht_line_tax_payer {
+        margin-top: 24px;
+        margin-left: 21px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 30px;
+        height: 24px;
+    }
+    .total_base {
+        position: fixed;
+        margin-left: 921px;
+        top: 657px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 141px;
+        height: 24px;
+    }
+    .total_amount {
+        position: fixed;
+        margin-left: 1066px;
+        top: 657px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 145px;
         height: 24px;
     }
     .box-vat {

@@ -9,6 +9,7 @@
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": [
         "l10n_th_account_tax_report",
+        "l10n_th_fonts",
     ],
     "data": [
         "security/ir.model.access.csv",
