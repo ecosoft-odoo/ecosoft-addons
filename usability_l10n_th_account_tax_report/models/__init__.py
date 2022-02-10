@@ -3,3 +3,4 @@
 from . import account_move
 from . import withholding_tax_cert
 from . import report_withholding_tax
+from . import report_rd_withholding_tax

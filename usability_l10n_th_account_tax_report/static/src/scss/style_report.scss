@@ -1,0 +1,128 @@
+.o_report_rd_withholding_tax_report_pnd3 {
+    font-family: "THSarabun";
+    font-size: 16px;
+
+    .company_vat {
+        position: fixed;
+        margin-left: 590px;
+        top: 24px;
+    }
+    .company_branch {
+        position: fixed;
+        margin-left: 1183px;
+        top: 20px;
+    }
+    .num_page_from {
+        position: fixed;
+        margin-left: 1090px;
+        top: 48px;
+    }
+    .num_page_to {
+        position: fixed;
+        margin-left: 1190px;
+        top: 48px;
+    }
+    .wht_line {
+        position: fixed;
+        margin-left: 30px;
+        top: 165px;
+        width: 1230px;
+        height: 525px;
+    }
+    .wht_line_number {
+        margin-top: 6px;
+        margin-left: 18px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 50px;
+        height: 24px;
+    }
+    .wht_line_vat {
+        margin-top: 6px;
+        margin-left: 33px;
+    }
+    .wht_line_branch {
+        margin-top: 6px;
+        margin-left: 102px;
+    }
+    .wht_line_firstname {
+        margin-top: 8px;
+        margin-left: 36px;
+        box-sizing: content-box;
+        width: 270px;
+        height: 24px;
+    }
+    .wht_line_lastname {
+        margin-top: 8px;
+        margin-left: 36px;
+        box-sizing: content-box;
+        width: 200px;
+        height: 24px;
+    }
+    .wht_line_address {
+        margin-top: 2px;
+        margin-left: 42px;
+        box-sizing: content-box;
+        width: 500px;
+        height: 24px;
+    }
+    .wht_line_date {
+        margin-top: 6px;
+        margin-left: 15px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 90px;
+        height: 24px;
+    }
+    .wht_line_desc {
+        margin-top: 6px;
+        margin-left: 24px;
+        box-sizing: content-box;
+        width: 172px;
+        height: 24px;
+    }
+    .wht_line_percent {
+        margin-top: 6px;
+        margin-left: 3px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 36px;
+        height: 24px;
+        font-size: 14px;
+    }
+    .wht_line_base {
+        margin-top: 6px;
+        margin-left: 3px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 141px;
+        height: 24px;
+    }
+    .wht_line_amount {
+        margin-top: 6px;
+        margin-left: 3px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 146px;
+        height: 24px;
+    }
+    .wht_line_tax_payer {
+        margin-top: 6px;
+        margin-left: 21px;
+        box-sizing: content-box;
+        text-align: center;
+        width: 30px;
+        height: 24px;
+    }
+    .box-vat {
+        box-sizing: content-box;
+        width: 17px;
+        height: 21px;
+        text-align: center;
+        margin-bottom: 0px;
+        padding-left: 1px;
+    }
+    .vat_tab {
+        margin-left: 9px;
+    }
+}
