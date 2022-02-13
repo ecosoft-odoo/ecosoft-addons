@@ -9,7 +9,7 @@ from odoo.exceptions import ValidationError
 DEFAULT_DAY_FORMAT_WHT = "%d"
 DEFAULT_MONTH_FORMAT_WHT = "%m"
 DEFAULT_YEAR_FORMAT_WHT = "%Y"
-INCOME_TAX_FORM = {"pnd3": "P03", "pnd53": "P53"}
+INCOME_TAX_FORM = {"pnd1": "P01", "pnd1a": "P01A", "pnd3": "P03", "pnd53": "P53"}
 
 
 class RdWithHoldingTaxReport(models.TransientModel):
@@ -17,7 +17,12 @@ class RdWithHoldingTaxReport(models.TransientModel):
     _description = "WHT RD Report"
 
     income_tax_form = fields.Selection(
-        selection=[("pnd3", "PND3"), ("pnd53", "PND53")],
+        selection=[
+            ("pnd1", "PND1"),
+            ("pnd1a", "PND1A"),
+            ("pnd3", "PND3"),
+            ("pnd53", "PND53"),
+        ],
         string="Income Tax Form",
         required=True,
     )
@@ -88,9 +93,13 @@ class RdWithHoldingTaxReport(models.TransientModel):
     def _compute_results(self):
         self.ensure_one()
         Result = self.env["withholding.tax.cert.line"]
+        # pnd1a = pnd1
+        income_tax_form = (
+            "pnd1" if self.income_tax_form == "pnd1a" else self.income_tax_form
+        )
         # fields required
         domain = [
-            ("cert_id.income_tax_form", "=", self.income_tax_form),
+            ("cert_id.income_tax_form", "=", income_tax_form),
             ("cert_id.date", ">=", self.date_from),
             ("cert_id.date", "<=", self.date_to),
             ("cert_id.company_partner_id", "=", self.company_id.partner_id.id),
@@ -138,7 +147,7 @@ class RdWithHoldingTaxReport(models.TransientModel):
         # Condition
         tax_payer = 1
         if line.cert_id.tax_payer != "withholding":
-            tax_payer = 3
+            tax_payer = 2
         return {
             "partner_vat": partner.vat or "XXXXXXXXXXXXX",
             "partner_branch": partner.branch,
