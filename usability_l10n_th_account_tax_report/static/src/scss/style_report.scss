@@ -410,21 +410,22 @@
 .o_report_rd_withholding_tax_report_pnd53 {
     font-family: "THSarabun";
     font-size: 18px;
+    line-height: 90%;
 
     .company_vat {
         position: fixed;
         margin-left: 590px;
-        top: 21px;
+        top: 25px;
     }
     .company_branch {
         position: fixed;
         margin-left: 918px;
-        top: 21px;
+        top: 25px;
     }
     .num_page_from {
         position: fixed;
         margin-left: 1074px;
-        top: 48px;
+        top: 51px;
         box-sizing: content-box;
         text-align: center;
         width: 45px;
@@ -433,7 +434,7 @@
     .num_page_to {
         position: fixed;
         margin-left: 1176px;
-        top: 48px;
+        top: 51px;
         box-sizing: content-box;
         text-align: center;
         width: 50px;
@@ -442,7 +443,7 @@
     .wht_line {
         position: fixed;
         margin-left: 30px;
-        top: 168px;
+        top: 174px;
         width: 1230px;
         height: 525px;
     }
