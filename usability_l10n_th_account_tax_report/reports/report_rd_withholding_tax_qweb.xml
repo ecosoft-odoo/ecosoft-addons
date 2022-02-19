@@ -16,6 +16,8 @@
 
     <template id="report_rd_withholding_tax_pnd1">
         <t t-set="number" t-value="0" />
+        <t t-set="sum_total_base" t-value="0" />
+        <t t-set="sum_total_amount" t-value="0" />
         <t t-set="results" t-value="o._convert_result_to_dict(o.results)" />
         <t t-set="result_keys" t-value="list(results.keys())" />
         <t t-set="num_page" t-value="ceil(len(result_keys)/8)" />
@@ -233,11 +235,24 @@
                 </div>
                 <!-- Total -->
                 <div class="total_base">
+                    <t t-set="sum_total_base" t-value="sum_total_base + total_base" />
                     <t t-esc="'{0:,.2f}'.format(total_base)" />
                 </div>
                 <div class="total_amount">
+                    <t
+                        t-set="sum_total_amount"
+                        t-value="sum_total_amount + total_amount"
+                    />
                     <t t-esc="'{0:,.2f}'.format(total_amount)" />
                 </div>
+                <t t-if="num + 1 == num_page">
+                    <div class="sum_total_base">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_base)" />
+                    </div>
+                    <div class="sum_total_amount">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_amount)" />
+                    </div>
+                </t>
             </div>
         </t>
         <div style="page-break-before: always;" />
@@ -245,6 +260,8 @@
 
     <template id="report_rd_withholding_tax_pnd1a">
         <t t-set="number" t-value="0" />
+        <t t-set="sum_total_base" t-value="0" />
+        <t t-set="sum_total_amount" t-value="0" />
         <t t-set="results" t-value="o._convert_result_to_dict(o.results)" />
         <t t-set="result_keys" t-value="list(results.keys())" />
         <t t-set="num_page" t-value="ceil(len(result_keys)/7)" />
@@ -462,11 +479,24 @@
                 </div>
                 <!-- Total -->
                 <div class="total_base">
+                    <t t-set="sum_total_base" t-value="sum_total_base + total_base" />
                     <t t-esc="'{0:,.2f}'.format(total_base)" />
                 </div>
                 <div class="total_amount">
+                    <t
+                        t-set="sum_total_amount"
+                        t-value="sum_total_amount + total_amount"
+                    />
                     <t t-esc="'{0:,.2f}'.format(total_amount)" />
                 </div>
+                <t t-if="num + 1 == num_page">
+                    <div class="sum_total_base">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_base)" />
+                    </div>
+                    <div class="sum_total_amount">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_amount)" />
+                    </div>
+                </t>
             </div>
         </t>
         <div style="page-break-before: always;" />
@@ -474,6 +504,8 @@
 
     <template id="report_rd_withholding_tax_pnd3">
         <t t-set="number" t-value="0" />
+        <t t-set="sum_total_base" t-value="0" />
+        <t t-set="sum_total_amount" t-value="0" />
         <t t-set="results" t-value="o._convert_result_to_dict(o.results)" />
         <t t-set="result_keys" t-value="list(results.keys())" />
         <t t-set="num_page" t-value="ceil(len(result_keys)/6)" />
@@ -735,11 +767,24 @@
                 </div>
                 <!-- Total -->
                 <div class="total_base">
+                    <t t-set="sum_total_base" t-value="sum_total_base + total_base" />
                     <t t-esc="'{0:,.2f}'.format(total_base)" />
                 </div>
                 <div class="total_amount">
+                    <t
+                        t-set="sum_total_amount"
+                        t-value="sum_total_amount + total_amount"
+                    />
                     <t t-esc="'{0:,.2f}'.format(total_amount)" />
                 </div>
+                <t t-if="num + 1 == num_page">
+                    <div class="sum_total_base">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_base)" />
+                    </div>
+                    <div class="sum_total_amount">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_amount)" />
+                    </div>
+                </t>
             </div>
         </t>
         <div style="page-break-before: always;" />
@@ -747,6 +792,8 @@
 
     <template id="report_rd_withholding_tax_pnd53">
         <t t-set="number" t-value="0" />
+        <t t-set="sum_total_base" t-value="0" />
+        <t t-set="sum_total_amount" t-value="0" />
         <t t-set="results" t-value="o._convert_result_to_dict(o.results)" />
         <t t-set="result_keys" t-value="list(results.keys())" />
         <t t-set="num_page" t-value="ceil(len(result_keys)/6)" />
@@ -1007,11 +1054,24 @@
                 </div>
                 <!-- Total -->
                 <div class="total_base">
+                    <t t-set="sum_total_base" t-value="sum_total_base + total_base" />
                     <t t-esc="'{0:,.2f}'.format(total_base)" />
                 </div>
                 <div class="total_amount">
+                    <t
+                        t-set="sum_total_amount"
+                        t-value="sum_total_amount + total_amount"
+                    />
                     <t t-esc="'{0:,.2f}'.format(total_amount)" />
                 </div>
+                <t t-if="num + 1 == num_page">
+                    <div class="sum_total_base">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_base)" />
+                    </div>
+                    <div class="sum_total_amount">
+                        <t t-esc="'{0:,.2f}'.format(sum_total_amount)" />
+                    </div>
+                </t>
             </div>
         </t>
         <div style="page-break-before: always;" />
