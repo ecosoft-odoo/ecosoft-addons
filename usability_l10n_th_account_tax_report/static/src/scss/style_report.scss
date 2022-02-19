@@ -5,17 +5,17 @@
     .company_vat {
         position: fixed;
         margin-left: 690px;
-        top: 27px;
+        top: 25px;
     }
     .company_branch {
         position: fixed;
         margin-left: 1158px;
-        top: 69px;
+        top: 64px;
     }
     .num_page_from {
         position: fixed;
         margin-left: 1053px;
-        top: 162px;
+        top: 150px;
         box-sizing: content-box;
         text-align: center;
         width: 45px;
@@ -24,7 +24,7 @@
     .num_page_to {
         position: fixed;
         margin-left: 1157px;
-        top: 162px;
+        top: 150px;
         box-sizing: content-box;
         text-align: center;
         width: 45px;
@@ -33,7 +33,7 @@
     .wht_line {
         position: fixed;
         margin-left: 90px;
-        top: 250px;
+        top: 230px;
         width: 1146px;
         height: 480px;
     }
@@ -43,7 +43,7 @@
         box-sizing: content-box;
         text-align: center;
         width: 60px;
-        height: 24px;
+        height: 21px;
     }
     .wht_line_vat {
         margin-top: 6px;
@@ -54,14 +54,14 @@
         margin-left: 15px;
         box-sizing: content-box;
         width: 240px;
-        height: 24px;
+        height: 21px;
     }
     .wht_line_lastname {
         margin-top: 7px;
         margin-left: 42px;
         box-sizing: content-box;
         width: 251px;
-        height: 24px;
+        height: 21px;
     }
     .wht_line_date {
         margin-top: 33px;
@@ -69,7 +69,7 @@
         box-sizing: content-box;
         text-align: center;
         width: 162px;
-        height: 24px;
+        height: 21px;
     }
     .wht_line_base {
         margin-top: 33px;
@@ -77,7 +77,7 @@
         box-sizing: content-box;
         text-align: right;
         width: 150px;
-        height: 24px;
+        height: 21px;
     }
     .wht_line_amount {
         margin-top: 33px;
@@ -85,7 +85,7 @@
         box-sizing: content-box;
         text-align: right;
         width: 137px;
-        height: 24px;
+        height: 21px;
     }
     .wht_line_tax_payer {
         margin-top: 33px;
@@ -93,12 +93,12 @@
         box-sizing: content-box;
         text-align: center;
         width: 30px;
-        height: 24px;
+        height: 21px;
     }
     .total_base {
         position: fixed;
         margin-left: 885px;
-        top: 723px;
+        top: 678px;
         box-sizing: content-box;
         text-align: right;
         width: 150px;
@@ -107,7 +107,25 @@
     .total_amount {
         position: fixed;
         margin-left: 1050px;
-        top: 723px;
+        top: 678px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 137px;
+        height: 24px;
+    }
+    .sum_total_base {
+        position: fixed;
+        margin-left: 885px;
+        top: 710px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 150px;
+        height: 24px;
+    }
+    .sum_total_amount {
+        position: fixed;
+        margin-left: 1050px;
+        top: 710px;
         box-sizing: content-box;
         text-align: right;
         width: 137px;
@@ -137,13 +155,13 @@
     }
     .company_branch {
         position: fixed;
-        margin-left: 1158px;
-        top: 78px;
+        margin-left: 1159px;
+        top: 75px;
     }
     .num_page_from {
         position: fixed;
         margin-left: 1053px;
-        top: 168px;
+        top: 161px;
         box-sizing: content-box;
         text-align: center;
         width: 42px;
@@ -152,7 +170,7 @@
     .num_page_to {
         position: fixed;
         margin-left: 1146px;
-        top: 168px;
+        top: 161px;
         box-sizing: content-box;
         text-align: center;
         width: 48px;
@@ -161,7 +179,7 @@
     .wht_line {
         position: fixed;
         margin-left: 90px;
-        top: 254px;
+        top: 240px;
         width: 1146px;
         height: 420px;
     }
@@ -171,32 +189,32 @@
         box-sizing: content-box;
         text-align: center;
         width: 60px;
-        height: 24px;
+        height: 23px;
     }
     .wht_line_vat {
         margin-top: 6px;
-        margin-left: 22px;
+        margin-left: 21px;
     }
     .wht_line_firstname {
         margin-top: 9px;
         margin-left: 18px;
         box-sizing: content-box;
         width: 188px;
-        height: 24px;
+        height: 23px;
     }
     .wht_line_lastname {
         margin-top: 9px;
         margin-left: 39px;
         box-sizing: content-box;
         width: 200px;
-        height: 24px;
+        height: 23px;
     }
     .wht_line_address {
         margin-top: 3px;
         margin-left: 30px;
         box-sizing: content-box;
         width: 420px;
-        height: 24px;
+        height: 23px;
     }
     .wht_line_base {
         margin-top: 33px;
@@ -204,7 +222,7 @@
         box-sizing: content-box;
         text-align: right;
         width: 145px;
-        height: 24px;
+        height: 23px;
     }
     .wht_line_amount {
         margin-top: 33px;
@@ -212,7 +230,7 @@
         box-sizing: content-box;
         text-align: right;
         width: 137px;
-        height: 24px;
+        height: 23px;
     }
     .wht_line_tax_payer {
         margin-top: 33px;
@@ -220,12 +238,12 @@
         box-sizing: content-box;
         text-align: center;
         width: 33px;
-        height: 24px;
+        height: 23px;
     }
     .total_base {
         position: fixed;
         margin-left: 889px;
-        top: 690px;
+        top: 660px;
         box-sizing: content-box;
         text-align: right;
         width: 145px;
@@ -234,7 +252,25 @@
     .total_amount {
         position: fixed;
         margin-left: 1050px;
-        top: 690px;
+        top: 660px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 137px;
+        height: 24px;
+    }
+    .sum_total_base {
+        position: fixed;
+        margin-left: 889px;
+        top: 700px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 145px;
+        height: 24px;
+    }
+    .sum_total_amount {
+        position: fixed;
+        margin-left: 1050px;
+        top: 700px;
         box-sizing: content-box;
         text-align: right;
         width: 137px;
@@ -394,6 +430,24 @@
         width: 146px;
         height: 24px;
     }
+    .sum_total_base {
+        position: fixed;
+        margin-left: 925px;
+        top: 710px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 139px;
+        height: 24px;
+    }
+    .sum_total_amount {
+        position: fixed;
+        margin-left: 1067px;
+        top: 710px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 146px;
+        height: 24px;
+    }
     .box-vat {
         box-sizing: content-box;
         width: 17px;
@@ -537,6 +591,24 @@
         position: fixed;
         margin-left: 1066px;
         top: 657px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 145px;
+        height: 24px;
+    }
+    .sum_total_base {
+        position: fixed;
+        margin-left: 921px;
+        top: 690px;
+        box-sizing: content-box;
+        text-align: right;
+        width: 141px;
+        height: 24px;
+    }
+    .sum_total_amount {
+        position: fixed;
+        margin-left: 1066px;
+        top: 690px;
         box-sizing: content-box;
         text-align: right;
         width: 145px;

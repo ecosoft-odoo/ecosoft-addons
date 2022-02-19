@@ -122,7 +122,7 @@ class RdWithHoldingTaxReport(models.TransientModel):
 
     def _prepare_cert_data(self, line):
         line.ensure_one()
-        partner = line.cert_id.supplier_partner_id
+        partner = line.cert_id.partner_id
         # Partner Name
         lastname = partner.lastname
         firstname = partner.name[: -(len(lastname))]
