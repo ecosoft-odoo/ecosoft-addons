@@ -10,17 +10,16 @@ class AccountMove(models.Model):
 
     @api.constrains("operating_unit_id")
     def check_operating_unit_id(self):
-        for rec in self:
-            for line in rec.invoice_line_ids:
-                if (
-                    line.analytic_account_id
-                    and line.operating_unit_id
-                    and line.operating_unit_id
-                    not in line.analytic_account_id.operating_unit_ids
-                ):
-                    raise UserError(
-                        _(
-                            "Configuration error. The Operating Unit in "
-                            "the Analytic Account Line must be the same."
-                        )
+        for line in self.mapped("invoice_line_ids"):
+            if (
+                line.analytic_account_id
+                and line.operating_unit_id
+                and line.operating_unit_id
+                not in line.analytic_account_id.operating_unit_ids
+            ):
+                raise UserError(
+                    _(
+                        "Configuration error. The Operating Unit in "
+                        "the Analytic Account Line must be the same."
                     )
+                )
