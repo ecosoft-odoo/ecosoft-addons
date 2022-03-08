@@ -11,6 +11,7 @@
     "depends": [
         "purchase",
         "account_asset_management",
+        "budget_activity_purchase",
         "l10n_th_gov_purchase_guarantee",
     ],
     "data": ["views/purchase_view.xml"],
