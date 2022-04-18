@@ -27,8 +27,11 @@ class Product(models.Model):
             rec.is_editable = self.env.user.has_group("base.group_system")
 
     def write(self, vals):
-        if self.product_important == "not_edit" and not self.env.user.has_group(
-            "base.group_system"
+        model = self._context.get("model", False)
+        if (
+            model in [False, "product.template"]
+            and self.product_important == "not_edit"
+            and not self.env.user.has_group("base.group_system")
         ):
             raise UserError(
                 _(
