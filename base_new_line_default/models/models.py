@@ -20,7 +20,7 @@ class BaseModel(models.AbstractModel):
             # Filter for create (0), link (4) and write (1)
             lines = [x for x in line_vals if x[0] in (0, 1, 4)]
             last_line = lines[-1:][0]
-            # Skip if before line or new line is not button `Add a Product``
+            # Skip if before line or new line is not button `Add a Product`
             if last_line[2].get("display_type", False) or res.get(
                 "display_type", False
             ):
