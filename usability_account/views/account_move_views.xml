@@ -17,13 +17,17 @@
                 expr="//field[@name='invoice_line_ids']/tree/field[@name='analytic_account_id']"
                 position="attributes"
             >
-                <attribute name="required">True</attribute>
+                <attribute
+                    name="attrs"
+                >{'required': [('display_type', '=', False)]}</attribute>
             </xpath>
             <xpath
                 expr="//field[@name='invoice_line_ids']/tree/field[@name='activity_id']"
                 position="attributes"
             >
-                <attribute name="required">True</attribute>
+                <attribute
+                    name="attrs"
+                >{'required': [('display_type', '=', False)]}</attribute>
             </xpath>
             <xpath
                 expr="//field[@name='invoice_line_ids']/tree/field[@name='name']"
@@ -44,7 +48,9 @@
                 expr="//field[@name='invoice_line_ids']/tree/field[@name='fund_id']"
                 position="attributes"
             >
-                <attribute name="required">True</attribute>
+                <attribute
+                    name="attrs"
+                >{'required': [('display_type', '=', False)]}</attribute>
             </xpath>
         </field>
     </record>
