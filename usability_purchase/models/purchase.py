@@ -11,7 +11,8 @@ class PurchaseOrder(models.Model):
     @api.constrains("operating_unit_id")
     def check_operating_unit_id(self):
         for rec in self:
-            for line in rec.order_line:
+            # find lines is not section and note
+            for line in rec.order_line.filtered(lambda l: not l.display_type):
                 if (
                     line.operating_unit_id
                     not in line.account_analytic_id.operating_unit_ids

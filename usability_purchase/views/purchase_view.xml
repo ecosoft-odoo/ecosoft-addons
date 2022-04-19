@@ -22,7 +22,9 @@
                     operating_unit_id), ('operating_unit_ids',
                     '=', False)]
                 </attribute>
-                <attribute name="required">True</attribute>
+                <attribute
+                    name="attrs"
+                >{'required': [('display_type', '=', False)]}</attribute>
             </xpath>
         </field>
     </record>
@@ -35,7 +37,9 @@
                 expr="//field[@name='order_line']/tree//field[@name='activity_id']"
                 position="attributes"
             >
-                <attribute name="required">True</attribute>
+                <attribute
+                    name="attrs"
+                >{'required': [('display_type', '=', False)]}</attribute>
                 <attribute
                     name="context"
                 >{'search_default_groupby_activity_group': True}</attribute>
@@ -44,7 +48,9 @@
                 expr="//field[@name='order_line']/form//field[@name='activity_id']"
                 position="attributes"
             >
-                <attribute name="required">True</attribute>
+                <attribute
+                    name="attrs"
+                >{'required': [('display_type', '=', False)]}</attribute>
                 <attribute
                     name="context"
                 >{'search_default_groupby_activity_group': True}</attribute>
