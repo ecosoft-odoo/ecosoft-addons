@@ -21,8 +21,10 @@ class BaseModel(models.AbstractModel):
             lines = [x for x in line_vals if x[0] in (0, 1, 4)]
             last_line = lines[-1:][0]
             # Skip if before line or new line is not button `Add a Product`
-            if last_line[2].get("display_type", False) or res.get(
-                "display_type", False
+            if (
+                last_line[2]
+                and last_line[2].get("display_type", False)
+                or res.get("display_type", False)
             ):
                 return res
             action = last_line[0]
