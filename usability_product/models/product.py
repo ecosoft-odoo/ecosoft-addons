@@ -27,7 +27,7 @@ class Product(models.Model):
             rec.is_editable = self.env.user.has_group("base.group_system")
 
     def write(self, vals):
-        model = self._context.get("model", False)
+        model = self._context.get("active_model", False)
         if (
             model in [False, "product.template"]
             and self.product_important == "not_edit"
