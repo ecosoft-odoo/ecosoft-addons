@@ -8,3 +8,5 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     name = fields.Char(copy=False)
+    firstname = fields.Char(copy=False)
+    lastname = fields.Char(copy=False)
