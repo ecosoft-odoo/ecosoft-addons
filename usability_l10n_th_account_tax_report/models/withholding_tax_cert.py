@@ -19,8 +19,7 @@ class WithholdingTaxCert(models.Model):
         self.ensure_one()
         if self.income_tax_form == "pnd54":
             raise UserError(_("PND54 cannot print WHT Certificates."))
-        else:
-            super()._get_report_base_filename()
+        return super()._get_report_base_filename()
 
     def action_done(self):
         for rec in self:
