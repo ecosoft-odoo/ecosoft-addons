@@ -14,6 +14,7 @@
         "budget_control",
     ],
     "data": [
+        "security/ir.model.access.csv",
         "data/auditlog_rule.xml",
         "data/ir_actions_server.xml",
         "views/auditlog_view.xml",
