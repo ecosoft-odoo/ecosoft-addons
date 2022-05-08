@@ -12,7 +12,10 @@
         "budget_activity",
         "purchase_work_acceptance_late_fines",
     ],
-    "data": ["views/res_config_settings_views.xml"],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/res_config_settings_views.xml",
+    ],
     "installable": True,
     "maintainers": ["ps-tubtim"],
     "development_status": "Alpha",
