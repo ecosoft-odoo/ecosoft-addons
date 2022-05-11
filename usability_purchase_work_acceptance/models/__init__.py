@@ -3,4 +3,3 @@
 from . import res_company
 from . import res_config_settings
 from . import work_acceptance
-from . import tier_validation
