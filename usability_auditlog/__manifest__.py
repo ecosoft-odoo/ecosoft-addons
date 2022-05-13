@@ -12,6 +12,8 @@
     "depends": [
         "auditlog",
         "budget_control",
+        "base_user_role",
+        "base_tier_validation",
     ],
     "data": [
         "security/ir.model.access.csv",
