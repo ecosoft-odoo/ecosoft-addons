@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="auditlog_rule_budget_control" model="auditlog.rule">
         <field name="name">Budget Control</field>
@@ -14,6 +15,46 @@
         <!-- Get unlink on line -->
         <field name="capture_record" eval="1" />
         <field name="state">subscribed</field>
+        <field name="log_read" eval="False" />
+        <field name="log_write" eval="True" />
+        <field name="log_unlink" eval="True" />
+        <field name="log_create" eval="True" />
+    </record>
+    <record id="auditlog_rule_tier_definition" model="auditlog.rule">
+        <field name="name">Tier Definition</field>
+        <field name="model_id" ref="base_tier_validation.model_tier_definition" />
+        <!-- Get unlink on line -->
+        <field name="capture_record" eval="1" />
+        <field name="log_read" eval="False" />
+        <field name="log_write" eval="True" />
+        <field name="log_unlink" eval="True" />
+        <field name="log_create" eval="True" />
+    </record>
+    <record id="auditlog_rule_res_users" model="auditlog.rule">
+        <field name="name">Users</field>
+        <field name="model_id" ref="base.model_res_users" />
+        <!-- Get unlink on line -->
+        <field name="capture_record" eval="1" />
+        <field name="log_read" eval="False" />
+        <field name="log_write" eval="True" />
+        <field name="log_unlink" eval="True" />
+        <field name="log_create" eval="True" />
+    </record>
+    <record id="auditlog_rule_res_users_role" model="auditlog.rule">
+        <field name="name">User Roles</field>
+        <field name="model_id" ref="base_user_role.model_res_users_role" />
+        <!-- Get unlink on line -->
+        <field name="capture_record" eval="1" />
+        <field name="log_read" eval="False" />
+        <field name="log_write" eval="True" />
+        <field name="log_unlink" eval="True" />
+        <field name="log_create" eval="True" />
+    </record>
+    <record id="auditlog_rule_res_users_groups" model="auditlog.rule">
+        <field name="name">User Groups</field>
+        <field name="model_id" ref="base.model_res_groups" />
+        <!-- Get unlink on line -->
+        <field name="capture_record" eval="1" />
         <field name="log_read" eval="False" />
         <field name="log_write" eval="True" />
         <field name="log_unlink" eval="True" />
