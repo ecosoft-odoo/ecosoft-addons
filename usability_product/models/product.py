@@ -27,9 +27,10 @@ class Product(models.Model):
             rec.is_editable = self.env.user.has_group("base.group_system")
 
     def write(self, vals):
-        model = self._context.get("active_model", False)
+        # Allow edit product from RFQs
+        quotation_only = self._context.get("quotation_only", False)
         if (
-            model in [False, "product.template"]
+            not quotation_only
             and self.product_important == "not_edit"
             and not self.env.user.has_group("base.group_system")
         ):
