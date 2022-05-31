@@ -12,3 +12,9 @@ class AccountMove(models.Model):
         super()._onchange_guarantee_ids()
         for rec in self.filtered("guarantee_ids"):
             rec.operating_unit_id = rec.guarantee_ids[0].operating_unit_id.id
+
+    @api.onchange("return_guarantee_ids")
+    def _onchange_return_guarantee_ids(self):
+        super()._onchange_return_guarantee_ids()
+        for rec in self.filtered("return_guarantee_ids"):
+            rec.operating_unit_id = rec.return_guarantee_ids[0].operating_unit_id.id
