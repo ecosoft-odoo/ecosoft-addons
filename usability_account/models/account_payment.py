@@ -9,7 +9,7 @@ class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     def _prepare_move_line_default_vals(self, write_off_line_vals=None):
-        """ Add OU in all lines """
+        """Add OU in all lines"""
         line_vals_list = super()._prepare_move_line_default_vals(write_off_line_vals)
         operating_unit = False
         # case expense
@@ -23,7 +23,7 @@ class AccountPayment(models.Model):
         return line_vals_list
 
     def _synchronize_to_moves(self, changed_fields):
-        """ Add OU in move from lines """
+        """Add OU in move from lines"""
         res = super()._synchronize_to_moves(changed_fields)
         for pay in self.with_context(skip_account_move_synchronization=True):
             line_ou = pay.move_id.line_ids.mapped("operating_unit_id")

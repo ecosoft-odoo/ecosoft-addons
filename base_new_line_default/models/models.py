@@ -9,7 +9,7 @@ class BaseModel(models.AbstractModel):
 
     @api.model
     def default_get(self, field_list):
-        """ Set default values based on data passed in by context """
+        """Set default values based on data passed in by context"""
         res = super().default_get(field_list)
         head_vals = self.env.context.get("default_src_head")
         line_vals = self.env.context.get("default_src_line")

@@ -112,7 +112,7 @@ class HRExpense(models.Model):
 
     @api.depends("product_id", "company_id")
     def _compute_from_product_id_company_id(self):
-        """ Clear default name on expense """
+        """Clear default name on expense"""
         res = super()._compute_from_product_id_company_id()
         if self._context.get("skip_clear_default_name", False):
             return res
