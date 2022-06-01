@@ -23,3 +23,14 @@ class AccountMove(models.Model):
                         "the Analytic Account Line must be the same."
                     )
                 )
+
+    def copy(self, default=None):
+        for rec in self:
+            if rec.line_ids.mapped("purchase_order_id"):
+                raise UserError(
+                    _(
+                        "You are not allowed to copy "
+                        "an accounting entry to an purchase."
+                    )
+                )
+        return super().copy(default)
