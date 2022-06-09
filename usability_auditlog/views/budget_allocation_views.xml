@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="budget_allocation_view_form" model="ir.ui.view">
+        <field name="name">budget.allocation.view.form</field>
+        <field name="model">budget.allocation</field>
+        <field name="inherit_id" ref="budget_allocation.budget_allocation_view_form" />
+        <field name="arch" type="xml">
+            <!-- Audit Logs -->
+            <xpath expr="//notebook" position="after">
+                <group>
+                    <div class="oe_right" name="auditlogs">
+                        <button
+                            name="%(action_view_budget_allocation_logs)d"
+                            string="⇒ View Changes"
+                            type="action"
+                            class="oe_link"
+                        />
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

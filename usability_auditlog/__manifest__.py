@@ -14,6 +14,7 @@
         "budget_control",
         "base_user_role",
         "base_tier_validation",
+        "budget_allocation",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -21,6 +22,7 @@
         "data/ir_actions_server.xml",
         "views/auditlog_view.xml",
         "views/budget_control_views.xml",
+        "views/budget_allocation_views.xml",
     ],
     "installable": True,
 }
