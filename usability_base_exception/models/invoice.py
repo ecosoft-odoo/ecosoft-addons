@@ -23,7 +23,7 @@ class AccountMove(models.Model):
 
     @api.depends("amount_total")
     def _compute_amount_exception(self):
-        """ Amount in all posted bills, shouldn't exceed its PO amount """
+        """Amount in all posted bills, shouldn't exceed its PO amount"""
         for rec in self:
             # PO amount
             purchases = rec.line_ids.mapped("purchase_order_id")

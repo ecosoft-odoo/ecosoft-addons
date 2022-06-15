@@ -24,7 +24,7 @@ class PurchaseOrder(models.Model):
 
     @api.depends("amount_total")
     def _compute_amount_exception(self):
-        """ Amount in PO, shouldn't exceed its PR amount """
+        """Amount in PO, shouldn't exceed its PR amount"""
         for rec in self:
             request_lines = rec.order_line.mapped("purchase_request_lines")
             if not request_lines:

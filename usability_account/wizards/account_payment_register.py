@@ -9,7 +9,7 @@ class AccountPaymentRegister(models.TransientModel):
     _inherit = "account.payment.register"
 
     def _update_moveline_operating_unit(self, payments, payment, reconciled_moves):
-        """ Update OU in all move line """
+        """Update OU in all move line"""
         if len(reconciled_moves.mapped("operating_unit_id").ids) > 1:
             raise UserError(
                 _("You can not register payment with operating unit more than 1")
