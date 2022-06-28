@@ -12,7 +12,6 @@
         "budget_activity_purchase_request",
         "budget_source_fund_purchase_request",
         "purchase_request_operating_unit",
-        "purchase_request_tier_validation",
     ],
     "data": ["views/purchase_request_view.xml"],
     "installable": True,
