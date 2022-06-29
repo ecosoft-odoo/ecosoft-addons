@@ -17,4 +17,6 @@ class PurchaseGuarantee(models.Model):
     @api.depends("reference")
     def _compute_operating_unit(self):
         for rec in self:
-            rec.operating_unit_id = rec.reference.operating_unit_id
+            rec.operating_unit_id = (
+                rec.reference and rec.reference.operating_unit_id or False
+            )
