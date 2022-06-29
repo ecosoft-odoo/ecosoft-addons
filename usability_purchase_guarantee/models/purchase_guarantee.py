@@ -28,11 +28,12 @@ class PurchaseGuarantee(models.Model):
     def _compute_fund_all(self):
         for rec in self:
             origin = False
-            if rec.reference._name == "purchase.requisition":
-                origin = rec.reference.line_ids
-            elif rec.reference._name == "purchase.order":
-                origin = rec.reference.order_line
-            rec.fund_all = origin.mapped("fund_id")
+            if rec.reference:
+                if rec.reference._name == "purchase.requisition":
+                    origin = rec.reference.line_ids
+                elif rec.reference._name == "purchase.order":
+                    origin = rec.reference.order_line
+            rec.fund_all = origin and origin.mapped("fund_id") or origin
 
     @api.depends("analytic_account_id")
     def _compute_analytic_tag_all(self):
