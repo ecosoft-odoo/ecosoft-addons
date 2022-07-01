@@ -20,4 +20,4 @@ class WithHoldingTaxReport(models.TransientModel):
             date_format = self.format_date()
             return "WHT-P54-{}".format(date_format)
         else:
-            super()._get_report_base_filename()
+            return super()._get_report_base_filename()
