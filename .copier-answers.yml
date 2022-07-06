@@ -5,10 +5,10 @@ ci: GitHub
 dependency_installation_mode: PIP
 generate_requirements_txt: true
 include_wkhtmltopdf: false
-odoo_version: 14.0
+odoo_version: 13.0
 org_name: Odoo Community Association (OCA)
 org_slug: OCA
-repo_description: 'TODO: add repo description.'
+repo_description: "TODO: add repo description."
 repo_name: Ecosoft Addons for Odoo
 repo_slug: ecosoft-addons
 repo_website: https://github.com/ecosoft-odoo/ecosoft-addons
