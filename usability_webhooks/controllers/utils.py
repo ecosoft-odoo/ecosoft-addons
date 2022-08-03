@@ -14,7 +14,7 @@ class WebhookUtils(models.AbstractModel):
     _description = "Utils Class"
 
     def _search_key(self, model):
-        """ Return the unique search key for each model, else use 'name' """
+        """Return the unique search key for each model, else use 'name'"""
         keys = {
             "product.product": "default_code",
             "res.partner": "ref",
@@ -271,7 +271,7 @@ class WebhookUtils(models.AbstractModel):
 
     @api.model
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
-        """ For many2one, many2many, use name search to get id """
+        """For many2one, many2many, use name search to get id"""
         final_dict = {}
         if not auto_create:
             auto_create = {}
@@ -316,11 +316,10 @@ class WebhookUtils(models.AbstractModel):
                             values = Model.name_search(val, operator="=")
                         elif not values:
                             raise ValidationError(_('"%s" found no match.') % val)
-                        value = (
-                            ftype == "many2one"
-                            and values[0][0]
-                            or value.append((4, values[0][0]))
-                        )
+                        if ftype == "many2one":
+                            value = values[0][0]
+                        elif ftype == "many2many":
+                            value.append((4, values[0][0]))
             final_dict.update({key: value})
         return final_dict
 
