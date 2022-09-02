@@ -50,7 +50,7 @@
             >
                 <attribute
                     name="attrs"
-                >{'required': [('display_type', '=', False)]}</attribute>
+                >{'required': [('display_type', '=', False), ('parent.not_affect_budget', '=', True)]}</attribute>
             </xpath>
         </field>
     </record>
