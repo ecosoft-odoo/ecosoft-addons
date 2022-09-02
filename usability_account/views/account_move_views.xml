@@ -19,7 +19,7 @@
             >
                 <attribute
                     name="attrs"
-                >{'required': [('display_type', '=', False), ('move_id.not_affect_budget', '=', True)]}</attribute>
+                >{'required': [('display_type', '=', False), ('parent.not_affect_budget', '=', True)]}</attribute>
             </xpath>
             <xpath
                 expr="//field[@name='invoice_line_ids']/tree/field[@name='activity_id']"
