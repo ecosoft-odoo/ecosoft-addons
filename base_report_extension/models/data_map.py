@@ -16,7 +16,6 @@ class DataMapType(models.Model):
         comodel_name="data.map",
         inverse_name="map_type_id",
         string="Map Details",
-        ondelete="cascade",
         index=True,
     )
     model = fields.Selection(
@@ -29,6 +28,7 @@ class DataMapType(models.Model):
     template_id = fields.Many2one(
         comodel_name="ir.attachment",
         string="Template",
+        ondelete="cascade",
         help="Template used during import/export xlxs",
     )
     company_id = fields.Many2one(
@@ -51,7 +51,7 @@ class DataMap(models.Model):
         string="Map Type",
         index=True,
         ondelete="cascade",
-        requried=True,
+        required=True,
     )
     model_id = fields.Many2one(
         comodel_name="ir.model",
