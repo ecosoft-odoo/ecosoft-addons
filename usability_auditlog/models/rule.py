@@ -34,6 +34,7 @@ class AuditlogRule(models.Model):
                 auditlog_rule = self.env["auditlog.rule"].search(
                     [("model_id", "=", model_id)]
                 )
+                fields_to_exclude = auditlog_rule.fields_to_exclude_ids.mapped("name")
                 # Overwrite name for mis.budget.item only (date range / name)
                 date_range_name = model_model.browse(res_id).date_range_id.name
                 analytic_name = model_model.browse(
@@ -57,18 +58,26 @@ class AuditlogRule(models.Model):
                     old_values.get(res_id, EMPTY_DICT),
                 )
                 if method == "create":
-                    self._create_log_line_on_create(log, diff.added(), new_values)
+                    self._create_log_line_on_create(
+                        log, diff.added(), new_values, fields_to_exclude
+                    )
                 elif method == "read":
                     self._create_log_line_on_read(
-                        log, list(old_values.get(res_id, EMPTY_DICT).keys()), old_values
+                        log,
+                        list(old_values.get(res_id, EMPTY_DICT).keys()),
+                        old_values,
+                        fields_to_exclude,
                     )
                 elif method == "write":
                     self._create_log_line_on_write(
-                        log, diff.changed(), old_values, new_values
+                        log, diff.changed(), old_values, new_values, fields_to_exclude
                     )
                 elif method == "unlink" and auditlog_rule.capture_record:
                     self._create_log_line_on_read(
-                        log, list(old_values.get(res_id, EMPTY_DICT).keys()), old_values
+                        log,
+                        list(old_values.get(res_id, EMPTY_DICT).keys()),
+                        old_values,
+                        fields_to_exclude,
                     )
             return
         return super().create_logs(
