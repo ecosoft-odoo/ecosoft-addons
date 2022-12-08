@@ -7,7 +7,7 @@
     "support a tier validation process.",
     "version": "14.0.1.0.0",
     "category": "Accounting",
-    "author": "Ecosoft",
+    "author": "Ecosoft, Odoo Community Association (OCA)",
     "license": "AGPL-3",
     "depends": [
         "account",
