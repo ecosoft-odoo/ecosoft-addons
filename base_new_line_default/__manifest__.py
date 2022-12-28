@@ -3,7 +3,7 @@
 
 {
     "name": "New one2many line defaults from previous line",
-    "version": "14.0.1.0.0",
+    "version": "15.0.1.0.0",
     "category": "Usability",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "author": "Ecosoft, Odoo Community Association (OCA)",
