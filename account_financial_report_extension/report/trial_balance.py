@@ -9,17 +9,18 @@ class TrialBalanceReport(models.AbstractModel):
 
     def _get_report_values(self, docids, data):
         res_data = super()._get_report_values(docids, data)
-        if "map_type_id" in data.keys():
+        if "map_type_id" in data.keys() and data["map_type_id"]:
+            map_type = self.env["data.map.type"].browse(data["map_type_id"])
             # Mapping report data
             trial_balance = res_data["trial_balance"]
-            trial_balance = self._get_report_data_mapping(
-                trial_balance, data["map_type_id"]
+            trial_balance = map_type._get_report_data_mapping_afr(
+                trial_balance
             )
             res_data["trial_balance"] = trial_balance
             # Mapping account data
             accounts_data = res_data["accounts_data"]
-            accounts_data = self._get_account_data_mapping(
-                accounts_data, data["map_type_id"]
+            accounts_data = map_type._get_account_data_mapping_afr(
+                accounts_data
             )
             res_data["accounts_data"] = accounts_data
         return res_data

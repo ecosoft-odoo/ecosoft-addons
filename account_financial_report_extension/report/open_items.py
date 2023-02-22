@@ -9,7 +9,7 @@ class OpenItemsReport(models.AbstractModel):
 
     def _get_report_values(self, docids, data):
         res_data = super()._get_report_values(docids, data)
-        if "map_type_id" in data.keys():
+        if "map_type_id" in data.keys() and data["map_type_id"]:
             map_type = self.env["data.map.type"].browse(data["map_type_id"])
             # Mapping report data
             AccountAccount = self.env["account.account"]
@@ -17,7 +17,7 @@ class OpenItemsReport(models.AbstractModel):
             for account_id in Open_Items.keys():
                 account = AccountAccount.browse(account_id)
                 in_value = account.code
-                data_mapping = self._get_data_mapping(map_type, in_value)
+                data_mapping = map_type._get_data_mapping_afr(in_value)
                 if data_mapping:
                     for partner_id in Open_Items[account_id].keys():
                         for line in Open_Items[account_id][partner_id]:
@@ -25,8 +25,8 @@ class OpenItemsReport(models.AbstractModel):
             res_data["Open_Items"] = Open_Items
             # Mapping account data
             accounts_data = res_data["accounts_data"]
-            accounts_data = self._get_account_data_mapping(
-                accounts_data, data["map_type_id"]
+            accounts_data = map_type._get_account_data_mapping_afr(
+                accounts_data
             )
             res_data["accounts_data"] = accounts_data
         return res_data

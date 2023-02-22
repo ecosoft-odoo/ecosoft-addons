@@ -9,11 +9,12 @@ class AgedPartnerBalanceReport(models.AbstractModel):
 
     def _get_report_values(self, docids, data):
         res_data = super()._get_report_values(docids, data)
-        if "map_type_id" in data.keys():
+        if "map_type_id" in data.keys() and data["map_type_id"]:
+            map_type = self.env["data.map.type"].browse(data["map_type_id"])
             # Mapping report data
             aged_partner_balance = res_data["aged_partner_balance"]
-            aged_partner_balance = self._get_report_data_mapping(
-                aged_partner_balance, data["map_type_id"]
+            aged_partner_balance = map_type._get_report_data_mapping_afr(
+                aged_partner_balance
             )
             res_data["aged_partner_balance"] = aged_partner_balance
         return res_data
