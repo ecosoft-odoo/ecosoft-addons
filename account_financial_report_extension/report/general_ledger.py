@@ -9,17 +9,18 @@ class GeneralLedgerReport(models.AbstractModel):
 
     def _get_report_values(self, docids, data):
         res_data = super()._get_report_values(docids, data)
-        if "map_type_id" in data.keys():
+        if "map_type_id" in data.keys() and data["map_type_id"]:
+            map_type = self.env["data.map.type"].browse(data["map_type_id"])
             # Mapping report data
             general_ledger = res_data["general_ledger"]
-            general_ledger = self._get_report_data_mapping(
-                general_ledger, data["map_type_id"]
+            general_ledger = map_type._get_report_data_mapping_afr(
+                general_ledger
             )
             res_data["general_ledger"] = general_ledger
             # Mapping account data
             accounts_data = res_data["accounts_data"]
-            accounts_data = self._get_account_data_mapping(
-                accounts_data, data["map_type_id"]
+            accounts_data = map_type._get_account_data_mapping_afr(
+                accounts_data
             )
             res_data["accounts_data"] = accounts_data
         return res_data
