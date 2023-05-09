@@ -33,7 +33,7 @@ class PurchaseGuarantee(models.Model):
                     origin = rec.reference.line_ids
                 elif rec.reference._name == "purchase.order":
                     origin = rec.reference.order_line
-            rec.fund_all = origin and origin.mapped("fund_id") or origin
+            rec.fund_all = origin.mapped("fund_id") if origin else origin
 
     @api.depends("analytic_account_id")
     def _compute_analytic_tag_all(self):
