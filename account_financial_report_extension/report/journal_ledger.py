@@ -13,8 +13,6 @@ class JournalLedgerReport(models.AbstractModel):
             map_type = self.env["data.map.type"].browse(data["map_type_id"])
             # Mapping account data
             account_ids_data = res_data["account_ids_data"]
-            account_ids_data = map_type._get_account_data_mapping_afr(
-                account_ids_data
-            )
+            account_ids_data = map_type._get_account_data_mapping_afr(account_ids_data)
             res_data["account_ids_data"] = account_ids_data
         return res_data

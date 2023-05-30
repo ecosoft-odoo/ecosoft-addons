@@ -21,12 +21,19 @@ class OpenItemsReport(models.AbstractModel):
                 if data_mapping:
                     for partner_id in Open_Items[account_id].keys():
                         for line in Open_Items[account_id][partner_id]:
-                            line.update({"account_id": (account_id, " ".join([data_mapping["code"], data_mapping["name"]]))})
+                            line.update(
+                                {
+                                    "account_id": (
+                                        account_id,
+                                        " ".join(
+                                            [data_mapping["code"], data_mapping["name"]]
+                                        ),
+                                    )
+                                }
+                            )
             res_data["Open_Items"] = Open_Items
             # Mapping account data
             accounts_data = res_data["accounts_data"]
-            accounts_data = map_type._get_account_data_mapping_afr(
-                accounts_data
-            )
+            accounts_data = map_type._get_account_data_mapping_afr(accounts_data)
             res_data["accounts_data"] = accounts_data
         return res_data
