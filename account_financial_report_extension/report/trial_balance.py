@@ -13,14 +13,10 @@ class TrialBalanceReport(models.AbstractModel):
             map_type = self.env["data.map.type"].browse(data["map_type_id"])
             # Mapping report data
             trial_balance = res_data["trial_balance"]
-            trial_balance = map_type._get_report_data_mapping_afr(
-                trial_balance
-            )
+            trial_balance = map_type._get_report_data_mapping_afr(trial_balance)
             res_data["trial_balance"] = trial_balance
             # Mapping account data
             accounts_data = res_data["accounts_data"]
-            accounts_data = map_type._get_account_data_mapping_afr(
-                accounts_data
-            )
+            accounts_data = map_type._get_account_data_mapping_afr(accounts_data)
             res_data["accounts_data"] = accounts_data
         return res_data
