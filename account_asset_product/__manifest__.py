@@ -2,13 +2,15 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    "name": "MRP Price Difference",
+    "name": "Account Asset Product",
     "version": "15.0.1.0.0",
     "license": "AGPL-3",
-    "category": "Manufacturing",
+    "category": "Accounting & Finance",
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
-    "depends": ["mrp_account"],
-    "data": [],
+    "depends": ["account_asset_management"],
+    "data": [
+        "views/product_views.xml",
+    ],
     "installable": True,
 }
