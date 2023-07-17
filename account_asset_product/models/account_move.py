@@ -18,3 +18,9 @@ class AccountMoveLine(models.Model):
                     rec.asset_profile_id = rec.product_id.asset_profile_id
                 elif rec.account_id.asset_profile_id:
                     rec.asset_profile_id = rec.account_id.asset_profile_id
+
+    @api.onchange("asset_profile_id")
+    def _onchange_asset_profile_id(self):
+        """Overwrite function _onchange_asset_profile_id"""
+        if self.account_id != self.asset_profile_id.account_asset_id:
+            self.account_id = self.asset_profile_id.account_asset_id
