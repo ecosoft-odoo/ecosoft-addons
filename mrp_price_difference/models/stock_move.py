@@ -7,19 +7,12 @@ from odoo import models
 class StockMove(models.Model):
     _inherit = "stock.move"
 
-    def _cal_work_center_cost(self, production):
-        work_center_cost = 0.0
-        for work_order in production.workorder_ids:
-            duration = sum(work_order.time_ids.mapped("duration"))
-            work_center_cost += (duration / 60.0) * work_order.workcenter_id.costs_hour
-        return work_center_cost
-
     def _cal_raw_material_cost(self, production):
-        pickings = production.picking_ids
-        scraps = self.env["stock.scrap"].search([("picking_id", "in", pickings.ids)])
-        moves = pickings.mapped("move_lines") + scraps.mapped("move_id")
-        total = sum(moves.mapped("stock_valuation_layer_ids.value"))
-        return abs(total)
+        consumed_moves = production._get_consumed_moves()
+        total_rm_cost = -sum(
+            consumed_moves.sudo().stock_valuation_layer_ids.mapped("value")
+        )
+        return total_rm_cost
 
     def _generate_valuation_lines_data(
         self,
@@ -35,8 +28,6 @@ class StockMove(models.Model):
         # Change debit and credit value
         if self.production_id:
             raw_material_cost = self._cal_raw_material_cost(self.production_id)
-            work_center_cost = self._cal_work_center_cost(self.production_id)
-            debit_value = raw_material_cost + work_center_cost
             credit_value = raw_material_cost
         return super()._generate_valuation_lines_data(
             partner_id,
