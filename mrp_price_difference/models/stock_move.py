@@ -15,10 +15,11 @@ class StockMove(models.Model):
         return work_center_cost
 
     def _cal_raw_material_cost(self, production):
-        total = sum(
-            move.product_uom_qty * move.price_unit for move in production.move_raw_ids
-        )
-        return total
+        pickings = production.picking_ids
+        scraps = self.env["stock.scrap"].search([("picking_id", "in", pickings.ids)])
+        moves = pickings.mapped("move_lines") + scraps.mapped("move_id")
+        total = sum(moves.mapped("stock_valuation_layer_ids.value"))
+        return abs(total)
 
     def _generate_valuation_lines_data(
         self,
@@ -37,7 +38,6 @@ class StockMove(models.Model):
             work_center_cost = self._cal_work_center_cost(self.production_id)
             debit_value = raw_material_cost + work_center_cost
             credit_value = raw_material_cost
-
         return super()._generate_valuation_lines_data(
             partner_id,
             qty,
