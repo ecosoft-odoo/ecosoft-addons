@@ -16,9 +16,15 @@ class AccountMove(models.Model):
     def button_draft(self):
         for rec in self:
             rec_pay_lines = rec._get_receivable_payable_lines()
-            if rec.move_type in ["in_invoice", "out_invoice"] and (
-                rec_pay_lines.matched_debit_ids or rec_pay_lines.matched_credit_ids
-            ):
+            # Expense case journal only (not include payment)
+            sheet = rec.line_ids.mapped("expense_id").mapped("sheet_id")
+            sheet_not_post = sheet.filtered(lambda l: l.state != "post")
+            if (
+                rec.move_type in ["in_invoice", "out_invoice"]
+                and (
+                    rec_pay_lines.matched_debit_ids or rec_pay_lines.matched_credit_ids
+                )
+            ) or (sheet and sheet_not_post and not rec.payment_id):
                 raise ValidationError(
                     _("You cannot reset to draft reconciled entries.")
                 )
