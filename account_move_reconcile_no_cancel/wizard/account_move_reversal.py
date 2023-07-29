@@ -25,4 +25,7 @@ class AccountMoveReversal(models.TransientModel):
                 raise ValidationError(
                     _("You cannot reset to draft / reverse reconciled entries.")
                 )
-        return super().reverse_moves()
+        res = super().reverse_moves()
+        # Overwite payment state to reversed
+        moves.write({"payment_state": "reversed"})
+        return res
