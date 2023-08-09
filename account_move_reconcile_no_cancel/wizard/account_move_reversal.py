@@ -27,5 +27,5 @@ class AccountMoveReversal(models.TransientModel):
                 )
         res = super().reverse_moves()
         # Overwite payment state to reversed
-        moves.write({"payment_state": "reversed"})
+        moves.with_context(bypass_lockdate=1).write({"payment_state": "reversed"})
         return res
