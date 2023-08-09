@@ -13,6 +13,11 @@ class AccountMove(models.Model):
             lambda l: l.account_internal_type in ["receivable", "payable"],
         )
 
+    def _check_fiscalyear_lock_date(self):
+        if self._context.get("bypass_lockdate"):
+            return True
+        return super()._check_fiscalyear_lock_date()
+
     def button_draft(self):
         for rec in self:
             rec_pay_lines = rec._get_receivable_payable_lines()
