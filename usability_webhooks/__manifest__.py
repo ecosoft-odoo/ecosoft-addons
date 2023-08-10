@@ -8,6 +8,9 @@
     "category": "Tools",
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
-    "depends": ["base"],
-    "data": [],
+    "depends": ["base", "mail"],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/api_log.xml",
+    ],
 }
