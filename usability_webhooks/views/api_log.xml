@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_api_log_tree" model="ir.ui.view">
+        <field name="name">view.api.log.tree</field>
+        <field name="model">api.log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="model" />
+                <field name="data" />
+                <field name="result" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-info="state == 'draft'"
+                    decoration-danger="state == 'failed'"
+                    decoration-success="state == 'done'"
+                />
+            </tree>
+        </field>
+    </record>
+    <record id="view_api_log_form" model="ir.ui.view">
+        <field name="name">view.api.log.form</field>
+        <field name="model">api.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_call_api"
+                        string="Update API"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <group>
+                        <group name="main_left">
+                            <field name="model" />
+                            <field name="route" />
+                            <field name="data" />
+                        </group>
+                        <group name="main_right">
+                            <field name="result" />
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" />
+                    <field name="activity_ids" widget="mail_activity" />
+                    <field name="message_ids" widget="mail_thread" />
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="view_api_log_search" model="ir.ui.view">
+        <field name="name">view.api.log.search</field>
+        <field name="model">api.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="data" string="Data" />
+                <filter
+                    name="state_draft"
+                    string="Draft"
+                    domain="[('state', '=', 'draft')]"
+                />
+                <filter
+                    name="state_done"
+                    string="Done"
+                    domain="[('state', '=', 'done')]"
+                />
+                <filter
+                    name="state_failed"
+                    string="Failed"
+                    domain="[('state', '=', 'failed')]"
+                />
+                <group expand="1" string="Group By">
+                    <filter
+                        string="Model"
+                        name="group_by_model"
+                        context="{'group_by':'model'}"
+                    />
+                    <filter
+                        string="State"
+                        name="group_by_state"
+                        context="{'group_by':'state'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_api_logs" model="ir.actions.act_window">
+        <field name="name">API Logs</field>
+        <field name="res_model">api.log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_api_log_search" />
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem
+        id="menu_action_api_configuration"
+        name="API Configuration"
+        parent="base.menu_custom"
+    />
+    <menuitem
+        id="menu_action_api_logs"
+        parent="usability_webhooks.menu_action_api_configuration"
+        name="API Logs"
+        action="action_api_logs"
+        sequence="10"
+    />
+
+</odoo>
