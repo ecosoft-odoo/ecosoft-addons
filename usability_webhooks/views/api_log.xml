@@ -5,7 +5,8 @@
         <field name="model">api.log</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="model" />
+                <field name="create_date" optional="show" />
+                <field name="model" optional="show" />
                 <field name="data" />
                 <field name="result" />
                 <field
@@ -35,6 +36,7 @@
                 <sheet>
                     <group>
                         <group name="main_left">
+                            <field name="create_date" />
                             <field name="model" />
                             <field name="route" />
                             <field name="data" />
