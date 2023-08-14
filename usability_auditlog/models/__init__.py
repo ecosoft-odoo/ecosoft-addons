@@ -2,3 +2,4 @@
 
 from . import rule
 from . import log
+from . import auditlog_log_line_view
