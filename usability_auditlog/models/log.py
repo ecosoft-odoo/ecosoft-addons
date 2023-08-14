@@ -7,10 +7,3 @@ class AuditlogLog(models.Model):
     _inherit = "auditlog.log"
 
     ref = fields.Text()
-
-
-class AuditlogLogLine(models.Model):
-    _inherit = "auditlog.log.line"
-    _order = "create_date desc"
-
-    ref = fields.Text(related="log_id.ref")

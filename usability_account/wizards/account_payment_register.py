@@ -18,7 +18,7 @@ class AccountPaymentRegister(models.TransientModel):
             payments, payment, reconciled_moves
         )
         move = payment.move_id
-        for line in move.line_ids.filtered(lambda l: not l.operating_unit_id):
+        for line in move.line_ids.filtered(lambda x: not x.operating_unit_id):
             line.write(
                 {
                     "operating_unit_id": reconciled_moves.operating_unit_id.id,

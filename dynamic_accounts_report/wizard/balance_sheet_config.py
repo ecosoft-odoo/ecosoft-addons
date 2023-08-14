@@ -189,7 +189,6 @@ class BalanceSheet(models.TransientModel):
 
     # flake8: noqa: C901
     def get_account_lines(self, data):
-
         lines = []
         account_report = data["account_report_id"]
         child_reports = account_report._get_children_by_order()

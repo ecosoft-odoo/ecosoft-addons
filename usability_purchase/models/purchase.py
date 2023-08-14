@@ -12,7 +12,7 @@ class PurchaseOrder(models.Model):
     def check_operating_unit_id(self):
         for rec in self:
             # find lines is not section and note
-            for line in rec.order_line.filtered(lambda l: not l.display_type):
+            for line in rec.order_line.filtered(lambda x: not x.display_type):
                 if (
                     line.operating_unit_id
                     not in line.account_analytic_id.operating_unit_ids
@@ -31,7 +31,7 @@ class PurchaseOrder(models.Model):
             # Trigger onchange account
             # eg. onchange asset profile following account
             for line in invoice.invoice_line_ids.filtered(
-                lambda l: l.account_id.asset_profile_id
+                lambda x: x.account_id.asset_profile_id
             ):
                 line.asset_profile_id = line.account_id.asset_profile_id
         return res

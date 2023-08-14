@@ -10,7 +10,7 @@ class ResUsers(models.Model):
 
     @classmethod
     def authenticate(cls, db, login, password, user_agent_env):
-        uid = super(ResUsers, cls).authenticate(db, login, password, user_agent_env)
+        uid = super().authenticate(db, login, password, user_agent_env)
         # request env needs to be able to access the latest changes from the auth layers
         request.env.cr.commit()
         return uid
