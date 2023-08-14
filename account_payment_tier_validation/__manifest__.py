@@ -7,6 +7,7 @@
     "support a tier validation process.",
     "version": "14.0.1.0.0",
     "category": "Accounting",
+    "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "license": "AGPL-3",
     "depends": [

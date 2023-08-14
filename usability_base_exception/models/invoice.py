@@ -34,7 +34,7 @@ class AccountMove(models.Model):
             # Invoice(s) amount
             other_amount = sum(
                 purchases.mapped("invoice_ids")
-                .filtered(lambda l: l.state == "posted")
+                .filtered(lambda x: x.state == "posted")
                 .mapped("amount_total")
             )
             this_amount = rec.amount_total if rec.state == "draft" else 0

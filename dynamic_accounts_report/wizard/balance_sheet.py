@@ -746,7 +746,6 @@ class BalanceSheetView(models.TransientModel):
 
         if rl_data:
             for fr in rl_data:
-
                 row += 1
 
                 txt_name = workbook.add_format({"font_size": "10px", "border": 1})

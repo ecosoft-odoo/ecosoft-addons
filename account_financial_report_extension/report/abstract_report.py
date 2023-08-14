@@ -20,8 +20,8 @@ class AgedPartnerBalanceReport(models.AbstractModel):
             for i, data in enumerate(report_data):
                 in_value = data["code"]
                 for line in map_type.line_ids.filtered(
-                    lambda l: l.model_id.model == "account.account"
-                    and l.field_id.name == "code"
+                    lambda x: x.model_id.model == "account.account"
+                    and x.field_id.name == "code"
                 ):
                     out_value = line.get_out_value(
                         map_type.name, "account.account", "code", in_value

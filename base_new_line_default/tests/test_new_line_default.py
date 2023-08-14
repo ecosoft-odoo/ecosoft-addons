@@ -6,7 +6,7 @@ from odoo.tests.common import Form, TransactionCase
 
 class TestHrExpenseDefault(TransactionCase):
     def setUp(self):
-        super(TestHrExpenseDefault, self).setUp()
+        super().setUp()
         self.Group = self.env["res.groups"]
 
     def test_01_new_group_line(self):
