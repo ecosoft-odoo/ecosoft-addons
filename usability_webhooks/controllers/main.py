@@ -20,7 +20,7 @@ class WebhookController(http.Controller):
             "route": "/api/create_data",
         }
         # Create Data & Update logs
-        ICP = self.env["ir.config_parameter"]
+        ICP = request.env["ir.config_parameter"]
         rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
         rollback_except = ICP.sudo().get_param("webhook.rollback_except")
         try:
@@ -53,7 +53,7 @@ class WebhookController(http.Controller):
             "route": "/api/create_update_data",
         }
         # Create/Update Data & Update logs
-        ICP = self.env["ir.config_parameter"]
+        ICP = request.env["ir.config_parameter"]
         rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
         rollback_except = ICP.sudo().get_param("webhook.rollback_except")
         try:
