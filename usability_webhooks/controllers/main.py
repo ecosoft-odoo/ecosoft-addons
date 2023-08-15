@@ -49,7 +49,10 @@ class WebhookController(http.Controller):
             state = "done" if res["is_success"] else "failed"
             data_dict.update({"result": res, "state": state})
         except Exception as e:
-            res = e
+            res = {
+                "is_success": False,
+                "messages": e,
+            }
             data_dict.update({"result": res, "state": "failed"})
         request.env["api.log"].create(data_dict)
         return res
