@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="webhook_rollback_state_false" model="ir.config_parameter">
+        <field name="key">webhook.rollback_state_failed</field>
+        <field name="value">1</field>
+    </record>
+    <record id="webhook_rollback_except" model="ir.config_parameter">
+        <field name="key">webhook.rollback_except</field>
+        <field name="value">1</field>
+    </record>
+</odoo>
