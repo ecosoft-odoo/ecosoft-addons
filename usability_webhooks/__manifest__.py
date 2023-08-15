@@ -11,6 +11,7 @@
     "depends": ["base", "mail"],
     "data": [
         "security/ir.model.access.csv",
+        "data/config_parameter.xml",
         "views/api_log.xml",
     ],
 }
