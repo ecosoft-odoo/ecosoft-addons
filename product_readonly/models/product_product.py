@@ -21,7 +21,7 @@ class ProductProduct(models.Model):
         )
         # if user has group product verify, noting to do
         product_verify_group = self.env.user.has_group(
-            "product_template_readonly.group_product_verify"
+            "product_readonly.group_product_verify"
         )
         if product_verify_group:
             return res
