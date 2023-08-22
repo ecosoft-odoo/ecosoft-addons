@@ -8,7 +8,7 @@
     "category": "Accounting & Finance",
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
-    "depends": ["product"],
-    "data": [],
+    "depends": ["base", "product"],
+    "data": ["security/base_security.xml"],
     "installable": True,
 }
