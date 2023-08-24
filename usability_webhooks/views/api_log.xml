@@ -7,8 +7,9 @@
             <tree>
                 <field name="create_date" optional="show" />
                 <field name="model" optional="show" />
-                <field name="data" />
-                <field name="result" />
+                <field name="data" optional="show" />
+                <field name="result" optional="show" />
+                <field name="log_type" optional="show" />
                 <field
                     name="state"
                     widget="badge"
@@ -39,6 +40,7 @@
                             <field name="create_date" />
                             <field name="model" />
                             <field name="route" />
+                            <field name="log_type" />
                             <field name="data" />
                         </group>
                         <group name="main_right">
@@ -75,16 +77,32 @@
                     string="Failed"
                     domain="[('state', '=', 'failed')]"
                 />
+                <separator />
+                <filter
+                    name="log_type_send"
+                    string="Send"
+                    domain="[('log_type', '=', 'send')]"
+                />
+                <filter
+                    name="log_type_receive"
+                    string="Receive"
+                    domain="[('log_type', '=', 'receive')]"
+                />
                 <group expand="1" string="Group By">
                     <filter
                         string="Model"
                         name="group_by_model"
-                        context="{'group_by':'model'}"
+                        context="{'group_by': 'model'}"
                     />
                     <filter
                         string="State"
                         name="group_by_state"
-                        context="{'group_by':'state'}"
+                        context="{'group_by': 'state'}"
+                    />
+                    <filter
+                        string="Log Type"
+                        name="group_by_log_type"
+                        context="{'group_by': 'log_type'}"
                     />
                 </group>
             </search>
