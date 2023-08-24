@@ -17,6 +17,13 @@ class APILog(models.Model):
     model = fields.Char(tracking=True)
     route = fields.Char(tracking=True)
     result = fields.Text(tracking=True)
+    log_type = fields.Selection(
+        selection=[
+            ("send", "Send"),
+            ("receive", "Receive"),
+        ],
+        default="receive",
+    )
     state = fields.Selection(
         selection=[
             ("draft", "Draft"),
