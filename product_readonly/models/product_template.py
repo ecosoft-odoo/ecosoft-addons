@@ -32,6 +32,8 @@ class ProductTemplate(models.Model):
             nodes = doc.xpath("//tree")
         elif view_type == "form":
             nodes = doc.xpath("//form")
+        elif view_type == "kanban":
+            nodes = doc.xpath("//kanban")
         for node in nodes:
             node.set("create", "false")
             node.set("edit", "false")
