@@ -1,0 +1,13 @@
+// Change Font
+@font-face {
+    font-family: "THSarabun";
+    src: url("../fonts/THSarabunNew Bold.ttf") format("truetype");
+}
+
+.number_wht {
+    font-size: 28px;
+    font-weight: bold;
+    position: fixed;
+    top: 123px;
+    right: 200px;
+}

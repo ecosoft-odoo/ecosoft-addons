@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_withholding_tax_cert_tree" model="ir.ui.view">
+        <field name="name">view.withholding.tax.cert.tree</field>
+        <field name="model">withholding.tax.cert</field>
+        <field
+            name="inherit_id"
+            ref="l10n_th_account_tax.view_withholding_tax_cert_tree"
+        />
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="number" />
+            </field>
+        </field>
+    </record>
+    <record id="view_withholding_tax_cert_form" model="ir.ui.view">
+        <field name="name">view.withholding.tax.cert.form</field>
+        <field name="model">withholding.tax.cert</field>
+        <field
+            name="inherit_id"
+            ref="l10n_th_account_tax.view_withholding_tax_cert_form"
+        />
+        <field name="arch" type="xml">
+            <xpath expr="//h1" position="after">
+                <h2>
+                    <field name="number" />
+                </h2>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_withholding_tax_cert_search" model="ir.ui.view">
+        <field name="name">view.withholding.tax.cert.search</field>
+        <field name="model">withholding.tax.cert</field>
+        <field
+            name="inherit_id"
+            ref="l10n_th_account_tax.view_withholding_tax_cert_search"
+        />
+        <field name="arch" type="xml">
+            <field name="name" position="attributes">
+                <attribute name="filter_domain">
+                    ['|', ('name', 'ilike', self), ('number', 'ilike', self)]
+                </attribute>
+            </field>
+        </field>
+    </record>
+</odoo>
