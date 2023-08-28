@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <template
+        id="withholding_layout_report"
+        inherit_id="l10n_th_account_wht_cert_form.withholding_layout_report"
+    >
+        <xpath
+            expr="//div[hasclass('o_report_withholding_tax_cert')]"
+            position="inside"
+        >
+            <h4 class="number_wht">
+                <span t-out="o.number" />
+            </h4>
+        </xpath>
+    </template>
+
+</odoo>
