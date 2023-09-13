@@ -16,6 +16,7 @@ class APILog(models.Model):
     data = fields.Text(tracking=True)
     model = fields.Char(tracking=True)
     route = fields.Char(tracking=True)
+    function_name = fields.Char(tracking=True)
     result = fields.Text(tracking=True)
     log_type = fields.Selection(
         selection=[
@@ -36,9 +37,8 @@ class APILog(models.Model):
 
     def action_call_api(self):
         try:
-            res = self.env["webhook.utils"].create_data(
-                self.model, json.loads(self.data)
-            )
+            func = getattr(self.env["webhook.utils"], self.function_name)
+            res = func(self.model, json.loads(self.data))
             state = "done" if res["is_success"] else "failed"
             self.write({"result": res, "state": state})
         except Exception as e:
