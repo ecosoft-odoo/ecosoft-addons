@@ -8,16 +8,14 @@ from odoo.http import request
 
 
 class WebhookController(http.Controller):
-    @http.route("/api/create_data", type="json", auth="none")
+    @http.route("/api/create_data", type="json", auth="user")
     def create_data(self, model, vals):
-        # Authentication
-        head = request.httprequest.headers
-        request.session.authenticate(head["db"], head["login"], head["password"])
         # Add logs
         data_dict = {
             "data": json.dumps(vals),
             "model": model,
             "route": "/api/create_data",
+            "function_name": "create_data",
         }
         # Create Data & Update logs
         ICP = request.env["ir.config_parameter"]
@@ -42,15 +40,14 @@ class WebhookController(http.Controller):
         request.env["api.log"].create(data_dict)
         return res
 
-    @http.route("/api/create_update_data", type="json", auth="none")
+    @http.route("/api/create_update_data", type="json", auth="user")
     def create_update_data(self, model, vals):
-        head = request.httprequest.headers
-        request.session.authenticate(head["db"], head["login"], head["password"])
         # Add logs
         data_dict = {
             "data": json.dumps(vals),
             "model": model,
             "route": "/api/create_update_data",
+            "function_name": "create_update_data",
         }
         # Create/Update Data & Update logs
         ICP = request.env["ir.config_parameter"]
