@@ -37,15 +37,24 @@
                 <sheet>
                     <group>
                         <group name="main_left">
-                            <field name="create_date" />
                             <field name="model" />
                             <field name="route" />
-                            <field name="log_type" />
-                            <field name="data" />
+                            <field name="function_name" />
                         </group>
                         <group name="main_right">
-                            <field name="result" />
+                            <field name="log_type" />
+                            <field name="create_date" />
                         </group>
+                    </group>
+                    <group string="Input">
+                        <div>
+                            <field name="data" />
+                        </div>
+                    </group>
+                    <group string="Output">
+                        <div>
+                            <field name="result" readonly="1" />
+                        </div>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
