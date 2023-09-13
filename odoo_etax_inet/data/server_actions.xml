@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="action_push_sales_order_to_frappe" model="ir.actions.server">
+        <field name="name">Send SO to Frappe Server</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="state">code</field>
+        <field name="code">
+target_doctype = 'Sales Order'
+
+# Create term and conditions
+notes = {}
+for doc in records:
+    note = '\n'.join(doc.order_line.filtered("display_type").mapped("name"))
+    notes.update({doc.id: note})
+
+target_docs = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'customer': doc.partner_id.name,
+    'transaction_date': doc.date_order.strftime('%Y-%m-%d'),
+    'delivery_date': doc.date_order.strftime('%Y-%m-%d'),
+    'payment_terms_template': doc.payment_term_id.name or '',
+    'items': [
+        {
+            'item_code': l.product_id.name,
+            'description': l.name,
+            'qty': l.product_uom_qty,
+            'rate': l.price_unit
+        } for l in doc.order_line.filtered(lambda l: not l.display_type)
+    ],
+    'taxes_and_charges': doc.order_line.tax_id and doc.order_line.tax_id.name or '',
+    'terms': notes[doc.id]+doc.note and (notes[doc.id]+doc.note).replace('\n', '&lt;br&gt;') or '',
+} for doc in records]
+
+action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=False, log_ids=[])
+        </field>
+    </record>
+
+    <record id="action_push_purchase_order_to_frappe" model="ir.actions.server">
+        <field name="name">Send PO to Frappe Server</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="state">code</field>
+        <field name="code">
+target_doctype = 'Purchase Order'
+
+# Create term and conditions
+notes = {}
+for doc in records:
+    note = '\n'.join(doc.order_line.filtered("display_type").mapped("name"))
+    notes.update({doc.id: note or ''})
+
+target_docs = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'supplier': doc.partner_id.name,
+    'transaction_date': doc.date_approve.strftime('%Y-%m-%d'),
+    'schedule_date': doc.date_approve.strftime('%Y-%m-%d'),
+    'payment_terms_template': doc.payment_term_id.name or '',
+    'items': [
+        {
+            'item_code': l.product_id.name,
+            'description': l.name,
+            'qty': l.product_qty,
+            'uom': l.product_uom.name,
+            'rate': l.price_unit
+        } for l in doc.order_line.filtered(lambda l: not l.display_type)
+    ],
+    'taxes_and_charges': doc.order_line.taxes_id and doc.order_line.taxes_id.name or '',
+    'terms': notes[doc.id]+(doc.notes or '') and (notes[doc.id]+(doc.notes or '')).replace('\n', '&lt;br&gt;') or '',
+    'disable_rounded_total': 1
+} for doc in records]
+
+action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=True, log_ids=[])
+        </field>
+    </record>
+
+    <record id="action_push_cust_invoice_to_frappe" model="ir.actions.server">
+        <field name="name">Send Cust Invoice to Frappe Server</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">
+target_doctype = 'Sales Invoice'
+
+# Create term and conditions
+notes = {}
+for doc in records:
+    note = '\n'.join(doc.invoice_line_ids.filtered("display_type").mapped("name"))
+    notes.update({doc.id: note})
+
+target_docs = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'customer': doc.partner_id.name,
+    'debit_to': doc.partner_id.property_account_receivable_id.display_name,
+    'posting_date': doc.invoice_date.strftime('%Y-%m-%d'),
+    'set_posting_time': 1,
+    'posting_time': "01:00:00",
+    'payment_terms_template': doc.invoice_payment_term_id.name or '',
+    'tax_id': doc.partner_id.vat,
+    'items': [
+    {
+        'item_code': l.product_id.name or '',
+        'item_name': l.product_id and l.product_id.name or l.name or '',
+        'description': l.name,
+        'qty': l.quantity,
+        'uom': l.product_uom_id.name,
+        'rate': l.price_unit,
+        'income_account': l.account_id.display_name,
+        'cost_center': 'Main - EC',
+        'sales_order': l.sale_line_ids.order_id.name or '',
+    } for l in doc.invoice_line_ids.filtered(lambda l: not l.display_type)
+    ],
+    'taxes_and_charges': doc.invoice_line_ids.tax_ids and doc.invoice_line_ids.tax_ids.name or '',
+    'terms': notes[doc.id]+(doc.narration or '') and (notes[doc.id]+(doc.narration or '')).replace('\n', '&lt;br&gt;') or '',
+    } for doc in records]
+
+action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=True, log_ids=[])
+        </field>
+    </record>
+
+    <record id="action_push_supp_invoice_to_frappe" model="ir.actions.server">
+        <field name="name">Send Supplier Invoice to Frappe Server</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">
+target_doctype = 'Purchase Invoice'
+
+# Create term and conditions
+notes = {}
+for doc in records:
+    note = '\n'.join(doc.invoice_line_ids.filtered("display_type").mapped("name"))
+    notes.update({doc.id: note})
+
+target_docs = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'supplier': doc.partner_id.name,
+    'credit_to': doc.partner_id.property_account_payable_id.display_name,
+    'posting_date': doc.date.strftime('%Y-%m-%d'),
+    'set_posting_time': 1,
+    'posting_time': "01:00:00",
+    'payment_terms_template': doc.invoice_payment_term_id.name or '',
+    'tax_id': doc.partner_id.vat,
+    'tax_invoice_number': doc.tax_invoice_ids and doc.tax_invoice_ids.tax_invoice_number or '',
+    'tax_invoice_date': doc.tax_invoice_ids and doc.tax_invoice_ids.tax_invoice_date.strftime('%Y-%m-%d') or '',
+    'items': [
+    {
+        'item_code': l.product_id.name or '',
+        'item_name': l.product_id and l.product_id.name or l.name or '',
+        'description': l.name,
+        'qty': l.quantity,
+        'uom': l.product_uom_id.name,
+        'rate': l.price_unit,
+        'expense_account': l.account_id.display_name,
+        'cost_center': 'Main - EC',
+        'purchase_order': l.purchase_line_id.order_id.name or '',
+    } for l in doc.invoice_line_ids.filtered(lambda l: not l.display_type)
+    ],
+    'taxes_and_charges': doc.invoice_line_ids.tax_ids and doc.invoice_line_ids.tax_ids.name or '',
+    'terms': notes[doc.id]+(doc.narration or '') and (notes[doc.id]+(doc.narration or '')).replace('\n', '&lt;br&gt;') or '',
+    'disable_rounded_total': 1
+} for doc in records]
+
+action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=True, log_ids=[])
+        </field>
+    </record>
+
+    <record id="action_push_supplier_addr_contact_to_frappe" model="ir.actions.server">
+        <field name="name">Send Supplier-Address-Contact to Frappe</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">
+# Supplier
+suppliers = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'name': doc.name,
+    'supplier_name': doc.name,
+    'supplier_type': 'Company',
+    'supplier_group': 'All Supplier Groups',
+    'territory': 'Thailand',
+    'tax_id': doc.vat,
+    'branch_cde': doc.branch,
+    'website': doc.website
+} for doc in records]
+
+# Address
+addresses = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'address_title': doc.name,
+    'address_line1': doc.street or '-',
+    'address_line2': doc.street2,
+    'city': doc.city or '-',
+    'country': 'Thailand',
+    'pincode': doc.zip,
+    'email_address': doc.email,
+    'links': [{
+    'link_doctype': 'Supplier',
+    'link_name': doc.name
+    }]
+} for doc in records]
+
+# Contact
+contacts = [{
+    'odoo_ref': '%s|%s|%s' % (contact._name, contact.id, contact.name),  # Required
+    'first_name': contact.name,
+    'company_name': contact.parent_id.name,
+    'designation': contact.function,
+    'email_ids': contact.email and [{
+    'email_id': contact.email
+    }] or [],
+    'phone_nos': (contact.phone or contact.mobile) and [{
+    'phone': ','.join(filter(lambda x: x, [contact.phone, contact.mobile]))
+    }] or [],
+    'links': [{
+    'link_doctype': 'Supplier',
+    'link_name': contact.parent_id.name
+    }]
+} for contact in records.mapped("child_ids")]
+
+res = env['push.to.frappe'].push('Supplier', suppliers, push_file=False, log_ids=[])
+res = env['push.to.frappe'].push('Address', addresses, push_file=False, log_ids=res['log_ids'])
+action = env['push.to.frappe'].push('Contact', contacts, push_file=False, log_ids=res['log_ids'])
+        </field>
+    </record>
+
+    <record id="action_push_cust_addr_contact_to_frappe" model="ir.actions.server">
+        <field name="name">Send Customer-Address-Contact to Frappe</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">
+# Customer
+customers = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'name': doc.name,
+    'customer_name': doc.name,
+    'customer_type': 'Company',
+    'customer_group': 'Commercial',
+    'territory': 'Thailand',
+    'tax_id': doc.vat,
+    'branch_cde': doc.branch,
+    'website': doc.website
+} for doc in records]
+
+# Address
+addresses = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'address_title': doc.name,
+    'address_line1': doc.street,
+    'address_line2': doc.street2,
+    'city': doc.city,
+    'country': 'Thailand',
+    'pincode': doc.zip,
+    'email_address': doc.email,
+    'links': [{
+    'link_doctype': 'Customer',
+    'link_name': doc.name
+    }]
+} for doc in records]
+
+# Contact
+contacts = [{
+    'odoo_ref': '%s|%s|%s' % (contact._name, contact.id, contact.name),  # Required
+    'first_name': contact.name,
+    'company_name': contact.parent_id.name,
+    'designation': contact.function,
+    'email_ids': contact.email and [{
+    'email_id': contact.email
+    }] or [],
+    'phone_nos': (contact.phone or contact.mobile) and [{
+    'phone': ','.join(filter(lambda x: x, [contact.phone, contact.mobile]))
+    }] or [],
+    'links': [{
+    'link_doctype': 'Customer',
+    'link_name': contact.parent_id.name
+    }]
+} for contact in records.mapped("child_ids")]
+
+
+res = env['push.to.frappe'].push('Customer', customers, push_file=False, log_ids=[])
+res = env['push.to.frappe'].push('Address', addresses, push_file=False, log_ids=res["log_ids"])
+action = env['push.to.frappe'].push('Contact', contacts, push_file=False, log_ids=res["log_ids"])
+        </field>
+    </record>
+
+    <record id="action_push_cust_payment_to_frappe" model="ir.actions.server">
+        <field name="name">Send Customer Payment to Frappe</field>
+        <field name="model_id" ref="account.model_account_payment"/>
+        <field name="binding_model_id" ref="account.model_account_payment"/>
+        <field name="state">code</field>
+        <field name="code">
+target_doctype = 'Payment Entry'
+
+target_docs = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'payment_type': 'Receive',
+    'posting_date': doc.payment_date.strftime('%Y-%m-%d'),
+    'mode_of_payment': doc.journal_id.display_name,
+    'party_type': 'Customer',
+    'party': doc.partner_id.name,
+    'paid_amount': doc.amount,
+    'received_amount': doc.amount,
+    'paid_to': doc.journal_id.default_debit_account_id.display_name,
+    'paid_from': doc.partner_id.property_account_receivable_id.display_name,
+    'account_currency_to': 'THB',
+    'references': [{
+        'reference_doctype': 'Sales Invoice',
+        'reference_name': inv.name,
+        'allocated_amount': inv.amount_total
+    } for inv in doc.invoice_ids],
+    'reference_no': doc.communication,
+    'reference_date': doc.payment_date.strftime('%Y-%m-%d'),
+    'target_exchange_rate': 1,
+    'deductions': [{
+        'account': ml.account_id.display_name,
+        'amount': ml.debit - ml.credit,
+        'cost_center': 'Main - EC',
+    } for ml in doc.move_id.line_ids.filtered(lambda l: l.account_id.display_name == '119300 - Prepaid Withholding tax - EC')]
+} for doc in records]
+
+action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=False, log_ids=[])
+        </field>
+    </record>
+
+    <record id="action_push_sup_payment_to_frappe" model="ir.actions.server">
+        <field name="name">Send Supplier Payment to Frappe</field>
+        <field name="model_id" ref="account.model_account_payment"/>
+        <field name="binding_model_id" ref="account.model_account_payment"/>
+        <field name="state">code</field>
+        <field name="code">
+target_doctype = 'Payment Entry'
+
+target_docs = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'payment_type': 'Pay',
+    'posting_date': doc.payment_date.strftime('%Y-%m-%d'),
+    'mode_of_payment': doc.journal_id.display_name,
+    'party_type': 'Supplier',
+    'party': doc.partner_id.name,
+    'paid_amount': doc.amount,
+    'received_amount': doc.amount,
+    'paid_to': doc.partner_id.property_account_payable_id.display_name,
+    'paid_from': doc.journal_id.default_credit_account_id.display_name,
+    'account_currency_to': 'THB',
+    'tax_invoice_number': doc.tax_invoice_ids and doc.tax_invoice_ids.tax_invoice_number or '',
+    'tax_invoice_date': doc.tax_invoice_ids and doc.tax_invoice_ids.tax_invoice_date.strftime('%Y-%m-%d') or '',
+    'has_purchase_tax_invoice': doc.tax_invoice_ids and 1 or 0,
+    'references': [{
+        'reference_doctype': 'Purchase Invoice',
+        'reference_name': inv.name,
+        'allocated_amount': inv.amount_total
+    } for inv in doc.invoice_ids],
+    'reference_no': doc.communication,
+    'reference_date': doc.payment_date.strftime('%Y-%m-%d'),
+    'source_exchange_rate': 1,
+    'target_exchange_rate': 1,
+    'deductions': [{
+        'account': ml.account_id.display_name,
+        'amount': ml.debit - ml.credit,
+        'cost_center': 'Main - EC',
+    } for ml in doc.move_id.line_ids.filtered(lambda l: l.account_id.display_name == '219300 - Withholding Tax Payable - EC')]
+} for doc in records]
+
+action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=False, log_ids=[])
+        </field>
+    </record>
+
+    <record id="action_push_je_to_frappe" model="ir.actions.server">
+        <field name="name">Send JE to Frappe</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">
+target_doctype = 'Journal Entry'
+
+target_docs = [{
+    'odoo_ref': '%s|%s|%s' % (doc._name, doc.id, doc.name),  # Required
+    'voucher_type': 'Journal Entry',
+    'posting_date': doc.date.strftime('%Y-%m-%d'),
+    'company_tax_address': doc.tax_invoice_ids and 'Ecosoft-Address-Billing' or '',
+    'accounts': [{
+        'account': ml.account_id.display_name,
+        'party_type': ml.account_id.user_type_id.name == 'Receivable' and 'Customer' or (ml.account_id.user_type_id.name == 'Payable' and 'Supplier' or ''),
+        'party': ml.account_id.user_type_id.name in ('Receivable', 'Payable') and ml.partner_id.name or '',
+        'debit': ml.debit,
+        'debit_in_account_currency': ml.debit,
+        'credit': ml.credit,
+        'credit_in_account_currency': ml.credit,
+        'user_remark': '\n'.join(list(filter(lambda l: l, [ml.name, ml.partner_id.name or False]))),
+        'exchange_rate': 1,
+        'tax_invoice_number': ml.tax_invoice_ids and ml.tax_invoice_ids[0].tax_invoice_number or '',
+        'tax_invoice_date': ml.tax_invoice_ids and ml.tax_invoice_ids[0].tax_invoice_date and ml.tax_invoice_ids[0].tax_invoice_date.strftime('%Y-%m-%d') or '',
+        'tax_base_amount': ml.tax_invoice_ids and ml.tax_invoice_ids[0].tax_base_amount or 0,
+        'supplier': ml.tax_invoice_ids and ml.tax_invoice_ids[0].partner_id.name or '',
+    } for ml in doc.line_ids],
+    'user_remark': doc.narration,
+} for doc in records]
+
+action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=False, log_ids=[])
+        </field>
+    </record>
+</odoo>
