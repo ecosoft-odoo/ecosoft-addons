@@ -9,8 +9,9 @@
         "account",
     ],
     "data": [
-        # "security/ir.model.access.csv",
+        "security/ir.model.access.csv",
         # "data/server_actions.xml",
+        "wizards/wizard_select_etax_doctype_view.xml",
         "views/account_move_views.xml",
     ],
     "installable": True,

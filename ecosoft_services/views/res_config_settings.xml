@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.account</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="30" />
+        <field name="inherit_id" ref="account.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//div[@name='default_taxes_setting_container']"
+                position="after"
+            >
+                <h2>Ecosoft e-Tax Services</h2>
+                <div class="row mt16 o_settings_container">
+                    <div class="col-12 col-lg-6 o_setting_box" id="">
+                        <div class="o_setting_left_pane">
+                            <field name="module_odoo_etax_inet" />
+                        </div>
+                        <div
+                            class="o_setting_right_pane"
+                            name="odoo_etax_inet_right_pane"
+                        >
+                            <label
+                                for="module_odoo_etax_inet"
+                                string="e-Tax Invoice &#38; e-Receipt"
+                            />
+                            <div class="text-muted">
+                                Compute tax rates based on U.S. ZIP codes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

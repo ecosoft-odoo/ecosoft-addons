@@ -1,2 +1,2 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_push_to_frappe,access_push_to_frappe,model_push_to_frappe,base.group_user,1,0,0,1
+access_select_etax_doctype,access_select_etax_doctype,model_wizard_select_etax_doctype,base.group_user,1,1,1,1

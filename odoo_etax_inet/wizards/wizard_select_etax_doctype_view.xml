@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="select_etax_doctype_view">
+        <field name="name">wizard.select.etax.doctype.view</field>
+        <field name="model">wizard.select.etax.doctype</field>
+        <field name="arch" type="xml">
+            <form string="Sign e-Tax Invoice">
+                <group>
+                    <field name="etax_doctype" />
+                    <field
+                        name="doc_name_template"
+                        options="{'no_create_edit':True,'no_open': True,}"
+                    />
+                </group>
+                <footer>
+                    <button
+                        string='Sign'
+                        name="sign_etax_invoice"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_select_etax_doctype_view">
+        <field name="name">Sign e-Tax Invoice</field>
+        <field name="res_model">wizard.select.etax.doctype</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
