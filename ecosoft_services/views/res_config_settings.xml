@@ -11,8 +11,8 @@
                 position="after"
             >
                 <h2>Ecosoft e-Tax Services</h2>
-                <div class="row mt16 o_settings_container">
-                    <div class="col-12 col-lg-6 o_setting_box" id="">
+                <div class="row mt16 o_settings_container" id="odoo_etax_inet">
+                    <div class="col-12 col-lg-6 o_setting_box">
                         <div class="o_setting_left_pane">
                             <field name="module_odoo_etax_inet" />
                         </div>
@@ -24,8 +24,9 @@
                                 for="module_odoo_etax_inet"
                                 string="e-Tax Invoice &#38; e-Receipt"
                             />
+                            <a href="https://www.odoo.com/documentation/15.0/applications/finance/accounting/taxation/taxes/eu_distance_selling.html" title="Documentation" class="o_doc_link" target="_blank"></a>
                             <div class="text-muted">
-                                Compute tax rates based on U.S. ZIP codes
+                                Short description here!
                             </div>
                         </div>
                     </div>

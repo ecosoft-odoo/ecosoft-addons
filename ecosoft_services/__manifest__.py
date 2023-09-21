@@ -7,6 +7,7 @@
     "license": "AGPL-3",
     "depends": [
         "base",
+        "l10n_th_partner"
     ],
     "data": [
         "views/res_config_settings.xml",

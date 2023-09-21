@@ -1,10 +1,10 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
+import requests
+import json
 import base64
-
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
-
 from ..inet import T02
 
 # TODO:
@@ -55,16 +55,9 @@ class ETaxTH(models.AbstractModel):
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
-        print("=" * 100)
-        print(f"form type- {form_type}\nform name- {form_name}")
-        print("_pre_validation is successed.")
-        # x=1/0
         auth_token, server_url = self._get_connection()
         doc = self._prepare_inet_data(form_type=form_type, form_name=form_name)
-        print("=" * 30)
         self._prepare_odoo_pdf(doc, form_name)
-        print(type(doc))
-        print("_prepare_odoo_pdf() is successed.")
         self._send_to_frappe(doc, server_url, auth_token)
 
     def _pre_validation(self, form_type, form_name):
@@ -87,10 +80,10 @@ class ETaxTH(models.AbstractModel):
 
     def _get_connection(self):
         auth_token = (
-            self.env["ir.config_parameter"].sudo().get_param("frappe.auth.token")
+            self.env["ir.config_parameter"].sudo().get_param("odoo_etax_auth.frappe_auth_token")
         )
         server_url = (
-            self.env["ir.config_parameter"].sudo().get_param("frappe.server.url")
+            self.env["ir.config_parameter"].sudo().get_param("odoo_etax_inet.frappe_server_url")
         )
         if not auth_token or not server_url:
             raise ValidationError(
@@ -108,33 +101,40 @@ class ETaxTH(models.AbstractModel):
             doc["pdf_content"] = base64.b64encode(content).decode()
 
     def _send_to_frappe(self, doc, server_url, auth_token):
-        return True
-        # res = requests.post(
-        #     url="%s/api/resource/%s" % (server_url, "INET ETax Document"),
-        #     headers={"Authorization": "token %s" % auth_token},
-        #     data=json.dumps(doc),
-        #     timeout=10,
-        # ).json()
+        res = requests.post(
+            url="%s/api/resource/%s" % (server_url, "INET ETax Document"),
+            headers={"Authorization": "token %s" % auth_token},
+            data=json.dumps(doc),
+            timeout=10,
+        ).json()
+        print(res)
+        response = res.get("data")
+        if not response:
+            self.etax_status = "error"
+            self.etax_error_message = res.get("exception", res.get("_server_messages"))
+            return
+        # Update status
+        self.etax_status = response.get("status").lower()
+        self.etax_transaction_code = response.get("transaction_code")
+        self.etax_error_code = response.get("error_code")
+        self.etax_error_message = response.get("error_message")
+        # Get signed document back
+        if self.etax_status == "success":
+            pdf_url, xml_url = [response.get("pdf_url"), response.get("xml_url")]
+            if pdf_url:
+                self.env["ir.attachment"].create({
+                    "name": "%s_signed.pdf" % self.name,
+                    "datas": base64.b64encode(requests.get(pdf_url).content),
+                    "type": "binary",
+                    "res_model": "account.move",
+                    "res_id": self.id,
+                })
+            if xml_url:
+                self.env["ir.attachment"].create({
+                    "name": "%s_signed.xml" % self.name,
+                    "datas": base64.b64encode(requests.get(xml_url).content),
+                    "type": "binary",
+                    "res_model": "account.move",
+                    "res_id": self.id,
+                })
 
-        # response = res.get("data")
-        # if not response:
-        #     self.etax_status = "error"
-        #     self.etax_error_message = res.get("exception", res.get("_server_messages"))
-        #     return
-        # # Update status
-        # self.etax_status = response.get("status").lower()
-        # self.etax_transaction_code = response.get("transaction_code")
-        # self.etax_error_code = response.get("error_code")
-        # self.etax_error_message = response.get("error_message")
-        # # Get signed document back
-        # if self.etax_status == "success":
-        #     for url in [response.get("pdf_url"), response.get("pdf_url")]:
-        #         if not url:
-        #             continue
-        #         self.env["ir.attachment"].create({
-        #             "name": "%s_signed.pdf" % self.name,
-        #             "datas": base64.b64encode(requests.get(url).content),
-        #             "type": "binary",
-        #             "res_model": "account.move",
-        #             "res_id": self.id,
-        #         })

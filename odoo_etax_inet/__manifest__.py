@@ -7,12 +7,14 @@
     "license": "AGPL-3",
     "depends": [
         "account",
+        "ecosoft_services",
     ],
     "data": [
         "security/ir.model.access.csv",
         # "data/server_actions.xml",
         "wizards/wizard_select_etax_doctype_view.xml",
         "views/account_move_views.xml",
+        "views/res_config_settings.xml",
     ],
     "installable": True,
 }
