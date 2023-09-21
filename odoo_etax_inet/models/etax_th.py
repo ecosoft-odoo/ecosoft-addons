@@ -1,10 +1,13 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-import requests
-import json
 import base64
+import json
+
+import requests
+
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
+
 from ..inet import T02
 
 # TODO:
@@ -80,15 +83,19 @@ class ETaxTH(models.AbstractModel):
 
     def _get_connection(self):
         auth_token = (
-            self.env["ir.config_parameter"].sudo().get_param("odoo_etax_auth.frappe_auth_token")
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("odoo_etax_auth.frappe_auth_token")
         )
         server_url = (
-            self.env["ir.config_parameter"].sudo().get_param("odoo_etax_inet.frappe_server_url")
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("odoo_etax_inet.frappe_server_url")
         )
         if not auth_token or not server_url:
             raise ValidationError(
-                    "Cannot connect to Frappe Server.\n"
-                    "System parameters frappe.server.url, frappe.auth.token not found"
+                "Cannot connect to Frappe Server.\n"
+                "System parameters frappe.server.url, frappe.auth.token not found"
             )
         return (auth_token, server_url)
 
@@ -122,19 +129,22 @@ class ETaxTH(models.AbstractModel):
         if self.etax_status == "success":
             pdf_url, xml_url = [response.get("pdf_url"), response.get("xml_url")]
             if pdf_url:
-                self.env["ir.attachment"].create({
-                    "name": "%s_signed.pdf" % self.name,
-                    "datas": base64.b64encode(requests.get(pdf_url).content),
-                    "type": "binary",
-                    "res_model": "account.move",
-                    "res_id": self.id,
-                })
+                self.env["ir.attachment"].create(
+                    {
+                        "name": "%s_signed.pdf" % self.name,
+                        "datas": base64.b64encode(requests.get(pdf_url).content),
+                        "type": "binary",
+                        "res_model": "account.move",
+                        "res_id": self.id,
+                    }
+                )
             if xml_url:
-                self.env["ir.attachment"].create({
-                    "name": "%s_signed.xml" % self.name,
-                    "datas": base64.b64encode(requests.get(xml_url).content),
-                    "type": "binary",
-                    "res_model": "account.move",
-                    "res_id": self.id,
-                })
-
+                self.env["ir.attachment"].create(
+                    {
+                        "name": "%s_signed.xml" % self.name,
+                        "datas": base64.b64encode(requests.get(xml_url).content),
+                        "type": "binary",
+                        "res_model": "account.move",
+                        "res_id": self.id,
+                    }
+                )

@@ -14,8 +14,13 @@
         <field name="inherit_id" ref="account.view_move_form" />
         <field name="arch" type="xml">
             <xpath expr="//header" position="after">
-                <field name="etax_status" invisible="1"/>
-                <div groups="account.group_account_invoice,account.group_account_readonly" class="text-right alert alert-success" role="alert" attrs="{'invisible': [('etax_status', 'not in', ('success'))]}">
+                <field name="etax_status" invisible="1" />
+                <div
+                    groups="account.group_account_invoice,account.group_account_readonly"
+                    class="text-right alert alert-success"
+                    role="alert"
+                    attrs="{'invisible': [('etax_status', 'not in', ('success'))]}"
+                >
                     Digitally signed by บริษัท อีโคซอฟต์จำกัด
                 </div>
             </xpath>
@@ -31,7 +36,12 @@
             <xpath expr="//page[@id='other_tab_entry']" position="after">
                 <page id="odoo_etax_inet" string="e-Tax Info">
                     <group>
-                        <field name="etax_doctype" string="e-Tax doctype" readonly="1" force_save="1"/>
+                        <field
+                            name="etax_doctype"
+                            string="e-Tax doctype"
+                            readonly="1"
+                            force_save="1"
+                        />
                         <field
                             name="etax_status"
                             string="e-Tax status"
@@ -42,9 +52,24 @@
                             readonly="1"
                             force_save="1"
                         />
-                        <field name="etax_transaction_code" string="e-Tax transaction code" readonly="1" force_save="1"/>
-                        <field name="etax_error_code" string="e-Tax error code" readonly="1" force_save="1"/>
-                        <field name="etax_error_message" string="e-Tax message" readonly="1" force_save="1"/>
+                        <field
+                            name="etax_transaction_code"
+                            string="e-Tax transaction code"
+                            readonly="1"
+                            force_save="1"
+                        />
+                        <field
+                            name="etax_error_code"
+                            string="e-Tax error code"
+                            readonly="1"
+                            force_save="1"
+                        />
+                        <field
+                            name="etax_error_message"
+                            string="e-Tax message"
+                            readonly="1"
+                            force_save="1"
+                        />
                     </group>
                 </page>
             </xpath>

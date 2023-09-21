@@ -24,7 +24,12 @@
                                 for="module_odoo_etax_inet"
                                 string="e-Tax Invoice &#38; e-Receipt"
                             />
-                            <a href="https://www.odoo.com/documentation/15.0/applications/finance/accounting/taxation/taxes/eu_distance_selling.html" title="Documentation" class="o_doc_link" target="_blank"></a>
+                            <a
+                                href="https://www.odoo.com/documentation/15.0/applications/finance/accounting/taxation/taxes/eu_distance_selling.html"
+                                title="Documentation"
+                                class="o_doc_link"
+                                target="_blank"
+                            />
                             <div class="text-muted">
                                 Short description here!
                             </div>
