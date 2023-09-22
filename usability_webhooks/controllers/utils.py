@@ -35,15 +35,29 @@ class WebhookUtils(models.AbstractModel):
         return line_dict, line_fields
 
     def _get_dict_attachment(self, list_attachment, model, res_id):
-        return [
-            {
-                "name": attach["name"],
-                "res_model": model,
-                "res_id": res_id,
-                "datas": attach["datas"].encode("ascii"),
-            }
-            for attach in list_attachment
-        ]
+        attachments = []
+        for attach in list_attachment:
+            if attach.get("type") == "url":
+                attachments.append(
+                    {
+                        "name": attach["name"],
+                        "type": "url",
+                        "res_model": model,
+                        "res_id": res_id,
+                        "url": attach["url"],
+                    }
+                )
+            else:
+                attachments.append(
+                    {
+                        "name": attach["name"],
+                        "type": "binary",
+                        "res_model": model,
+                        "res_id": res_id,
+                        "datas": attach["datas"].encode("ascii"),
+                    }
+                )
+        return attachments
 
     def _create_file_attachment(self, obj, data_dict, line_all_fields):
         Attachment = self.env["ir.attachment"]
