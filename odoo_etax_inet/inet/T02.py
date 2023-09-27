@@ -49,7 +49,7 @@ def prepare_data(doc, form_type, form_name):
         "h23_source_system": doc.env["ir.config_parameter"]
         .sudo()
         .get_param("web.base.url", ""),
-        "h24_encrypt_password": "",  # ???
+        "h24_encrypt_password": "",  # password for pdf encryption
         "h25_pdf_template_id": "",  # ???
         "h26_send_mail_ind": "",  # ???
     }
@@ -150,9 +150,9 @@ def prepare_data(doc, form_type, form_name):
 
     tax_groups = list(
         {
-                (tax["l20_line_tax_type_code"], tax["l21_line_tax_cal_rate"])
-                for tax in lines
-                if tax["l20_line_tax_type_code"] and tax["l21_line_tax_cal_rate"] > 0
+            (tax["l20_line_tax_type_code"], tax["l21_line_tax_cal_rate"])
+            for tax in lines
+            if tax["l20_line_tax_type_code"] and tax["l21_line_tax_cal_rate"] > 0
         }
     )  # list of (tax_code, rate)
     i = 0

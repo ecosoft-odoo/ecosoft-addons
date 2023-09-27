@@ -55,6 +55,8 @@ class ETaxTH(models.AbstractModel):
     etax_transaction_code = fields.Char(
         copy=False,
     )
+    create_purpose_code_id = fields.Many2one(comodel_name="purpose.code")
+    create_purpose = fields.Char()
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
@@ -114,7 +116,6 @@ class ETaxTH(models.AbstractModel):
             data=json.dumps(doc),
             timeout=10,
         ).json()
-        print(res)
         response = res.get("data")
         if not response:
             self.etax_status = "error"

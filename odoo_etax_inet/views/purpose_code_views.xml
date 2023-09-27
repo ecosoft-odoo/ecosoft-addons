@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_purpose_code_form" model="ir.ui.view">
+        <field name="name">view.purpose.code.form</field>
+        <field name="model">purpose.code</field>
+        <field name="arch" type="xml">
+            <form string="Purpose Code">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="code" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_purpose_code_tree" model="ir.ui.view">
+        <field name="name">view.purpose.code.tree</field>
+        <field name="model">purpose.code</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code" />
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+    <record id="purpose_code_action" model="ir.actions.act_window">
+        <field name="name">Purpose Code</field>
+        <field name="res_model">purpose.code</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="e_tax_service_menu"
+        name="e-Tax service"
+        parent="account.menu_finance_configuration"
+        sequence="7"
+    />
+    <menuitem
+        id="sub_purpose_code_menu"
+        parent="odoo_etax_inet.e_tax_service_menu"
+        action="purpose_code_action"
+        sequence="10"
+    />
+
+</odoo>

@@ -6,7 +6,6 @@
         <field name="arch" type="xml">
             <form string="Sign e-Tax Invoice">
                 <group>
-                    <field name="etax_doctype" />
                     <field
                         name="doc_name_template"
                         options="{'no_create_edit':True,'no_open': True,}"

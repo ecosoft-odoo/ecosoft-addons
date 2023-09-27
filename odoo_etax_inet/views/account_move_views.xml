@@ -26,7 +26,7 @@
             </xpath>
             <xpath expr="//button[@name='button_draft']" position="after">
                 <button
-                    string='Sign E-Tax Invoice'
+                    string='e-Tax Invoice'
                     name="odoo_etax_inet.action_select_etax_doctype_view"
                     type="action"
                     class="btn-info"
@@ -36,40 +36,46 @@
             <xpath expr="//page[@id='other_tab_entry']" position="after">
                 <page id="odoo_etax_inet" string="e-Tax Info">
                     <group>
-                        <field
-                            name="etax_doctype"
-                            string="e-Tax doctype"
-                            readonly="1"
-                            force_save="1"
-                        />
-                        <field
-                            name="etax_status"
-                            string="e-Tax status"
-                            widget="badge"
-                            decoration-success="etax_status=='success'"
-                            decoration-danger="etax_status=='error'"
-                            decoration-warning="etax_status in ['processing', 'to_process']"
-                            readonly="1"
-                            force_save="1"
-                        />
-                        <field
-                            name="etax_transaction_code"
-                            string="e-Tax transaction code"
-                            readonly="1"
-                            force_save="1"
-                        />
-                        <field
-                            name="etax_error_code"
-                            string="e-Tax error code"
-                            readonly="1"
-                            force_save="1"
-                        />
-                        <field
-                            name="etax_error_message"
-                            string="e-Tax message"
-                            readonly="1"
-                            force_save="1"
-                        />
+                        <group string="e-Tax">
+                            <field
+                                name="etax_doctype"
+                                string="Doctype"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_status"
+                                string="Status"
+                                widget="badge"
+                                decoration-success="etax_status=='success'"
+                                decoration-danger="etax_status=='error'"
+                                decoration-warning="etax_status in ['processing', 'to_process']"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_transaction_code"
+                                string="Transaction code"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_error_code"
+                                string="Error code"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_error_message"
+                                string="Error message"
+                                readonly="1"
+                                force_save="1"
+                            />
+                        </group>
+                        <group string="Additional Information">
+                            <field name="create_purpose_code_id" />
+                            <field name="create_purpose" />
+                        </group>
                     </group>
                 </page>
             </xpath>

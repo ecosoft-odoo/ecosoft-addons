@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_doctype_code_form" model="ir.ui.view">
+        <field name="name">view.doctype.form</field>
+        <field name="model">doc.type</field>
+        <field name="arch" type="xml">
+            <form string="Doctype">
+                <sheet>
+                    <group>
+                        <field
+                            name="doc_name_template"
+                            options="{'no_create': True, 'no_open': True,
+                                        'exclusive_selection': True}"
+                        />
+                        <field name="description" />
+                        <field name="doctype_code" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_doctype_code_tree" model="ir.ui.view">
+        <field name="name">view.doctype.code.tree</field>
+        <field name="model">doc.type</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="doc_name_template" />
+                <field name="description" />
+                <field name="doctype_code" />
+            </tree>
+        </field>
+    </record>
+    <record id="doctype_code_action" model="ir.actions.act_window">
+        <field name="name">Doctype Code</field>
+        <field name="res_model">doc.type</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="doctype_code_menu"
+        parent="odoo_etax_inet.e_tax_service_menu"
+        action="doctype_code_action"
+        sequence="20"
+    />
+
+</odoo>

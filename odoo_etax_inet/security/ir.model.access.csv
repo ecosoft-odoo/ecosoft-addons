@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_select_etax_doctype,access_select_etax_doctype,model_wizard_select_etax_doctype,base.group_user,1,1,1,1
+access_purpose_code,access_purpose_code,model_purpose_code,base.group_user,1,1,1,1
+access_doctype,access_doctype,model_doc_type,base.group_user,1,1,1,1
