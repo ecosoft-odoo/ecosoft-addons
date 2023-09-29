@@ -118,7 +118,7 @@ def prepare_data(doc, form_type, form_name):
                 "l19_product_quantity_per_unit": "",
                 "l20_line_tax_type_code": line.tax_ids
                 and "VAT"
-                or "",  # ??? When to use Exempt?
+                or "FRE",  # ??? When to use Exempt?
                 "l21_line_tax_cal_rate": line.tax_ids and line.tax_ids[0].amount or "",
                 "l22_line_basis_amount": line.tax_ids and line.price_subtotal,
                 "l23_line_basis_currency_code": currency_code or "",
@@ -152,7 +152,7 @@ def prepare_data(doc, form_type, form_name):
         {
             (tax["l20_line_tax_type_code"], tax["l21_line_tax_cal_rate"])
             for tax in lines
-            if tax["l20_line_tax_type_code"] and tax["l21_line_tax_cal_rate"] > 0
+            if tax["l20_line_tax_type_code"] and tax["l21_line_tax_cal_rate"] >= 0
         }
     )  # list of (tax_code, rate)
     i = 0
