@@ -8,7 +8,7 @@ import requests
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
 
-from ..inet import T02
+from ..inet import inet_data_template as data_template
 
 # TODO:
 # - If processing or success, do not allow sent again.
@@ -34,6 +34,7 @@ class ETaxTH(models.AbstractModel):
             ("81", "ใบลดหนี้"),
         ],
         string="eTax Doctype",
+        copy=False,
     )
     etax_status = fields.Selection(
         selection=[
@@ -55,13 +56,21 @@ class ETaxTH(models.AbstractModel):
     etax_transaction_code = fields.Char(
         copy=False,
     )
-    create_purpose_code_id = fields.Many2one(comodel_name="purpose.code")
+    create_purpose_code = fields.Char()
     create_purpose = fields.Char()
+
+    def _update_created_purpose(self, doc):
+        # if it's credit note
+        # if it's debit note
+        pass
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
         auth_token, server_url = self._get_connection()
         doc = self._prepare_inet_data(form_type=form_type, form_name=form_name)
+        # validate and update data for debit note and credit note here
+        # print(doc)
+        # 1 / 0
         self._prepare_odoo_pdf(doc, form_name)
         self._send_to_frappe(doc, server_url, auth_token)
 
@@ -76,11 +85,7 @@ class ETaxTH(models.AbstractModel):
 
     def _prepare_inet_data(self, form_type="", form_name=""):
         self.ensure_one()
-        data = {}
-        if self.etax_doctype == "T02":
-            data = T02.prepare_data(self, form_type, form_name)
-        else:
-            raise ValidationError(_("No etax_doctype"))
+        data = data_template.prepare_data(self, form_type, form_name)
         return data
 
     def _get_connection(self):

@@ -10,6 +10,10 @@ class PurposeCode(models.Model):
 
     name = fields.Char(required=True)
     code = fields.Char()
+    is_tax_invoice = fields.Boolean(string="Tax Invoice")
+    is_credit_note = fields.Boolean(string="Credit Note")
+    is_debit_note = fields.Boolean(string="Debit Note")
+    is_receipt = fields.Boolean(string="Receipt")
 
     @api.depends("name", "code")
     def name_get(self):

@@ -99,7 +99,9 @@ def prepare_data(doc, form_type, form_name):
                 "l02_product_id": line.product_id
                 and line.product_id.default_code
                 or "",
-                "l03_product_name": line.product_id and line.product_id.name or "",
+                "l03_product_name": line.product_id
+                and line.product_id.name
+                or line.name,
                 "l04_product_desc": line.product_id.description or "",
                 "l05_product_batch_id": "",
                 "l06_product_expire_dtm": "",
@@ -116,7 +118,7 @@ def prepare_data(doc, form_type, form_name):
                 "l17_product_quantity": line.quantity or "",
                 "l18_product_unit_code": "",  # ???
                 "l19_product_quantity_per_unit": "",
-                "l20_line_tax_type_code": line.tax_ids
+                "l20_line_tax_type_code": line.tax_ids.name
                 and "VAT"
                 or "FRE",  # ??? When to use Exempt?
                 "l21_line_tax_cal_rate": line.tax_ids and line.tax_ids[0].amount or "",
@@ -152,7 +154,7 @@ def prepare_data(doc, form_type, form_name):
         {
             (tax["l20_line_tax_type_code"], tax["l21_line_tax_cal_rate"])
             for tax in lines
-            if tax["l20_line_tax_type_code"] and tax["l21_line_tax_cal_rate"] >= 0
+            if tax["l20_line_tax_type_code"] and tax["l21_line_tax_cal_rate"]
         }
     )  # list of (tax_code, rate)
     i = 0
@@ -185,8 +187,8 @@ def prepare_data(doc, form_type, form_name):
         "f02_delivery_occur_dtm": "",
         "f03_invoice_currency_code": currency_code or "",
         # Tax 1
-        "f04_tax_type_code1": taxes.get(1) and taxes[1]["tax_code"] or "",
-        "f05_tax_cal_rate1": taxes.get(1) and taxes[1]["tax_rate"] or "",
+        "f04_tax_type_code1": taxes.get(1) and taxes[1]["tax_code"] or "FRE",
+        "f05_tax_cal_rate1": taxes.get(1) and taxes[1]["tax_rate"] or 0.00,
         "f06_basis_amount1": taxes.get(1) and taxes[1]["base_amount"] or 0.00,
         "f07_basis_currency_code1": currency_code or "",
         "f08_tax_cal_amount1": taxes.get(1) and taxes[1]["tax_amount"] or 0.00,

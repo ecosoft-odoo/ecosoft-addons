@@ -1,1 +1,1 @@
-from . import T02
+from . import inet_data_template
