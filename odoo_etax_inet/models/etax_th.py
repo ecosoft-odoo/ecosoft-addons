@@ -70,7 +70,7 @@ class ETaxTH(models.AbstractModel):
         doc = self._prepare_inet_data(form_type=form_type, form_name=form_name)
         # validate and update data for debit note and credit note here
         # print(doc)
-        # 1 / 0
+        1 / 0
         self._prepare_odoo_pdf(doc, form_name)
         self._send_to_frappe(doc, server_url, auth_token)
 
