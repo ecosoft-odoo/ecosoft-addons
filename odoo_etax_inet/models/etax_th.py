@@ -59,11 +59,6 @@ class ETaxTH(models.AbstractModel):
     create_purpose_code = fields.Char()
     create_purpose = fields.Char()
 
-    def _update_created_purpose(self, doc):
-        # if it's credit note
-        # if it's debit note
-        pass
-
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
         auth_token, server_url = self._get_connection()

@@ -8,8 +8,6 @@
     "license": "AGPL-3",
     "depends": [
         "account",
-        "ecosoft_services",
-        "l10n_th_account_tax",
     ],
     "data": [
         "security/ir.model.access.csv",
