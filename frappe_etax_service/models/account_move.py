@@ -17,9 +17,9 @@ class AccountMove(models.Model):
 
     def _prepare_inet_data(self, form_type="", form_name=""):
         res = super()._prepare_inet_data()
-        branch_id = self._get_branch_id()
-        if branch_id:
-            res.update({"c02_seller_branch_id": branch_id.name})
+        branch = self._get_branch_id()
+        if branch:
+            res.update({"c02_seller_branch_id": branch.name})
         if self.create_purpose_code:
             res.update(
                 {
