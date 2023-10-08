@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_debit_note" model="ir.ui.view">
+        <field name="name">account.debit.note.form</field>
+        <field name="model">account.debit.note</field>
+        <field name="inherit_id" ref="account_debit_note.view_account_debit_note" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='reason']" position="attributes">
+                <attribute
+                    name="attrs"
+                >{'invisible': [('purpose_code', '!=', 'DBNG99')], 'required': [('purpose_code', '==', 'DBNG99')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='reason']" position="before">
+                <field name="purpose_code" invisible="1" />
+                <field name="purpose_code_id" required="1" options="{'no_open':True}" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

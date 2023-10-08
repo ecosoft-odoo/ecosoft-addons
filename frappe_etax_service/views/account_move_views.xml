@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <!--
+        decoration-info
+        decoration-success
+        decoration-warning
+        decoration-muted
+        decoration-danger
+     -->
+    <record id="view_move_form_etax" model="ir.ui.view">
+        <field name="name">view.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <field name="etax_status" invisible="1" />
+                <div
+                    groups="account.group_account_invoice,account.group_account_readonly"
+                    class="text-right alert alert-success"
+                    role="alert"
+                    attrs="{'invisible': [('etax_status', 'not in', ('success'))]}"
+                >
+                    Digitally signed by บริษัท อีโคซอฟต์จำกัด
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='button_draft']" position="after">
+                <button
+                    string='e-Tax Invoice'
+                    name="frappe_etax_service.action_select_etax_doctype_view"
+                    type="action"
+                    class="btn-info"
+                    attrs="{'invisible': ['|', '|', ('etax_status', 'in', ('success')), ('state', 'not in', ('posted')), ('tax_invoice_ids', '=', [])]}"
+                />
+            </xpath>
+            <xpath expr="//page[@id='other_tab_entry']" position="after">
+                <page
+                    id="frappe_etax_service"
+                    string="e-Tax Info"
+                    attrs="{'invisible': [('tax_invoice_ids', '=', [])]}"
+                >
+                    <group>
+                        <group string="e-Tax">
+                            <field
+                                name="etax_doctype"
+                                string="Doctype"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_status"
+                                string="Status"
+                                widget="badge"
+                                decoration-success="etax_status=='success'"
+                                decoration-danger="etax_status=='error'"
+                                decoration-warning="etax_status in ['processing', 'to_process']"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_transaction_code"
+                                string="Transaction code"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_error_code"
+                                string="Error code"
+                                readonly="1"
+                                force_save="1"
+                            />
+                            <field
+                                name="etax_error_message"
+                                string="Error message"
+                                readonly="1"
+                                force_save="1"
+                            />
+                        </group>
+                        <group string="Additional Information">
+                            <field name="create_purpose_code" />
+                            <field name="create_purpose" />
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
