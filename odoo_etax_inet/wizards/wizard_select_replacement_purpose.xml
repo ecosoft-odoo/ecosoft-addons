@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="select_replacement_purpose_view">
+        <field name="name">wizard.select.replacement.purpose.view</field>
+        <field name="model">wizard.select.replacement.purpose</field>
+        <field name="arch" type="xml">
+            <form string="Replacement">
+                <p>
+                    This action will cancel this document, and create a replacement document.<br/>
+                    <b>After correction, please submit and sign eTax as soon as possible to keep things in sync.</b><br/>
+                    Are you sure to continue?
+                </p>
+                <group>
+                    <group>
+                        <field
+                            name="purpose_code_id"
+                            options="{'no_create_edit':True,'no_open': True,}"
+                        />
+                    </group>
+                    <group>
+                        <field name="reason"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Create Replacement"
+                        name="create_replacement"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_select_replacement_purpose_view">
+        <field name="name">Create Replacement</field>
+        <field name="res_model">wizard.select.replacement.purpose</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
