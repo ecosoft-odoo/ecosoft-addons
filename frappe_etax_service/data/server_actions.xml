@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo noupdate="1">
     <record id="action_push_sales_order_to_frappe" model="ir.actions.server">
         <field name="name">Send SO to Frappe Server</field>
-        <field name="model_id" ref="sale.model_sale_order"/>
-        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="model_id" ref="sale.model_sale_order" />
+        <field name="binding_model_id" ref="sale.model_sale_order" />
         <field name="state">code</field>
         <field name="code">
 target_doctype = 'Sales Order'
@@ -38,8 +38,8 @@ action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=False
 
     <record id="action_push_purchase_order_to_frappe" model="ir.actions.server">
         <field name="name">Send PO to Frappe Server</field>
-        <field name="model_id" ref="purchase.model_purchase_order"/>
-        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="model_id" ref="purchase.model_purchase_order" />
+        <field name="binding_model_id" ref="purchase.model_purchase_order" />
         <field name="state">code</field>
         <field name="code">
 target_doctype = 'Purchase Order'
@@ -76,8 +76,8 @@ action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=True,
 
     <record id="action_push_cust_invoice_to_frappe" model="ir.actions.server">
         <field name="name">Send Cust Invoice to Frappe Server</field>
-        <field name="model_id" ref="account.model_account_move"/>
-        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="model_id" ref="account.model_account_move" />
+        <field name="binding_model_id" ref="account.model_account_move" />
         <field name="state">code</field>
         <field name="code">
 target_doctype = 'Sales Invoice'
@@ -120,8 +120,8 @@ action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=True,
 
     <record id="action_push_supp_invoice_to_frappe" model="ir.actions.server">
         <field name="name">Send Supplier Invoice to Frappe Server</field>
-        <field name="model_id" ref="account.model_account_move"/>
-        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="model_id" ref="account.model_account_move" />
+        <field name="binding_model_id" ref="account.model_account_move" />
         <field name="state">code</field>
         <field name="code">
 target_doctype = 'Purchase Invoice'
@@ -167,8 +167,8 @@ action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=True,
 
     <record id="action_push_supplier_addr_contact_to_frappe" model="ir.actions.server">
         <field name="name">Send Supplier-Address-Contact to Frappe</field>
-        <field name="model_id" ref="base.model_res_partner"/>
-        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="model_id" ref="base.model_res_partner" />
+        <field name="binding_model_id" ref="base.model_res_partner" />
         <field name="state">code</field>
         <field name="code">
 # Supplier
@@ -226,8 +226,8 @@ action = env['push.to.frappe'].push('Contact', contacts, push_file=False, log_id
 
     <record id="action_push_cust_addr_contact_to_frappe" model="ir.actions.server">
         <field name="name">Send Customer-Address-Contact to Frappe</field>
-        <field name="model_id" ref="base.model_res_partner"/>
-        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="model_id" ref="base.model_res_partner" />
+        <field name="binding_model_id" ref="base.model_res_partner" />
         <field name="state">code</field>
         <field name="code">
 # Customer
@@ -286,8 +286,8 @@ action = env['push.to.frappe'].push('Contact', contacts, push_file=False, log_id
 
     <record id="action_push_cust_payment_to_frappe" model="ir.actions.server">
         <field name="name">Send Customer Payment to Frappe</field>
-        <field name="model_id" ref="account.model_account_payment"/>
-        <field name="binding_model_id" ref="account.model_account_payment"/>
+        <field name="model_id" ref="account.model_account_payment" />
+        <field name="binding_model_id" ref="account.model_account_payment" />
         <field name="state">code</field>
         <field name="code">
 target_doctype = 'Payment Entry'
@@ -325,8 +325,8 @@ action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=False
 
     <record id="action_push_sup_payment_to_frappe" model="ir.actions.server">
         <field name="name">Send Supplier Payment to Frappe</field>
-        <field name="model_id" ref="account.model_account_payment"/>
-        <field name="binding_model_id" ref="account.model_account_payment"/>
+        <field name="model_id" ref="account.model_account_payment" />
+        <field name="binding_model_id" ref="account.model_account_payment" />
         <field name="state">code</field>
         <field name="code">
 target_doctype = 'Payment Entry'
@@ -368,8 +368,8 @@ action = env['push.to.frappe'].push(target_doctype, target_docs, push_file=False
 
     <record id="action_push_je_to_frappe" model="ir.actions.server">
         <field name="name">Send JE to Frappe</field>
-        <field name="model_id" ref="account.model_account_move"/>
-        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="model_id" ref="account.model_account_move" />
+        <field name="binding_model_id" ref="account.model_account_move" />
         <field name="state">code</field>
         <field name="code">
 target_doctype = 'Journal Entry'

@@ -27,7 +27,7 @@
             <xpath expr="//button[@name='button_draft']" position="after">
                 <button
                     string='e-Tax Invoice'
-                    name="odoo_etax_inet.action_select_etax_doctype_view"
+                    name="frappe_etax_service.action_select_etax_doctype_view"
                     type="action"
                     class="btn-info"
                     attrs="{'invisible': ['|', '|', ('etax_status', 'in', ('success')), ('state', 'not in', ('posted')), ('tax_invoice_ids', '=', [])]}"
@@ -35,7 +35,7 @@
             </xpath>
             <xpath expr="//page[@id='other_tab_entry']" position="after">
                 <page
-                    id="odoo_etax_inet"
+                    id="frappe_etax_service"
                     string="e-Tax Info"
                     attrs="{'invisible': [('tax_invoice_ids', '=', [])]}"
                 >

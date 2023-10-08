@@ -50,7 +50,7 @@
     />
     <menuitem
         id="sub_purpose_code_menu"
-        parent="odoo_etax_inet.e_tax_service_menu"
+        parent="frappe_etax_service.e_tax_service_menu"
         action="purpose_code_action"
         sequence="10"
     />

@@ -84,17 +84,17 @@ class ETaxTH(models.AbstractModel):
         auth_token = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("odoo_etax_auth.frappe_auth_token")
+            .get_param("frappe_etax_service.frappe_auth_token")
         )
         server_url = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("odoo_etax_inet.frappe_server_url")
+            .get_param("frappe_etax_service.frappe_server_url")
         )
         if not auth_token or not server_url:
             raise ValidationError(
                 "Cannot connect to Frappe Server.\n"
-                "System parameters frappe.server.url, frappe.auth.token not found"
+                "Frappe Server URL or Frappe Auth Token are not defined."
             )
         return (auth_token, server_url)
 

@@ -1,7 +1,7 @@
 # Copyright 2023 Ecosoft
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 {
-    "name": "INET ETax Connector to Frappe",
+    "name": "Connector to Frappe eTax service",
     "version": "15.0.1.0.0",
     "author": "Kitti U.",
     "website": "https://github.com/kittiu/odoo_etax_inet",
