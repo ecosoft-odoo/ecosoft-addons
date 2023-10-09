@@ -13,18 +13,15 @@ class AccountMove(models.Model):
         This method will check if branch_id is exist in model and return branch_id
         """
         if "branch_id" in self.env["account.move"]._fields:
-            return self.branch_id
+            return self.branch_id.name
 
-    def _prepare_inet_data(self, form_type="", form_name=""):
-        res = super()._prepare_inet_data()
-        branch = self._get_branch_id()
-        if branch:
-            res.update({"c02_seller_branch_id": branch.name})
-        if self.create_purpose_code:
-            res.update(
-                {
-                    "h05_create_purpose_code": self.create_purpose_code,
-                    "h06_create_purpose": self.create_purpose,
-                }
-            )
-        return res
+    def _get_origin_inv_date(self):
+        """
+        In case of Credit note or Debit note, we need invoice date of origin invoice
+        to fill in h08_additional_ref_issue_dtm
+        """
+        if self.debit_origin_id and self.debit_origin_id.invoice_date:
+            return self.debit_origin_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
+
+        if self.reversed_entry_id and self.reversed_entry_id.invoice_date:
+            return self.reversed_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
