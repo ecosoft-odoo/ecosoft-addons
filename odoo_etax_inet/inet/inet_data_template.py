@@ -28,12 +28,12 @@ def prepare_data(doc, form_type, form_name):
         "h04_document_issue_dtm": doc.invoice_date
         and doc.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
         or "",
-        "h05_create_purpose_code": "",
-        "h06_create_purpose": "",
-        "h07_additional_ref_assign_id": "",
-        "h08_additional_ref_issue_dtm": "",
-        "h09_additional_ref_type_code": "",
-        "h10_additional_ref_document_name": "",
+        "h05_create_purpose_code": doc.create_purpose_code or "",
+        "h06_create_purpose": doc.create_purpose or "",
+        "h07_additional_ref_assign_id": doc.replaced_entry_id and doc.replaced_entry_id.name or "",
+        "h08_additional_ref_issue_dtm": doc.replaced_entry_id and doc.replaced_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S") or "",
+        "h09_additional_ref_type_code": doc.replaced_entry_id and doc.replaced_entry_id.etax_doctype or "",
+        "h10_additional_ref_document_name": doc.replaced_entry_id and dict(doc._fields["etax_doctype"].selection).get(doc.etax_doctype) or "",
         "h11_delivery_type_code": "",
         "h12_buyer_order_assign_id": "",
         "h13_buyer_order_issue_dtm": "",
