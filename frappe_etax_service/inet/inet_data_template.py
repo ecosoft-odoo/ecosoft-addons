@@ -6,11 +6,6 @@ def prepare_data(doc, form_type, form_name):
         "form_type": form_type,
         "form_name": form_name,
     }
-    control = {
-        "c01_seller_tax_id": doc.company_id.vat or "",
-        "c02_seller_branch_id": doc._get_branch_id(),
-        "c03_file_name": "",
-    }
     header = {
         "h01_document_type_code": doc.etax_doctype or "",
         "h02_document_name": dict(doc._fields["etax_doctype"].selection).get(
@@ -42,13 +37,20 @@ def prepare_data(doc, form_type, form_name):
         "h19_seller_contact_uriid": "",
         "h20_seller_contact_phone_no": "",
         "h21_flex_field": "",
-        "h22_seller_branch_id": control.get("c02_seller_branch_id") or "",
+        "h22_seller_branch_id": doc._get_branch_id()
+        or doc.company_id.branch
+        or "00000",
         "h23_source_system": doc.env["ir.config_parameter"]
         .sudo()
         .get_param("web.base.url", ""),
         "h24_encrypt_password": "",  # password for pdf encryption
         "h25_pdf_template_id": "",  # ???
         "h26_send_mail_ind": "",  # ???
+    }
+    control = {
+        "c01_seller_tax_id": doc.company_id.vat or "",
+        "c02_seller_branch_id": header.get("h22_seller_branch_id"),
+        "c03_file_name": "",
     }
     buyer = {
         "b01_buyer_id": "",
