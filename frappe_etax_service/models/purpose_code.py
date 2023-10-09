@@ -9,11 +9,13 @@ class PurposeCode(models.Model):
     _description = "Purpose Code follow INET convention."
 
     name = fields.Char(required=True)
-    code = fields.Char()
+    code = fields.Char(required=True)
+    reason = fields.Char(required=False)
     is_tax_invoice = fields.Boolean(string="Tax Invoice")
     is_credit_note = fields.Boolean(string="Credit Note")
     is_debit_note = fields.Boolean(string="Debit Note")
     is_receipt = fields.Boolean(string="Receipt")
+    is_replacement = fields.Boolean(string="Replacement")
 
     @api.depends("name", "code")
     def name_get(self):

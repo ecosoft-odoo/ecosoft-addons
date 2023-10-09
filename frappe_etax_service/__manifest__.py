@@ -8,6 +8,7 @@
     "license": "AGPL-3",
     "depends": [
         "account",
+        "l10n_th_account_tax",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -15,6 +16,7 @@
         "wizards/wizard_select_etax_doctype_view.xml",
         "wizards/account_move_reversal_view.xml",
         "wizards/account_debit_note_view.xml",
+        "wizards/wizard_select_replacement_purpose.xml",
         "views/account_move_views.xml",
         "views/res_config_settings.xml",
         "views/purpose_code_views.xml",
