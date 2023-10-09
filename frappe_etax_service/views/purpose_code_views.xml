@@ -10,12 +10,14 @@
                         <group>
                             <field name="name" />
                             <field name="code" />
+                            <field name="reason" />
                         </group>
                         <group>
                             <field name="is_tax_invoice" />
                             <field name="is_credit_note" />
                             <field name="is_debit_note" />
                             <field name="is_receipt" />
+                            <field name="is_replacement" />
                         </group>
                     </group>
                 </sheet>
@@ -27,12 +29,14 @@
         <field name="model">purpose.code</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="code" />
                 <field name="name" />
+                <field name="code" />
+                <field name="reason" />
                 <field name="is_tax_invoice" optional="show" />
                 <field name="is_credit_note" optional="show" />
                 <field name="is_debit_note" optional="show" />
                 <field name="is_receipt" optional="show" />
+                <field name="is_replacement" optional="show" />
             </tree>
         </field>
     </record>

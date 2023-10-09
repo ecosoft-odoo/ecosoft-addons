@@ -56,8 +56,18 @@ class ETaxTH(models.AbstractModel):
     etax_transaction_code = fields.Char(
         copy=False,
     )
-    create_purpose_code = fields.Char()
-    create_purpose = fields.Char()
+    create_purpose_code = fields.Char(
+        copy=False,
+    )
+    create_purpose = fields.Char(
+        copy=False,
+    )
+    replaced_entry_id = fields.Many2one(
+        comodel_name="account.move",
+        string="Replaced Document",
+        readonly=True,
+        copy=False,
+    )
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
