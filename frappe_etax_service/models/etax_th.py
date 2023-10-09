@@ -56,21 +56,23 @@ class ETaxTH(models.AbstractModel):
     etax_transaction_code = fields.Char(
         copy=False,
     )
-    create_purpose_code = fields.Char()
-    create_purpose = fields.Char()
-
-    def _update_created_purpose(self, doc):
-        # if it's credit note
-        # if it's debit note
-        pass
+    create_purpose_code = fields.Char(
+        copy=False,
+    )
+    create_purpose = fields.Char(
+        copy=False,
+    )
+    replaced_entry_id = fields.Many2one(
+        comodel_name="account.move",
+        string="Replaced Document",
+        readonly=True,
+        copy=False,
+    )
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
         auth_token, server_url = self._get_connection()
         doc = self._prepare_inet_data(form_type=form_type, form_name=form_name)
-        # validate and update data for debit note and credit note here
-        # print(doc)
-        # 1 / 0
         self._prepare_odoo_pdf(doc, form_name)
         self._send_to_frappe(doc, server_url, auth_token)
 
@@ -92,17 +94,17 @@ class ETaxTH(models.AbstractModel):
         auth_token = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("odoo_etax_auth.frappe_auth_token")
+            .get_param("frappe_etax_service.frappe_auth_token")
         )
         server_url = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("odoo_etax_inet.frappe_server_url")
+            .get_param("frappe_etax_service.frappe_server_url")
         )
         if not auth_token or not server_url:
             raise ValidationError(
                 "Cannot connect to Frappe Server.\n"
-                "System parameters frappe.server.url, frappe.auth.token not found"
+                "Frappe Server URL or Frappe Auth Token are not defined."
             )
         return (auth_token, server_url)
 

@@ -6,18 +6,6 @@ def prepare_data(doc, form_type, form_name):
         "form_type": form_type,
         "form_name": form_name,
     }
-    control = {
-        "c01_seller_tax_id": doc.company_id.vat or "",
-        "c02_seller_branch_id": (
-            "00000"
-            if (
-                not doc.company_id.branch
-                or doc.company_id.branch.lower() in ["head office", "สำนักงานใหญ่"]
-            )
-            else doc.company_id.branch or ""
-        ),
-        "c03_file_name": "",
-    }
     header = {
         "h01_document_type_code": doc.etax_doctype or "",
         "h02_document_name": dict(doc._fields["etax_doctype"].selection).get(
@@ -28,11 +16,15 @@ def prepare_data(doc, form_type, form_name):
         "h04_document_issue_dtm": doc.invoice_date
         and doc.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
         or "",
-        "h05_create_purpose_code": "",
-        "h06_create_purpose": "",
-        "h07_additional_ref_assign_id": "",
-        "h08_additional_ref_issue_dtm": "",
-        "h09_additional_ref_type_code": "",
+        "h05_create_purpose_code": doc.create_purpose_code or "",
+        "h06_create_purpose": doc.create_purpose or "",
+        "h07_additional_ref_assign_id": doc.debit_origin_id.name
+        or doc.reversed_entry_id.name
+        or "",
+        "h08_additional_ref_issue_dtm": doc._get_origin_inv_date() or "",
+        "h09_additional_ref_type_code": "388"
+        if (doc.debit_origin_id or doc.reversed_entry_id)
+        else "",  # what about cancel payment.
         "h10_additional_ref_document_name": "",
         "h11_delivery_type_code": "",
         "h12_buyer_order_assign_id": "",
@@ -45,13 +37,20 @@ def prepare_data(doc, form_type, form_name):
         "h19_seller_contact_uriid": "",
         "h20_seller_contact_phone_no": "",
         "h21_flex_field": "",
-        "h22_seller_branch_id": control.get("c02_seller_branch_id") or "",
+        "h22_seller_branch_id": doc._get_branch_id()
+        or doc.company_id.branch
+        or "00000",
         "h23_source_system": doc.env["ir.config_parameter"]
         .sudo()
         .get_param("web.base.url", ""),
         "h24_encrypt_password": "",  # password for pdf encryption
         "h25_pdf_template_id": "",  # ???
         "h26_send_mail_ind": "",  # ???
+    }
+    control = {
+        "c01_seller_tax_id": doc.company_id.vat or "",
+        "c02_seller_branch_id": header.get("h22_seller_branch_id"),
+        "c03_file_name": "",
     }
     buyer = {
         "b01_buyer_id": "",
@@ -121,10 +120,14 @@ def prepare_data(doc, form_type, form_name):
                 "l20_line_tax_type_code": line.tax_ids.name
                 and "VAT"
                 or "FRE",  # ??? When to use Exempt?
-                "l21_line_tax_cal_rate": line.tax_ids and line.tax_ids[0].amount or "",
+                "l21_line_tax_cal_rate": line.tax_ids
+                and line.tax_ids[0].amount
+                or 0.00,
                 "l22_line_basis_amount": line.tax_ids and line.price_subtotal,
                 "l23_line_basis_currency_code": currency_code or "",
-                "l24_line_tax_cal_amount": line.price_total - line.price_subtotal,
+                "l24_line_tax_cal_amount": line.tax_ids
+                and (line.price_total - line.price_subtotal)
+                or 0.00,
                 "l25_line_tax_cal_currency_code": currency_code or "",
                 "l26_line_allowance_charge_ind": "",
                 "l27_line_allowance_actual_amount": "",

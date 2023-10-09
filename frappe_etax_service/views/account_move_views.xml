@@ -21,21 +21,27 @@
                     role="alert"
                     attrs="{'invisible': [('etax_status', 'not in', ('success'))]}"
                 >
-                    Digitally signed by บริษัท อีโคซอฟต์จำกัด
+                    Digitally signed eTax invoice
                 </div>
             </xpath>
             <xpath expr="//button[@name='button_draft']" position="after">
                 <button
                     string='e-Tax Invoice'
-                    name="odoo_etax_inet.action_select_etax_doctype_view"
+                    name="frappe_etax_service.action_select_etax_doctype_view"
                     type="action"
                     class="btn-info"
                     attrs="{'invisible': ['|', '|', ('etax_status', 'in', ('success')), ('state', 'not in', ('posted')), ('tax_invoice_ids', '=', [])]}"
                 />
+                <button
+                    string='Create Replacement e-Tax'
+                    name="frappe_etax_service.action_select_replacement_purpose_view"
+                    type="action"
+                    attrs="{'invisible': ['|', ('etax_status', '!=', 'success'), ('state', '!=', 'posted')]}"
+                />
             </xpath>
             <xpath expr="//page[@id='other_tab_entry']" position="after">
                 <page
-                    id="odoo_etax_inet"
+                    id="frappe_etax_service"
                     string="e-Tax Info"
                     attrs="{'invisible': [('tax_invoice_ids', '=', [])]}"
                 >
@@ -77,8 +83,18 @@
                             />
                         </group>
                         <group string="Additional Information">
-                            <field name="create_purpose_code" />
-                            <field name="create_purpose" />
+                            <field
+                                name="replaced_entry_id"
+                                attrs="{'invisible': [('replaced_entry_id', '=', False)]}"
+                            />
+                            <field
+                                name="create_purpose_code"
+                                attrs="{'required': [('replaced_entry_id', '!=', False)]}"
+                            />
+                            <field
+                                name="create_purpose"
+                                attrs="{'required': [('replaced_entry_id', '!=', False)]}"
+                            />
                         </group>
                     </group>
                 </page>

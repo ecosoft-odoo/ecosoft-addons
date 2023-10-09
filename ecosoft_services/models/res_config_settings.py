@@ -7,4 +7,4 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
-    module_odoo_etax_inet = fields.Boolean(string="e-Tax invoice & e-Receipt")
+    module_frappe_etax_service = fields.Boolean(string="e-Tax invoice & e-Receipt")
