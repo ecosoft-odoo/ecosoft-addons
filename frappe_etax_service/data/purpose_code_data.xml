@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="purpose_code_01" model="purpose.code">
+        <field name="name">ชื่อผิด</field>
+        <field name="code">TIVC01</field>
+        <field name="is_tax_invoice">True</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_02" model="purpose.code">
+        <field name="name">ที่อยู่ผิด</field>
+        <field name="code">TIVC02</field>
+        <field name="is_tax_invoice">True</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_03" model="purpose.code">
+        <field name="name">อื่นๆ ระบุ</field>
+        <field name="code">TIVC99</field>
+        <field name="is_tax_invoice">True</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_04" model="purpose.code">
+        <field name="name">มีการเพิ่มราคาสินค้า</field>
+        <field name="code">DBNG01</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">True</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_05" model="purpose.code">
+        <field name="name">คำนวณราคาสินค้า ผิดพลาดต่ำกว่าที่เป็นจริง</field>
+        <field name="code">DBNG02</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">True</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_06" model="purpose.code">
+        <field name="name">เหตุอื่น (ระบุสาเหตุ)</field>
+        <field name="code">DBNG99</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">True</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_07" model="purpose.code">
+        <field name="name">ลดราคาสินค้าที่ขาย</field>
+        <field name="code">CDNG01</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">True</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_08" model="purpose.code">
+        <field name="name">สินค้าชำรุดเสียหาย</field>
+        <field name="code">CDNG02</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">True</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_09" model="purpose.code">
+        <field name="name">สินค้าขาดจำนวนตามที่ตกลงซื้อขาย</field>
+        <field name="code">CDNG03</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">True</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_10" model="purpose.code">
+        <field name="name">คำนวณราคาสินค้าผิดพลาดสูงกว่าที่เป็นจริง</field>
+        <field name="code">CDNG04</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">True</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_11" model="purpose.code">
+        <field name="name">รับคืนสินค้า</field>
+        <field name="code">CDNG05</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">True</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_12" model="purpose.code">
+        <field name="name">เหตุอื่น (ระบุสาเหตุ)</field>
+        <field name="code">CDNG99</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">True</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">False</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_13" model="purpose.code">
+        <field name="name">ชื่อผิด</field>
+        <field name="code">RCTC01</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">True</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_14" model="purpose.code">
+        <field name="name">ที่อยู่ผิด</field>
+        <field name="code">RCTC02</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">True</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_15" model="purpose.code">
+        <field
+            name="name"
+        >รับคืนสินค้า / ยกเลิกบริการ ทั้งจำนวน (ระบุจำนวนเงิน) บาท</field>
+        <field name="code">RCTC03</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">True</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_16" model="purpose.code">
+        <field
+            name="name"
+        >รับคืนสินค้า / ยกเลิกบริการ บางจำนวน (ระบุจำนวนเงิน) บาท</field>
+        <field name="code">RCTC04</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">True</field>
+        <field name="is_replacement">False</field>
+    </record>
+    <record id="purpose_code_17" model="purpose.code">
+        <field name="name">เหตุอื่นๆ (ระบุสาเหตุ)</field>
+        <field name="code">RCTC99</field>
+        <field name="is_tax_invoice">False</field>
+        <field name="is_credit_note">False</field>
+        <field name="is_debit_note">False</field>
+        <field name="is_receipt">True</field>
+        <field name="is_replacement">False</field>
+    </record>
+</odoo>
