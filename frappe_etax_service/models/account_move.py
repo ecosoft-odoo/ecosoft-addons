@@ -27,6 +27,21 @@ class AccountMove(models.Model):
         if self.reversed_entry_id and self.reversed_entry_id.invoice_date:
             return self.reversed_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
 
+        if self.replaced_entry_id:
+            return self.replaced_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
+
+    def _get_additional_information(self):
+        """
+        Return set of additional information
+            (create purpose code, create purpose, origin invoice date, )
+        """
+        if self.debit_origin_id:
+            return ()
+        if self.reversed_entry_id:
+            pass
+        if self.replaced_entry_id:
+            pass
+
     @api.depends("restrict_mode_hash_table", "state")
     def _compute_show_reset_to_draft_button(self):
         res = super()._compute_show_reset_to_draft_button()
