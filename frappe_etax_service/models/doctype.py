@@ -7,17 +7,18 @@ from odoo import fields, models
 class DocType(models.Model):
     _name = "doc.type"
     _description = "For config doctype code that send to INET"
-    _rec_name = "doc_name_template"
+    _rec_name = "name"
 
     _sql_constraints = [
         (
             "code_uniq_per_doc",
-            "UNIQUE(doc_name_template)",
+            "UNIQUE(name)",
             "Doc name template must be unique",
         ),
     ]
 
-    doc_name_template = fields.Many2one(
+    name = fields.Char(required=True)
+    report_template_id = fields.Many2one(
         string="Invoice template",
         comodel_name="ir.actions.report",
         domain=[("model", "=", "account.move"), ("binding_model_id", "!=", False)],
