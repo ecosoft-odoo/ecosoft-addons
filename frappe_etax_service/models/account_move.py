@@ -10,7 +10,8 @@ class AccountMove(models.Model):
 
     def _get_branch_id(self):
         """
-        By default, core odoo do not provide branch_id field in account.move and account.payment.
+        By default, core odoo do not provide branch_id field in
+        account.move and account.payment.
         This method will check if branch_id is exist in model and return branch_id
         """
         if "branch_id" in self.env["account.move"]._fields:
@@ -30,17 +31,28 @@ class AccountMove(models.Model):
         if self.replaced_entry_id:
             return self.replaced_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
 
-    def _get_additional_information(self):
+    def _get_additional_amount(self):
         """
-        Return set of additional information
-            (create purpose code, create purpose, origin invoice date, )
+        In case of credit note, debit note or replacement tax invoice
+        Get original untax amount for
+            f36_original_total_amount = original_amount_untaxed
+            f40_adjusted_information_amount = diff_amount_untaxed
+            f38_line_total_amount = corrected_amount_untaxed
         """
+        original_amount_untaxed = corrected_amount_untaxed = diff_amount_untaxed = False
         if self.debit_origin_id:
-            return ()
+            original_amount_untaxed = self.debit_origin_id.amount_untaxed
+            diff_amount_untaxed = self.amount_untaxed
+            corrected_amount_untaxed = original_amount_untaxed + diff_amount_untaxed
         if self.reversed_entry_id:
-            pass
+            original_amount_untaxed = self.reversed_entry_id.amount_untaxed
+            diff_amount_untaxed = self.amount_untaxed
+            corrected_amount_untaxed = original_amount_untaxed - diff_amount_untaxed
         if self.replaced_entry_id:
-            pass
+            original_amount_untaxed = False
+            diff_amount_untaxed = False
+            corrected_amount_untaxed = self.amount_untaxed
+        return (original_amount_untaxed, diff_amount_untaxed, corrected_amount_untaxed)
 
     @api.depends("restrict_mode_hash_table", "state")
     def _compute_show_reset_to_draft_button(self):

@@ -20,7 +20,7 @@ def prepare_data(doc, form_type, form_name):
         "h06_create_purpose": doc.create_purpose or "",
         "h07_additional_ref_assign_id": doc.debit_origin_id.name
         or doc.reversed_entry_id.name
-        or "",
+        or doc.replaced_entry_id.name or "",
         "h08_additional_ref_issue_dtm": doc._get_origin_inv_date() or "",
         "h09_additional_ref_type_code": "388"
         if (doc.debit_origin_id or doc.reversed_entry_id or doc.replaced_entry_id)
@@ -101,7 +101,7 @@ def prepare_data(doc, form_type, form_name):
                 "l03_product_name": line.product_id
                 and line.product_id.name
                 or line.name,
-                "l04_product_desc": line.product_id.description or "",
+                "l04_product_desc": "",
                 "l05_product_batch_id": "",
                 "l06_product_expire_dtm": "",
                 "l07_product_class_code": "",
@@ -226,11 +226,11 @@ def prepare_data(doc, form_type, form_name):
         "f33_payment_type_code": "",
         "f34_payment_description": "",
         "f35_payment_due_dtm": "",
-        "f36_original_total_amount": "",
+        "f36_original_total_amount": doc._get_additional_amount()[0] or 0.00,
         "f37_original_total_currency_code": currency_code or "",
-        "f38_line_total_amount": line_total,
+        "f38_line_total_amount": doc._get_additional_amount()[2] or line_total,
         "f39_line_total_currency_code": currency_code or "",
-        "f40_adjusted_information_amount": "",
+        "f40_adjusted_information_amount": doc._get_additional_amount()[1] or 0.00,
         "f41_adjusted_information_currency_code": currency_code or "",
         "f42_allowance_total_amount": "",
         "f43_allowance_total_currency_code": currency_code or "",
