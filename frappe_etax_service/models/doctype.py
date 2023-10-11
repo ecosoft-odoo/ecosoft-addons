@@ -22,7 +22,15 @@ class DocType(models.Model):
         comodel_name="ir.actions.report",
         domain=[("model", "=", "account.move"), ("binding_model_id", "!=", False)],
     )
-    description = fields.Char()
+    doc_source_template = fields.Selection(
+        string="Invoice template source",
+        selection=[
+            ("odoo", "odoo"),
+            ("frappe", "frappe"),
+        ],
+        default="odoo",
+        help="Select source template between Odoo and Frappe",
+    )
     doctype_code = fields.Selection(
         selection=[
             ("380", "380"),
