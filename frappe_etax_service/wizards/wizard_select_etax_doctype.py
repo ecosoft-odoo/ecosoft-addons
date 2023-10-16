@@ -11,6 +11,14 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         string="Invoice template",
         comodel_name="doc.type",
     )
+    etax_move_type = fields.Selection(
+        [
+            ("out_invoice", "Customer Invoice"),
+            ("out_refund", "Customer Credit Note"),
+            ("out_invoice_debit", "Customer Debit Note"),
+        ],
+        string="Type",
+    )
 
     def sign_etax_invoice(self):
         active_id = self.env.context.get("active_ids", False)
