@@ -13,7 +13,9 @@
                                 name="report_template_id"
                                 options="{'no_create': True, 'no_open': True,
                                             'exclusive_selection': True}"
+                                attrs="{'invisible': [('doc_source_template','!=', 'odoo')]}"
                             />
+                            <field name="etax_move_type" />
                             <field name="doctype_code" />
                         </group>
                         <group>
