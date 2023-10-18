@@ -53,6 +53,7 @@ class AccountMove(models.Model):
         res[0]["payment_reference"] = self.payment_reference
         res[0]["invoice_date"] = self.invoice_date
         res[0]["invoice_date_due"] = self.invoice_date_due
+        res[0]["doc_name_template"] = self.doc_name_template.id
         move = self.create(res[0])
         self.button_draft()
         self.button_cancel()
