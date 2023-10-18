@@ -68,6 +68,12 @@ class ETaxTH(models.AbstractModel):
         readonly=True,
         copy=False,
     )
+    doc_name_template = fields.Many2one(
+        string="Invoice template",
+        comodel_name="ir.actions.report",
+        domain=[("model", "=", "account.move"), ("binding_model_id", "!=", False)],
+        copy=False,
+    )
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)

@@ -9,12 +9,6 @@ class WizardSelectEtaxDoctype(models.TransientModel):
     _name = "wizard.select.etax.doctype"
     _inherit = "etax.th"
 
-    doc_name_template = fields.Many2one(
-        string="Invoice template",
-        comodel_name="ir.actions.report",
-        domain=[("model", "=", "account.move"), ("binding_model_id", "!=", False)],
-    )
-
     def _get_doctype_code(self, form_name=False):
         code = False
         doctype = self.env["doc.type"].search([("doc_name_template", "=", form_name)])
@@ -28,7 +22,10 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         if not doc_code:
             raise ValidationError(_("This invoice form does not set doctype code."))
         invoice = self.env["account.move"].browse(active_id)
-        invoice.update({"etax_doctype": doc_code})
+        invoice.update({
+            "etax_doctype": doc_code,
+            "doc_name_template": self.doc_name_template,
+        })
         # Set form type == 'odoo' maybe let user config this later
         form_type = "odoo"
         form_name = self.doc_name_template.name

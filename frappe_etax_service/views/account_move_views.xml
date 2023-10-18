@@ -31,6 +31,7 @@
                     type="action"
                     class="btn-info"
                     attrs="{'invisible': ['|', '|', ('etax_status', 'in', ('success')), ('state', 'not in', ('posted')), ('tax_invoice_ids', '=', [])]}"
+                    context="{'default_doc_name_template': doc_name_template}"
                 />
                 <button
                     string='Create Replacement e-Tax'
@@ -94,6 +95,10 @@
                             <field
                                 name="create_purpose"
                                 attrs="{'required': [('replaced_entry_id', '!=', False)]}"
+                            />
+                            <field
+                                name="doc_name_template"
+                                attrs="{'invisible': [('doc_name_template', '=', False)]}"
                             />
                         </group>
                     </group>
