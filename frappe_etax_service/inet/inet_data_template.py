@@ -28,7 +28,7 @@ def prepare_data(doc, form_type, form_name):
         else "",  # what about cancel payment.
         "h10_additional_ref_document_name": "",
         "h11_delivery_type_code": "",
-        "h12_buyer_order_assign_id": "",
+        "h12_buyer_order_assign_id": doc.payment_reference or "",
         "h13_buyer_order_issue_dtm": "",
         "h14_buyer_order_ref_type_code": "",
         "h15_document_remark": "",

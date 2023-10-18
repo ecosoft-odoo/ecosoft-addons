@@ -73,8 +73,6 @@ class ETaxTH(models.AbstractModel):
         self._pre_validation(form_type, form_name)
         auth_token, server_url = self._get_connection()
         doc = self._prepare_inet_data(form_type=form_type, form_name=form_name)
-        print(doc)
-        # x=1/0
         self._prepare_odoo_pdf(doc, form_name)
         self._send_to_frappe(doc, server_url, auth_token)
 
