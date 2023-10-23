@@ -68,6 +68,9 @@ class ETaxTH(models.AbstractModel):
         readonly=True,
         copy=False,
     )
+    is_send_frappe = fields.Boolean(
+        copy=False,
+    )
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)

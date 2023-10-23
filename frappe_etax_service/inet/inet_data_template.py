@@ -46,7 +46,7 @@ def prepare_data(doc, form_type, form_name):
         .get_param("web.base.url", ""),
         "h24_encrypt_password": "",  # password for pdf encryption
         "h25_pdf_template_id": "",  # ???
-        "h26_send_mail_ind": "",  # ???
+        "h26_send_mail_ind": "N",  # ???
     }
     control = {
         "c01_seller_tax_id": doc.company_id.vat or "",

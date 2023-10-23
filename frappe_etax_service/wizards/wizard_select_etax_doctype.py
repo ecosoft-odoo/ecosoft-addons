@@ -23,7 +23,13 @@ class WizardSelectEtaxDoctype(models.TransientModel):
     def sign_etax_invoice(self):
         active_id = self.env.context.get("active_ids", False)
         invoice = self.env["account.move"].browse(active_id)
-        invoice.update({"etax_doctype": self.doc_name_template.doctype_code})
+        invoice.update(
+            {
+                "etax_doctype": self.doc_name_template.doctype_code,
+                "is_send_frappe": True,
+            }
+        )
         form_type = self.doc_name_template.doc_source_template
         form_name = self.doc_name_template.name
         invoice.sign_etax(form_type=form_type, form_name=form_name)
+        invoice.update({"is_send_frappe": False})
