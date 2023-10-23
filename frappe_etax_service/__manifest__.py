@@ -8,6 +8,7 @@
     "license": "AGPL-3",
     "depends": [
         "account",
+        "account_debit_note",
         "l10n_th_account_tax",
     ],
     "data": [

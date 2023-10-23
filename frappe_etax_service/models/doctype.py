@@ -7,22 +7,39 @@ from odoo import fields, models
 class DocType(models.Model):
     _name = "doc.type"
     _description = "For config doctype code that send to INET"
-    _rec_name = "doc_name_template"
+    _rec_name = "name"
 
     _sql_constraints = [
         (
             "code_uniq_per_doc",
-            "UNIQUE(doc_name_template)",
+            "UNIQUE(name)",
             "Doc name template must be unique",
         ),
     ]
 
-    doc_name_template = fields.Many2one(
+    name = fields.Char(required=True)
+    etax_move_type = fields.Selection(
+        [
+            ("out_invoice", "Customer Invoice"),
+            ("out_refund", "Customer Credit Note"),
+            ("out_invoice_debit", "Customer Debit Note"),
+        ],
+        string="Type",
+    )
+    report_template_id = fields.Many2one(
         string="Invoice template",
         comodel_name="ir.actions.report",
         domain=[("model", "=", "account.move"), ("binding_model_id", "!=", False)],
     )
-    description = fields.Char()
+    doc_source_template = fields.Selection(
+        string="Invoice template source",
+        selection=[
+            ("odoo", "odoo"),
+            ("frappe", "frappe"),
+        ],
+        default="odoo",
+        help="Select source template between Odoo and Frappe",
+    )
     doctype_code = fields.Selection(
         selection=[
             ("380", "380"),

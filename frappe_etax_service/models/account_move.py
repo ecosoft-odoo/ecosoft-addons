@@ -1,6 +1,6 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -8,9 +8,33 @@ class AccountMove(models.Model):
     _name = "account.move"
     _inherit = ["account.move", "etax.th"]
 
+    etax_move_type = fields.Selection(
+        [
+            ("out_invoice", "Customer Invoice"),
+            ("out_refund", "Customer Credit Note"),
+            ("out_invoice_debit", "Customer Debit Note"),
+        ],
+        string="Type",
+        default="out_invoice",
+    )
+
+    def button_etax_invoices(self):
+        self.ensure_one()
+        return {
+            "name": _("Sign e-Tax Invoice"),
+            "type": "ir.actions.act_window",
+            "view_mode": "form",
+            "res_model": "wizard.select.etax.doctype",
+            "target": "new",
+            "context": {
+                "default_etax_move_type": self.etax_move_type,
+            },
+        }
+
     def _get_branch_id(self):
         """
-        By default, core odoo do not provide branch_id field in account.move and account.payment.
+        By default, core odoo do not provide branch_id field in
+        account.move and account.payment.
         This method will check if branch_id is exist in model and return branch_id
         """
         if "branch_id" in self.env["account.move"]._fields:
@@ -26,6 +50,32 @@ class AccountMove(models.Model):
 
         if self.reversed_entry_id and self.reversed_entry_id.invoice_date:
             return self.reversed_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
+
+        if self.replaced_entry_id:
+            return self.replaced_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
+
+    def _get_additional_amount(self):
+        """
+        In case of credit note, debit note or replacement tax invoice
+        Get original untax amount for
+            f36_original_total_amount = original_amount_untaxed
+            f40_adjusted_information_amount = diff_amount_untaxed
+            f38_line_total_amount = corrected_amount_untaxed
+        """
+        original_amount_untaxed = corrected_amount_untaxed = diff_amount_untaxed = False
+        if self.debit_origin_id:
+            original_amount_untaxed = self.debit_origin_id.amount_untaxed
+            diff_amount_untaxed = self.amount_untaxed
+            corrected_amount_untaxed = original_amount_untaxed + diff_amount_untaxed
+        if self.reversed_entry_id:
+            original_amount_untaxed = self.reversed_entry_id.amount_untaxed
+            diff_amount_untaxed = self.amount_untaxed
+            corrected_amount_untaxed = original_amount_untaxed - diff_amount_untaxed
+        if self.replaced_entry_id:
+            original_amount_untaxed = False
+            diff_amount_untaxed = False
+            corrected_amount_untaxed = self.amount_untaxed
+        return (original_amount_untaxed, diff_amount_untaxed, corrected_amount_untaxed)
 
     @api.depends("restrict_mode_hash_table", "state")
     def _compute_show_reset_to_draft_button(self):

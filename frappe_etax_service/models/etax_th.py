@@ -68,6 +68,9 @@ class ETaxTH(models.AbstractModel):
         readonly=True,
         copy=False,
     )
+    is_send_frappe = fields.Boolean(
+        copy=False,
+    )
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
@@ -121,7 +124,7 @@ class ETaxTH(models.AbstractModel):
             url="%s/api/resource/%s" % (server_url, "INET ETax Document"),
             headers={"Authorization": "token %s" % auth_token},
             data=json.dumps(doc),
-            timeout=10,
+            timeout=20,
         ).json()
         response = res.get("data")
         if not response:

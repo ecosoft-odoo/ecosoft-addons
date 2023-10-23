@@ -27,8 +27,8 @@
             <xpath expr="//button[@name='button_draft']" position="after">
                 <button
                     string='e-Tax Invoice'
-                    name="frappe_etax_service.action_select_etax_doctype_view"
-                    type="action"
+                    name="button_etax_invoices"
+                    type="object"
                     class="btn-info"
                     attrs="{'invisible': ['|', '|', ('etax_status', 'in', ('success')), ('state', 'not in', ('posted')), ('tax_invoice_ids', '=', [])]}"
                 />
@@ -98,6 +98,40 @@
                         </group>
                     </group>
                 </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_out_invoice_tree" model="ir.ui.view">
+        <field name="name">out.invoice.tree</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_out_invoice_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field
+                    name="etax_status"
+                    widget="badge"
+                    decoration-success="etax_status=='success'"
+                    decoration-danger="etax_status=='error'"
+                    decoration-warning="etax_status in ['processing', 'to_process']"
+                    optional="show"
+                />
+            </xpath>
+        </field>
+    </record>
+    <record id="view_out_credit_note_tree" model="ir.ui.view">
+        <field name="name">out.credit.note.tree</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_out_credit_note_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field
+                    name="etax_status"
+                    widget="badge"
+                    decoration-success="etax_status=='success'"
+                    decoration-danger="etax_status=='error'"
+                    decoration-warning="etax_status in ['processing', 'to_process']"
+                    optional="show"
+                />
             </xpath>
         </field>
     </record>
