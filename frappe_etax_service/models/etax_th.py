@@ -71,6 +71,11 @@ class ETaxTH(models.AbstractModel):
     is_send_frappe = fields.Boolean(
         copy=False,
     )
+    doc_name_template = fields.Many2one(
+        string="Invoice template",
+        comodel_name="doc.type",
+        copy=False,
+    )
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
