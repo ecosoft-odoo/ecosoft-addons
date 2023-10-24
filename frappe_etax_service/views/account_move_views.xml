@@ -66,6 +66,7 @@
                             <field
                                 name="etax_transaction_code"
                                 string="Transaction code"
+                                invisible="1"
                                 readonly="1"
                                 force_save="1"
                             />
@@ -95,6 +96,12 @@
                                 name="create_purpose"
                                 attrs="{'required': [('replaced_entry_id', '!=', False)]}"
                             />
+                            <!-- User may get mixed up with this. -->
+                            <!-- <field
+                                name="doc_name_template"
+                                options="{'no_open': True}"
+                                attrs="{'invisible': [('doc_name_template', '=', False)]}"
+                            /> -->
                         </group>
                     </group>
                 </page>
