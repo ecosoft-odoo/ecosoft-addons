@@ -26,6 +26,7 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         invoice.update(
             {
                 "etax_doctype": self.doc_name_template.doctype_code,
+                "doc_name_template": self.doc_name_template,
                 "is_send_frappe": True,
             }
         )
