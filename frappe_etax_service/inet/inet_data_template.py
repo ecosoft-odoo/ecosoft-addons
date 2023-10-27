@@ -46,7 +46,11 @@ def prepare_data(doc, form_type, form_name):
         .get_param("web.base.url", ""),
         "h24_encrypt_password": "",  # password for pdf encryption
         "h25_pdf_template_id": "",  # ???
-        "h26_send_mail_ind": "N",  # ???
+        "h26_send_mail_ind": "Y"
+        if doc.env["ir.config_parameter"]
+        .sudo()
+        .get_param("frappe_etax_service.is_send_etax_email")
+        else "N",
     }
     control = {
         "c01_seller_tax_id": doc.company_id.vat or "",
