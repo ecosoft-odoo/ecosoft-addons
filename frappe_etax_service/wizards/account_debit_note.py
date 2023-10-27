@@ -21,13 +21,13 @@ class AccountDebitNote(models.TransientModel):
                 or ""
             )
 
-    def create_debit(self):
-        res = super().create_debit()
-        self.move_ids.mapped("debit_note_ids")[0].write(
+    def _prepare_default_values(self, move):
+        default_values = super()._prepare_default_values(move)
+        default_values.update(
             {
                 "create_purpose_code": self.purpose_code_id.code,
                 "create_purpose": self.reason,
                 "etax_move_type": "out_invoice_debit",
             }
         )
-        return res
+        return default_values
