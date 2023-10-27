@@ -10,7 +10,10 @@ class ResConfigSettings(models.TransientModel):
     frappe_server_url = fields.Char(
         config_parameter="frappe_etax_service.frappe_server_url",
     )
-
     frappe_auth_token = fields.Char(
         config_parameter="frappe_etax_service.frappe_auth_token",
+    )
+    is_send_etax_email = fields.Boolean(
+        string="Send Email",
+        config_parameter="frappe_etax_service.is_send_etax_email",
     )
