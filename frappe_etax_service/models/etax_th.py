@@ -5,7 +5,7 @@ import json
 
 import requests
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 from ..inet import inet_data_template as data_template
@@ -76,6 +76,64 @@ class ETaxTH(models.AbstractModel):
         comodel_name="doc.type",
         copy=False,
     )
+
+    def update_processing_document(self):
+        self.ensure_one()
+        if self.etax_status != "processing":
+            return
+        auth_token, server_url = self._get_connection()
+        url=(
+            '%s/api/resource/%s?filters=[["transaction_code","=","%s"]]'
+            '&fields=["status","transaction_code","error_code","error_message","pdf_url","xml_url"]'
+            % (server_url, "INET ETax Document", self.etax_transaction_code)
+        )
+        res = requests.get(
+            url,
+            headers={"Authorization": "token %s" % auth_token},
+            timeout=20,
+        ).json()
+        if not res.get("data"):
+            return
+        response = res.get("data")[0]
+        # Update status
+        self.etax_status = response.get("status").lower()
+        self.etax_error_code = response.get("error_code")
+        self.etax_error_message = response.get("error_message")
+        if self.etax_status == "success":
+            pdf_url, xml_url = [response.get("pdf_url"), response.get("xml_url")]
+            if pdf_url:
+                self.env["ir.attachment"].create(
+                    {
+                        "name": "%s_signed.pdf" % self.name,
+                        "datas": base64.b64encode(requests.get(pdf_url).content),
+                        "type": "binary",
+                        "res_model": "account.move",
+                        "res_id": self.id,
+                    }
+                )
+            if xml_url:
+                self.env["ir.attachment"].create(
+                    {
+                        "name": "%s_signed.xml" % self.name,
+                        "datas": base64.b64encode(requests.get(xml_url).content),
+                        "type": "binary",
+                        "res_model": "account.move",
+                        "res_id": self.id,
+                    }
+                )
+
+    @api.model
+    def run_update_processing_document(self):
+        """ This method is called from a cron job.
+        It is used to update processing documents
+        """
+        records = self.search([("etax_status", "=", "processing")])
+        for record in records:
+            try:
+                record.update_processing_document()
+                self._cr.commit()
+            except Exception:
+                pass
 
     def sign_etax(self, form_type=False, form_name=False):
         self._pre_validation(form_type, form_name)
