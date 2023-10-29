@@ -13,8 +13,8 @@
     ],
     "data": [
         "security/ir.model.access.csv",
-        # "data/server_actions.xml",
         "data/purpose_code_data.xml",
+        "data/cron.xml",
         "wizards/wizard_select_etax_doctype_view.xml",
         "wizards/account_move_reversal_view.xml",
         "wizards/account_debit_note_view.xml",
