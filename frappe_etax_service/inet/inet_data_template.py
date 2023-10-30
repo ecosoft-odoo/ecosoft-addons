@@ -165,7 +165,7 @@ def prepare_data(doc, form_type, form_name):
         {
             (tax["l20_line_tax_type_code"], tax["l21_line_tax_cal_rate"])
             for tax in lines
-            if tax["l20_line_tax_type_code"] and tax["l21_line_tax_cal_rate"]
+            if tax["l20_line_tax_type_code"]
         }
     )  # list of (tax_code, rate)
     i = 0

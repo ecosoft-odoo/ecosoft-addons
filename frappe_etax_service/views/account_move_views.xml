@@ -30,7 +30,14 @@
                     name="button_etax_invoices"
                     type="object"
                     class="btn-info"
-                    attrs="{'invisible': ['|', '|', ('etax_status', 'in', ('success')), ('state', 'not in', ('posted')), ('tax_invoice_ids', '=', [])]}"
+                    attrs="{
+                        'invisible': ['|', '|', '|',
+                            ('move_type', 'not in', ['out_invoice','out_refund','out_invoice_debit']),
+                            ('etax_status', 'in', ['success']),
+                            ('state', 'not in', ('posted')),
+                            ('tax_invoice_ids', '=', [])
+                        ]
+                    }"
                 />
                 <button
                     string='Create Replacement e-Tax'

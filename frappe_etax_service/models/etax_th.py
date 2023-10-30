@@ -5,7 +5,7 @@ import json
 
 import requests
 
-from odoo import _, api, fields, models
+from odoo import _, fields, models
 from odoo.exceptions import ValidationError
 
 from ..inet import inet_data_template as data_template
@@ -122,7 +122,6 @@ class ETaxTH(models.AbstractModel):
                     }
                 )
 
-    @api.model
     def run_update_processing_document(self):
         """ This method is called from a cron job.
         It is used to update processing documents
@@ -135,12 +134,29 @@ class ETaxTH(models.AbstractModel):
             except Exception:
                 pass
 
-    def sign_etax(self, form_type=False, form_name=False):
+    def sign_etax(self):
+        self.ensure_one()
+        form_type = self.doc_name_template.doc_source_template or False
+        form_name = self.doc_name_template.name or False
+        # Preparation
         self._pre_validation(form_type, form_name)
         auth_token, server_url = self._get_connection()
         doc = self._prepare_inet_data(form_type=form_type, form_name=form_name)
         self._prepare_odoo_pdf(doc, form_name)
+        # Send to Frappe
         self._send_to_frappe(doc, server_url, auth_token)
+
+    def run_sign_etax(self):
+        """ This method is called from a cron job.
+        It is used to sign etax for document with status "to_process"
+        """
+        records = self.search([("etax_status", "=", "to_process")])
+        for record in records:
+            try:
+                record.sign_etax()
+            except Exception as e:
+                record.etax_error_message = str(e)
+            self._cr.commit()
 
     def _pre_validation(self, form_type, form_name):
         self.ensure_one()
