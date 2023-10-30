@@ -23,9 +23,12 @@ def prepare_data(doc, form_type, form_name):
         or doc.replaced_entry_id.name
         or "",
         "h08_additional_ref_issue_dtm": doc._get_origin_inv_date() or "",
-        "h09_additional_ref_type_code": "388"
-        if (doc.debit_origin_id or doc.reversed_entry_id or doc.replaced_entry_id)
-        else "",  # what about cancel payment.
+        "h09_additional_ref_type_code": (
+            doc.debit_origin_id.etax_doctype
+            or doc.reversed_entry_id.etax_doctype
+            or doc.replaced_entry_id.etax_doctype
+            or ""
+        ),
         "h10_additional_ref_document_name": "",
         "h11_delivery_type_code": "",
         "h12_buyer_order_assign_id": doc.payment_reference or "",
