@@ -4,7 +4,6 @@
     "name": "Connector to Frappe eTax service",
     "version": "15.0.1.0.0",
     "author": "Kitti U.",
-    "website": "https://github.com/kittiu/odoo_etax_inet",
     "license": "AGPL-3",
     "depends": [
         "account",
