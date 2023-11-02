@@ -136,15 +136,13 @@ class ETaxTH(models.AbstractModel):
 
     def sign_etax(self):
         self.ensure_one()
+        # Prepare data
         form_type = self.doc_name_template.doc_source_template or False
         form_name = self.doc_name_template.name or False
-        # Preparation
         self._pre_validation(form_type, form_name)
-        auth_token, server_url = self._get_connection()
-        doc = self._prepare_inet_data(form_type=form_type, form_name=form_name)
-        self._prepare_odoo_pdf(doc, form_name)
-        # Send to Frappe
-        self._send_to_frappe(doc, server_url, auth_token)
+        pdf_content = self._get_odoo_form(form_type, form_name)
+        doc_data = data_template.prepare_data(self)        # Rest API
+        self._send_to_frappe(doc_data, form_type, form_name, pdf_content)
 
     def run_sign_etax(self):
         """ This method is called from a cron job.
@@ -167,11 +165,6 @@ class ETaxTH(models.AbstractModel):
                 _("form_name is not specified for form_type=%s") % form_type
             )
 
-    def _prepare_inet_data(self, form_type="", form_name=""):
-        self.ensure_one()
-        data = data_template.prepare_data(self, form_type, form_name)
-        return data
-
     def _get_connection(self):
         auth_token = (
             self.env["ir.config_parameter"]
@@ -190,51 +183,63 @@ class ETaxTH(models.AbstractModel):
             )
         return (auth_token, server_url)
 
-    def _prepare_odoo_pdf(self, doc, form_name):
-        if doc["form_type"] == "odoo":
+    def _get_odoo_form(self, form_type, form_name):
+        if form_type == "odoo":
             report = self.env["ir.actions.report"].search([("name", "=", form_name)])
             if len(report) != 1:
                 raise ValidationError(_("Cannot find form - %s") % form_name)
             content, content_type = report._render_qweb_pdf(self.id)
-            doc["pdf_content"] = base64.b64encode(content).decode()
+            return base64.b64encode(content).decode()
+        return ""
 
-    def _send_to_frappe(self, doc, server_url, auth_token):
-        res = requests.post(
-            url="%s/api/resource/%s" % (server_url, "INET ETax Document"),
-            headers={"Authorization": "token %s" % auth_token},
-            data=json.dumps(doc),
-            timeout=20,
-        ).json()
-        response = res.get("data")
-        if not response:
+    def _send_to_frappe(self, doc_data, form_type, form_name, pdf_content):
+        auth_token, server_url = self._get_connection()
+        try:
+            res = requests.post(
+                url="%s/api/method/%s" % (server_url, "etax_inet.api.etax.sign_etax_document"),
+                headers={"Authorization": "token %s" % auth_token},
+                data={
+                    "doc_data": json.dumps(doc_data),
+                    "form_type": form_type,  # odoo or frappe
+                    "form_name": form_name,  # odoo's report name or frappe's print format
+                    "pdf_content": pdf_content,
+                },
+                timeout=20,
+            ).json()
+            response = res.get("message")
+            if not response:  # Can't create record on Frappe
+                self.etax_status = "error"
+                self.etax_error_message = res.get("exception", res.get("_server_messages"))
+                return
+            # Update status
+            self.etax_status = response.get("status").lower()
+            self.etax_transaction_code = response.get("transaction_code")
+            self.etax_error_code = response.get("error_code")
+            self.etax_error_message = response.get("error_message")
+            # Get signed document back
+            if self.etax_status == "success":
+                pdf_url, xml_url = [response.get("pdf_url"), response.get("xml_url")]
+                if pdf_url:
+                    self.env["ir.attachment"].create(
+                        {
+                            "name": "%s_signed.pdf" % self.name,
+                            "datas": base64.b64encode(requests.get(pdf_url).content),
+                            "type": "binary",
+                            "res_model": "account.move",
+                            "res_id": self.id,
+                        }
+                    )
+                if xml_url:
+                    self.env["ir.attachment"].create(
+                        {
+                            "name": "%s_signed.xml" % self.name,
+                            "datas": base64.b64encode(requests.get(xml_url).content),
+                            "type": "binary",
+                            "res_model": "account.move",
+                            "res_id": self.id,
+                        }
+                    )
+        except Exception as e:
             self.etax_status = "error"
-            self.etax_error_message = res.get("exception", res.get("_server_messages"))
-            return
-        # Update status
-        self.etax_status = response.get("status").lower()
-        self.etax_transaction_code = response.get("transaction_code")
-        self.etax_error_code = response.get("error_code")
-        self.etax_error_message = response.get("error_message")
-        # Get signed document back
-        if self.etax_status == "success":
-            pdf_url, xml_url = [response.get("pdf_url"), response.get("xml_url")]
-            if pdf_url:
-                self.env["ir.attachment"].create(
-                    {
-                        "name": "%s_signed.pdf" % self.name,
-                        "datas": base64.b64encode(requests.get(pdf_url).content),
-                        "type": "binary",
-                        "res_model": "account.move",
-                        "res_id": self.id,
-                    }
-                )
-            if xml_url:
-                self.env["ir.attachment"].create(
-                    {
-                        "name": "%s_signed.xml" % self.name,
-                        "datas": base64.b64encode(requests.get(xml_url).content),
-                        "type": "binary",
-                        "res_model": "account.move",
-                        "res_id": self.id,
-                    }
-                )
+            self.etax_error_message = str(e)
+
