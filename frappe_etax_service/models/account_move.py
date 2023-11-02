@@ -94,7 +94,7 @@ class AccountMove(models.Model):
             raise ValidationError(_("Only posted etax invoice can have a substitution"))
         res = self.copy_data()
         old_number = self.name
-        suffix = "~R"
+        suffix = "-R"
         if suffix in old_number:
             [number, rev] = old_number.split(suffix)
             res[0]["name"] = "%s%s%s" % (number, suffix, int(rev) + 1)
