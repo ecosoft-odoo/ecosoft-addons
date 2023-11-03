@@ -14,7 +14,14 @@ def prepare_data(doc):
         or doc.replaced_entry_id.etax_doctype
     )
     d["buyer_ref_document"] = doc.payment_reference
-    d["seller_branch_id"] = doc._get_branch_id() or doc.company_id.branch
+    d["seller_branch_id"] = (
+        "00000"
+        if (
+            not doc.company_id.branch
+            or doc.company_id.branch.lower() in ["head office", "สำนักงานใหญ่"]
+        )
+        else doc.company_id.branch
+    )
     d["source_system"] = doc.env["ir.config_parameter"].sudo().get_param("web.base.url", "")
     d["send_mail"] = (
         "Y"
@@ -26,14 +33,7 @@ def prepare_data(doc):
     d["seller_tax_id"] = doc.company_id.vat
     d["buyer_name"] = doc.partner_id.name
     d["buyer_tax_id"] = doc.partner_id.vat
-    d["buyer_branch_id"] = (
-        "00000"
-        if (
-            not doc.company_id.branch
-            or doc.company_id.branch.lower() in ["head office", "สำนักงานใหญ่"]
-        )
-        else doc.company_id.branch or ""
-    )
+    d["buyer_branch_id"] = doc.branch_id.name or "00000"
     d["buyer_email"] = doc.partner_id.email
     d["buyer_zip"] = doc.partner_id.zip
     d["buyer_building_name"] = ""
