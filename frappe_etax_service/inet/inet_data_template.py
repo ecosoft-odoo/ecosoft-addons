@@ -25,6 +25,7 @@ def prepare_data(doc):
     )
     d["seller_tax_id"] = doc.company_id.vat
     d["buyer_name"] = doc.partner_id.name
+    d["buyer_type"] = "TXID"  # TXID, NIDN, CCPT, OTHR (no taxid)
     d["buyer_tax_id"] = doc.partner_id.vat
     d["buyer_branch_id"] = doc.partner_id.branch or "00000"
     d["buyer_email"] = doc.partner_id.email
