@@ -18,7 +18,7 @@ class DocType(models.Model):
     ]
 
     name = fields.Char(required=True)
-    etax_move_type = fields.Selection(
+    move_type = fields.Selection(
         [
             ("out_invoice", "Customer Invoice"),
             ("out_refund", "Customer Credit Note"),

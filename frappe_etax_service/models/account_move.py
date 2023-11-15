@@ -8,16 +8,6 @@ class AccountMove(models.Model):
     _name = "account.move"
     _inherit = ["account.move", "etax.th"]
 
-    etax_move_type = fields.Selection(
-        [
-            ("out_invoice", "Customer Invoice"),
-            ("out_refund", "Customer Credit Note"),
-            ("out_invoice_debit", "Customer Debit Note"),
-        ],
-        string="Type",
-        default="out_invoice",
-    )
-
     def button_etax_invoices(self):
         self.ensure_one()
         return {
@@ -26,10 +16,6 @@ class AccountMove(models.Model):
             "view_mode": "form",
             "res_model": "wizard.select.etax.doctype",
             "target": "new",
-            "context": {
-                "default_etax_move_type": self.etax_move_type,
-                "default_doc_name_template": self.doc_name_template.id,
-            },
         }
 
     def _get_branch_id(self):
