@@ -15,7 +15,7 @@
                                             'exclusive_selection': True}"
                                 attrs="{'invisible': [('doc_source_template','!=', 'odoo')]}"
                             />
-                            <field name="etax_move_type" />
+                            <field name="move_type" />
                             <field name="doctype_code" />
                         </group>
                         <group>
