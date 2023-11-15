@@ -89,4 +89,4 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         invalid = invoices.filtered(lambda l: not l.tax_invoice_ids)
         if invalid:
             raise ValidationError(
-                _("%s has not tax") % ", ".join(invalid.mapped("name")))
+                _("%s has no tax invoice") % ", ".join(invalid.mapped("name")))
