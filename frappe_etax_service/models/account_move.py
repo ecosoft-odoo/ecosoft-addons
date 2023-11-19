@@ -8,15 +8,15 @@ class AccountMove(models.Model):
     _name = "account.move"
     _inherit = ["account.move", "etax.th"]
 
-    def button_etax_invoices(self):
-        self.ensure_one()
-        return {
-            "name": _("Sign e-Tax Invoice"),
-            "type": "ir.actions.act_window",
-            "view_mode": "form",
-            "res_model": "wizard.select.etax.doctype",
-            "target": "new",
-        }
+    # def button_etax_invoices(self):
+    #     self.ensure_one()
+    #     return {
+    #         "name": _("Sign e-Tax Invoice"),
+    #         "type": "ir.actions.act_window",
+    #         "view_mode": "form",
+    #         "res_model": "wizard.select.etax.doctype",
+    #         "target": "new",
+    #     }
 
     def _get_branch_id(self):
         """
