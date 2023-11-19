@@ -19,6 +19,7 @@
         "wizards/account_debit_note_view.xml",
         "wizards/wizard_select_replacement_purpose.xml",
         "views/account_move_views.xml",
+        "views/account_payment_views.xml",
         "views/res_config_settings.xml",
         "views/purpose_code_views.xml",
         "views/doctype_views.xml",

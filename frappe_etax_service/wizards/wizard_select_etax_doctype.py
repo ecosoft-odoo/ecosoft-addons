@@ -18,6 +18,7 @@ class WizardSelectEtaxDoctype(models.TransientModel):
             ("out_invoice", "Customer Invoice"),
             ("out_refund", "Customer Credit Note"),
             ("out_invoice_debit", "Customer Debit Note"),
+            ("entry", "Customer Payment"),
         ],
         string="Type",
     )
@@ -25,10 +26,11 @@ class WizardSelectEtaxDoctype(models.TransientModel):
 
     def default_get(self, fields):
         res = super().default_get(fields)
+        res_model = self.env.context.get("active_model")
         active_ids = self.env.context.get("active_ids")
-        invoices = self.env["account.move"].browse(active_ids)
-        move_type = list(set(invoices.mapped("move_type")))
-        template = invoices.mapped("doc_name_template")
+        moves = self.env[res_model].browse(active_ids)
+        move_type = list(set(moves.mapped("move_type")))
+        template = moves.mapped("doc_name_template")
         template = False if len(template) > 1 else template
         if len(move_type) > 1:
             raise ValidationError(_("Multiple move types not allowed"))
@@ -36,19 +38,20 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         res.update({
             "move_type": move_type,
             "doc_name_template": template.id,
-            "run_background": len(invoices) > 1
+            "run_background": len(moves) > 1
         })
         # Validation
-        if move_type not in ["out_invoice", "out_refund", "out_invoice_debit"]:
-            raise ValidationError(_("Only customer invoices can sign eTax"))
+        if move_type not in ["entry", "out_invoice", "out_refund", "out_invoice_debit"]:
+            raise ValidationError(_("Only customer invoice can sign eTax"))
         return res
 
     def sign_etax_invoice(self):
+        res_model = self.env.context.get("active_model")
         active_ids = self.env.context.get("active_ids", False)
-        invoices = self.env["account.move"].browse(active_ids)
-        self.pre_etax_validate(invoices)
-        for invoice in invoices:
-            invoice.update(
+        moves = self.env[res_model].browse(active_ids)
+        self.pre_etax_validate(moves)
+        for move in moves:
+            move.update(
                 {
                     "etax_doctype": self.doc_name_template.doctype_code,
                     "doc_name_template": self.doc_name_template,
@@ -56,9 +59,9 @@ class WizardSelectEtaxDoctype(models.TransientModel):
                 }
             )
             if self.run_background:
-                invoice.etax_status = "to_process"
+                move.etax_status = "to_process"
             else:
-                invoice.sign_etax()
+                move.sign_etax()
 
     def pre_etax_validate(self, invoices):
         # Already under processing or succeed
@@ -72,7 +75,7 @@ class WizardSelectEtaxDoctype(models.TransientModel):
             )
         # Not in valid customer invoice type
         invalid = invoices.filtered(
-            lambda l: l.etax_status in ["entry", "inv_invoice", "inv_refund"]
+            lambda l: l.move_type in ["inv_invoice", "inv_refund"]
         )
         if invalid:
             raise ValidationError(

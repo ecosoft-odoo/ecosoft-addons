@@ -9,12 +9,6 @@
                     <group>
                         <group>
                             <field name="name" />
-                            <field
-                                name="report_template_id"
-                                options="{'no_create': True, 'no_open': True,
-                                            'exclusive_selection': True}"
-                                attrs="{'invisible': [('doc_source_template','!=', 'odoo')]}"
-                            />
                             <field name="move_type" />
                             <field name="doctype_code" />
                         </group>
@@ -32,7 +26,6 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name" />
-                <field name="report_template_id" />
                 <field name="doc_source_template" />
                 <field name="doctype_code" />
             </tree>
