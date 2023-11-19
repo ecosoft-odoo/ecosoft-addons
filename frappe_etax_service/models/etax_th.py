@@ -67,6 +67,7 @@ class ETaxTH(models.AbstractModel):
         string="Replaced Document",
         readonly=True,
         copy=False,
+        help="Currently this field only support invoice and not payment"
     )
     is_send_frappe = fields.Boolean(
         copy=False,
@@ -107,7 +108,7 @@ class ETaxTH(models.AbstractModel):
                         "name": "%s_signed.pdf" % self.name,
                         "datas": base64.b64encode(requests.get(pdf_url).content),
                         "type": "binary",
-                        "res_model": "account.move",
+                        "res_model": self._name,
                         "res_id": self.id,
                     }
                 )
@@ -117,7 +118,7 @@ class ETaxTH(models.AbstractModel):
                         "name": "%s_signed.xml" % self.name,
                         "datas": base64.b64encode(requests.get(xml_url).content),
                         "type": "binary",
-                        "res_model": "account.move",
+                        "res_model": self._name,
                         "res_id": self.id,
                     }
                 )
@@ -187,7 +188,7 @@ class ETaxTH(models.AbstractModel):
         if form_type == "odoo":
             report = self.env["ir.actions.report"].search([("name", "=", form_name)])
             if len(report) != 1:
-                raise ValidationError(_("Cannot find form - %s") % form_name)
+                raise ValidationError(_("Cannot find form - %s\nOr > 1 form with the same name)") % form_name)
             content, content_type = report._render_qweb_pdf(self.id)
             return base64.b64encode(content).decode()
         return ""
@@ -225,7 +226,7 @@ class ETaxTH(models.AbstractModel):
                             "name": "%s_signed.pdf" % self.name,
                             "datas": base64.b64encode(requests.get(pdf_url).content),
                             "type": "binary",
-                            "res_model": "account.move",
+                            "res_model": self._name,
                             "res_id": self.id,
                         }
                     )
@@ -235,7 +236,7 @@ class ETaxTH(models.AbstractModel):
                             "name": "%s_signed.xml" % self.name,
                             "datas": base64.b64encode(requests.get(xml_url).content),
                             "type": "binary",
-                            "res_model": "account.move",
+                            "res_model": self._name,
                             "res_id": self.id,
                         }
                     )
@@ -243,3 +244,12 @@ class ETaxTH(models.AbstractModel):
             self.etax_status = "error"
             self.etax_error_message = str(e)
 
+    def button_etax_invoices(self):
+        self.ensure_one()
+        return {
+            "name": _("Sign e-Tax Invoice"),
+            "type": "ir.actions.act_window",
+            "view_mode": "form",
+            "res_model": "wizard.select.etax.doctype",
+            "target": "new",
+        }

@@ -17,19 +17,18 @@ class DocType(models.Model):
         ),
     ]
 
-    name = fields.Char(required=True)
+    name = fields.Char(
+        string="Form Name",
+        required=True,
+    )
     move_type = fields.Selection(
         [
             ("out_invoice", "Customer Invoice"),
             ("out_refund", "Customer Credit Note"),
             ("out_invoice_debit", "Customer Debit Note"),
+            ("entry", "Customer Payment")
         ],
         string="Type",
-    )
-    report_template_id = fields.Many2one(
-        string="Invoice template",
-        comodel_name="ir.actions.report",
-        domain=[("model", "=", "account.move"), ("binding_model_id", "!=", False)],
     )
     doc_source_template = fields.Selection(
         string="Invoice template source",
