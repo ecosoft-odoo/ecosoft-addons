@@ -27,7 +27,6 @@ class AccountDebitNote(models.TransientModel):
             {
                 "create_purpose_code": self.purpose_code_id.code,
                 "create_purpose": self.reason,
-                "move_type": "out_invoice_debit",
             }
         )
         return default_values

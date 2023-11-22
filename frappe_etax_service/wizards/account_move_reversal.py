@@ -27,7 +27,6 @@ class AccountMoveReversal(models.TransientModel):
             {
                 "create_purpose_code": self.purpose_code_id.code,
                 "create_purpose": self.reason,
-                "move_type": "out_refund",
             }
         )
         return res
