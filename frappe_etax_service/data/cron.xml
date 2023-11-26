@@ -5,7 +5,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">minutes</field>
         <field name="numbercall">-1</field>
-        <field name="doall" eval="True"/>
+        <field name="doall" eval="False"/>
         <field name="model_id" ref="account.model_account_move"/>
         <field name="code">model.run_update_processing_document()</field>
         <field name="state">code</field>
@@ -15,7 +15,7 @@
         <field name="interval_number">1</field>
         <field name="interval_type">minutes</field>
         <field name="numbercall">-1</field>
-        <field name="doall" eval="True"/>
+        <field name="doall" eval="False"/>
         <field name="model_id" ref="account.model_account_move"/>
         <field name="code">model.run_sign_etax()</field>
         <field name="state">code</field>
