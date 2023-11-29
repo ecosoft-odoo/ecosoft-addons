@@ -6,13 +6,18 @@
         <field name="arch" type="xml">
             <form string="Sign e-Tax Invoice">
                 <group>
-                    <field name="move_type" invisible="1" />
-                    <field
-                        name="doc_name_template"
-                        domain="[('move_type', '=', move_type)]"
-                        options="{'no_create_edit':True,'no_open': True,}"
-                    />
-                    <field name="run_background"/>
+                    <group>
+                        <field
+                            name="doc_name_template"
+                            domain="[('move_type', '=', move_type)]"
+                            options="{'no_create_edit':True,'no_open': True,}"
+                        />
+                        <field name="run_background"/>
+                    </group>
+                    <group>
+                        <field name="frappe_server_url"/>
+                        <field name="move_type" invisible="1" />
+                    </group>
                 </group>
                 <footer>
                     <button

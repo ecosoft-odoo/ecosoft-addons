@@ -8,6 +8,10 @@ from odoo.exceptions import ValidationError
 class WizardSelectEtaxDoctype(models.TransientModel):
     _name = "wizard.select.etax.doctype"
 
+    frappe_server_url = fields.Char(
+        string="ETax Server",
+        readonly=True,
+    )
     doc_name_template = fields.Many2one(
         string="Invoice template",
         comodel_name="doc.type",
@@ -40,6 +44,10 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         if move_type == "out_invoice" and is_debit:
             move_type = "out_invoice_debit"
         res.update({
+            "frappe_server_url": (
+                self.env["ir.config_parameter"].sudo()
+                .get_param("frappe_etax_service.frappe_server_url")
+            ),
             "move_type": move_type,
             "doc_name_template": template.id,
             "run_background": len(moves) > 1
