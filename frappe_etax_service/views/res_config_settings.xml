@@ -26,11 +26,7 @@
                         <div class="o_setting_right_pane">
                             <span class="o_form_label">Frappe Auth Token</span>
                             <span class="text-muted">
-                                <field
-                                    name="frappe_auth_token"
-                                    password="True"
-                                    help="The secret key"
-                                />
+                                <field name="frappe_auth_token"/>
                             </span>
                         </div>
                     </div>
@@ -42,6 +38,19 @@
                             <label for="is_send_etax_email" string="Send Email" />
                             <div class="text-muted">
                                 Allow to send an email to partner after sign etax.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane" />
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label">Replacement Lock Date</span>
+                            <span class="text-muted">
+                                <field name="replacement_lock_date"/>
+                            </span>
+                            <div class="text-muted">
+                                e-Tax Replacement not allowed after this date of next invoice month<br/>
+                                For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000.
                             </div>
                         </div>
                     </div>
