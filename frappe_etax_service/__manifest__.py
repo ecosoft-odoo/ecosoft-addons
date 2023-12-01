@@ -3,8 +3,9 @@
 {
     "name": "Connector to Frappe eTax service",
     "version": "15.0.1.0.0",
-    "author": "Kitti U.",
+    "author": "Kitti U., Ecosoft",
     "license": "AGPL-3",
+    "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": [
         "account",
         "account_debit_note",

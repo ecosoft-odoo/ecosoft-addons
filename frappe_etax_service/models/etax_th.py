@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 import base64
 import json
+import logging
 
 import requests
 
@@ -9,6 +10,8 @@ from odoo import _, fields, models
 from odoo.exceptions import ValidationError
 
 from ..inet import inet_data_template as data_template
+
+_logger = logging.getLogger(__name__)
 
 # TODO:
 # - If processing or success, do not allow sent again.
@@ -77,6 +80,16 @@ class ETaxTH(models.AbstractModel):
         copy=False,
     )
 
+    def _update_field_url(self):
+        return [
+            "status",
+            "transaction_code",
+            "error_code",
+            "error_message",
+            "pdf_url",
+            "xml_url",
+        ]
+
     def update_processing_document(self):
         self.ensure_one()
         if self.etax_status != "processing":
@@ -84,8 +97,13 @@ class ETaxTH(models.AbstractModel):
         auth_token, server_url = self._get_connection()
         url = (
             '%s/api/resource/%s?filters=[["transaction_code","=","%s"]]'
-            '&fields=["status","transaction_code","error_code","error_message","pdf_url","xml_url"]'
-            % (server_url, "INET ETax Document", self.etax_transaction_code)
+            "&fields=%s"
+            % (
+                server_url,
+                "INET ETax Document",
+                self.etax_transaction_code,
+                self._update_field_url(),
+            )
         )
         res = requests.get(
             url,
@@ -131,8 +149,8 @@ class ETaxTH(models.AbstractModel):
             try:
                 record.update_processing_document()
                 self._cr.commit()
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.warning(e)
 
     def sign_etax(self):
         self.ensure_one()
