@@ -12,7 +12,7 @@
                         domain="[('move_type', '=', move_type)]"
                         options="{'no_create_edit':True,'no_open': True,}"
                     />
-                    <field name="run_background"/>
+                    <field name="run_background" />
                 </group>
                 <footer>
                     <button

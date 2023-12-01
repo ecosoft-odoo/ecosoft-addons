@@ -33,11 +33,13 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         if len(move_type) > 1:
             raise ValidationError(_("Multiple move types not allowed"))
         move_type = move_type and move_type[0] or False
-        res.update({
-            "move_type": move_type,
-            "doc_name_template": template.id,
-            "run_background": len(invoices) > 1
-        })
+        res.update(
+            {
+                "move_type": move_type,
+                "doc_name_template": template.id,
+                "run_background": len(invoices) > 1,
+            }
+        )
         # Validation
         if move_type not in ["out_invoice", "out_refund", "out_invoice_debit"]:
             raise ValidationError(_("Only customer invoices can sign eTax"))
@@ -67,8 +69,8 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         )
         if invalid:
             raise ValidationError(
-                _("%s, eTax status is in Processing/Success") %
-                ", ".join(invalid.mapped("name"))
+                _("%s, eTax status is in Processing/Success")
+                % ", ".join(invalid.mapped("name"))
             )
         # Not in valid customer invoice type
         invalid = invoices.filtered(
@@ -76,8 +78,8 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         )
         if invalid:
             raise ValidationError(
-                _("%s move_type not valid\nOnly customer invoices can sign eTax") %
-                ", ".join(invalid.mapped("name"))
+                _("%s move_type not valid\nOnly customer invoices can sign eTax")
+                % ", ".join(invalid.mapped("name"))
             )
         # Not posted
         invalid = invoices.filtered(lambda l: l.state != "posted")
@@ -89,4 +91,5 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         invalid = invoices.filtered(lambda l: not l.tax_invoice_ids)
         if invalid:
             raise ValidationError(
-                _("%s has no tax invoice") % ", ".join(invalid.mapped("name")))
+                _("%s has no tax invoice") % ", ".join(invalid.mapped("name"))
+            )

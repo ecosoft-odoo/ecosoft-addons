@@ -47,7 +47,7 @@ class DataMapType(models.Model):
         [{'code': '400000', 'name': 'Income'}, {'code': '600000', 'name': 'Expense'}]
         """
         # Mapping data
-        for i, data in enumerate(report_data):
+        for _i, data in enumerate(report_data):
             in_value = data["code"]
             data_mapping = self._get_data_mapping_afr(in_value)
             if data_mapping:
@@ -60,7 +60,7 @@ class DataMapType(models.Model):
         {1: {'id': 1, 'code': '400000', 'name': 'Income'}}
         """
         # Mapping data
-        for k, data in accounts_data.items():
+        for _k, data in accounts_data.items():
             in_value = data["code"]
             data_mapping = self._get_data_mapping_afr(in_value)
             if data_mapping:

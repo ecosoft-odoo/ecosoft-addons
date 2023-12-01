@@ -82,7 +82,7 @@ class ETaxTH(models.AbstractModel):
         if self.etax_status != "processing":
             return
         auth_token, server_url = self._get_connection()
-        url=(
+        url = (
             '%s/api/resource/%s?filters=[["transaction_code","=","%s"]]'
             '&fields=["status","transaction_code","error_code","error_message","pdf_url","xml_url"]'
             % (server_url, "INET ETax Document", self.etax_transaction_code)
@@ -123,7 +123,7 @@ class ETaxTH(models.AbstractModel):
                 )
 
     def run_update_processing_document(self):
-        """ This method is called from a cron job.
+        """This method is called from a cron job.
         It is used to update processing documents
         """
         records = self.search([("etax_status", "=", "processing")])
@@ -141,11 +141,11 @@ class ETaxTH(models.AbstractModel):
         form_name = self.doc_name_template.name or False
         self._pre_validation(form_type, form_name)
         pdf_content = self._get_odoo_form(form_type, form_name)
-        doc_data = data_template.prepare_data(self)        # Rest API
+        doc_data = data_template.prepare_data(self)  # Rest API
         self._send_to_frappe(doc_data, form_type, form_name, pdf_content)
 
     def run_sign_etax(self):
-        """ This method is called from a cron job.
+        """This method is called from a cron job.
         It is used to sign etax for document with status "to_process"
         """
         records = self.search([("etax_status", "=", "to_process")])
@@ -196,7 +196,8 @@ class ETaxTH(models.AbstractModel):
         auth_token, server_url = self._get_connection()
         try:
             res = requests.post(
-                url="%s/api/method/%s" % (server_url, "etax_inet.api.etax.sign_etax_document"),
+                url="%s/api/method/%s"
+                % (server_url, "etax_inet.api.etax.sign_etax_document"),
                 headers={"Authorization": "token %s" % auth_token},
                 data={
                     "doc_data": json.dumps(doc_data),
@@ -209,7 +210,9 @@ class ETaxTH(models.AbstractModel):
             response = res.get("message")
             if not response:  # Can't create record on Frappe
                 self.etax_status = "error"
-                self.etax_error_message = res.get("exception", res.get("_server_messages"))
+                self.etax_error_message = res.get(
+                    "exception", res.get("_server_messages")
+                )
                 return
             # Update status
             self.etax_status = response.get("status").lower()
@@ -242,4 +245,3 @@ class ETaxTH(models.AbstractModel):
         except Exception as e:
             self.etax_status = "error"
             self.etax_error_message = str(e)
-
