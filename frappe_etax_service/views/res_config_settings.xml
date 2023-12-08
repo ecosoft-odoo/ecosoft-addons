@@ -26,7 +26,7 @@
                         <div class="o_setting_right_pane">
                             <span class="o_form_label">Frappe Auth Token</span>
                             <span class="text-muted">
-                                <field name="frappe_auth_token"/>
+                                <field name="frappe_auth_token" />
                             </span>
                         </div>
                     </div>
@@ -46,10 +46,11 @@
                         <div class="o_setting_right_pane">
                             <span class="o_form_label">Replacement Lock Date</span>
                             <span class="text-muted">
-                                <field name="replacement_lock_date"/>
+                                <field name="replacement_lock_date" />
                             </span>
                             <div class="text-muted">
-                                e-Tax Replacement not allowed after this date of next invoice month<br/>
+                                e-Tax Replacement not allowed after this date of next invoice month<br
+                                />
                                 For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000.
                             </div>
                         </div>

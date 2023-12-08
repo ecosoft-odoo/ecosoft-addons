@@ -67,7 +67,7 @@ class ETaxTH(models.AbstractModel):
         string="Replaced Document",
         readonly=True,
         copy=False,
-        help="Currently this field only support invoice and not payment"
+        help="Currently this field only support invoice and not payment",
     )
     is_send_frappe = fields.Boolean(
         copy=False,
@@ -78,15 +78,26 @@ class ETaxTH(models.AbstractModel):
         copy=False,
     )
 
+    def _get_field_api(self):
+        return [
+            "status",
+            "transaction_code",
+            "error_code",
+            "error_message",
+            "pdf_url",
+            "xml_url",
+        ]
+
     def update_processing_document(self):
         self.ensure_one()
         if self.etax_status != "processing":
             return
         auth_token, server_url = self._get_connection()
-        url=(
+        field_api = self._get_field_api()
+        url = (
             '%s/api/resource/%s?filters=[["transaction_code","=","%s"]]'
-            '&fields=["status","transaction_code","error_code","error_message","pdf_url","xml_url"]'
-            % (server_url, "INET ETax Document", self.etax_transaction_code)
+            "&fields=%s"
+            % (server_url, "INET ETax Document", self.etax_transaction_code, field_api)
         )
         res = requests.get(
             url,
@@ -124,16 +135,16 @@ class ETaxTH(models.AbstractModel):
                 )
 
     def run_update_processing_document(self):
-        """ This method is called from a cron job.
+        """This method is called from a cron job.
         It is used to update processing documents
         """
         records = self.search([("etax_status", "=", "processing")])
         for record in records:
             try:
                 record.update_processing_document()
-                self._cr.commit()
+                self._cr.commit()  # pylint: disable=invalid-commit
             except Exception:
-                pass
+                continue
 
     def sign_etax(self):
         self.ensure_one()
@@ -142,11 +153,11 @@ class ETaxTH(models.AbstractModel):
         form_name = self.doc_name_template.name or False
         self._pre_validation(form_type, form_name)
         pdf_content = self._get_odoo_form(form_type, form_name)
-        doc_data = data_template.prepare_data(self)        # Rest API
+        doc_data = data_template.prepare_data(self)  # Rest API
         self._send_to_frappe(doc_data, form_type, form_name, pdf_content)
 
     def run_sign_etax(self):
-        """ This method is called from a cron job.
+        """This method is called from a cron job.
         It is used to sign etax for document with status "to_process"
         """
         records = self.search([("etax_status", "=", "to_process")])
@@ -155,7 +166,7 @@ class ETaxTH(models.AbstractModel):
                 record.sign_etax()
             except Exception as e:
                 record.etax_error_message = str(e)
-            self._cr.commit()
+            self._cr.commit()  # pylint: disable=invalid-commit
 
     def _pre_validation(self, form_type, form_name):
         self.ensure_one()
@@ -179,8 +190,10 @@ class ETaxTH(models.AbstractModel):
         )
         if not auth_token or not server_url:
             raise ValidationError(
-                "Cannot connect to Frappe Server.\n"
-                "Frappe Server URL or Frappe Auth Token are not defined."
+                _(
+                    "Cannot connect to Frappe Server.\n"
+                    "Frappe Server URL or Frappe Auth Token are not defined."
+                )
             )
         return (auth_token, server_url)
 
@@ -188,7 +201,10 @@ class ETaxTH(models.AbstractModel):
         if form_type == "odoo":
             report = self.env["ir.actions.report"].search([("name", "=", form_name)])
             if len(report) != 1:
-                raise ValidationError(_("Cannot find form - %s\nOr > 1 form with the same name)") % form_name)
+                raise ValidationError(
+                    _("Cannot find form - %s\nOr > 1 form with the same name)")
+                    % form_name
+                )
             content, content_type = report._render_qweb_pdf(self.id)
             return base64.b64encode(content).decode()
         return ""
@@ -197,7 +213,8 @@ class ETaxTH(models.AbstractModel):
         auth_token, server_url = self._get_connection()
         try:
             res = requests.post(
-                url="%s/api/method/%s" % (server_url, "etax_inet.api.etax.sign_etax_document"),
+                url="%s/api/method/%s"
+                % (server_url, "etax_inet.api.etax.sign_etax_document"),
                 headers={"Authorization": "token %s" % auth_token},
                 data={
                     "doc_data": json.dumps(doc_data),
@@ -210,7 +227,9 @@ class ETaxTH(models.AbstractModel):
             response = res.get("message")
             if not response:  # Can't create record on Frappe
                 self.etax_status = "error"
-                self.etax_error_message = res.get("exception", res.get("_server_messages"))
+                self.etax_error_message = res.get(
+                    "exception", res.get("_server_messages")
+                )
                 return
             # Update status
             self.etax_status = response.get("status").lower()
