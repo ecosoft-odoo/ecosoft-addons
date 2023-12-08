@@ -269,6 +269,28 @@ class WebhookUtils(models.AbstractModel):
         }
         return res
 
+    def _common_search_data(self, model, vals):
+        data_dict = vals.get("payload", {})
+        # default is get all field
+        search_field = "*"
+        if data_dict.get("search_field"):
+            search_field = ", ".join(data_dict["search_field"])
+        query = "SELECT %(search_field)s FROM %(model)s"
+        params = {
+            "search_field": search_field,
+            "model": model.replace(".", "_"),
+        }
+        if data_dict.get("search_where"):
+            query += " WHERE {}".format(data_dict["search_where"])
+        if data_dict.get("order"):
+            query += " ORDER BY {}".format(", ".join(data_dict["order"]))
+        if data_dict.get("limit"):
+            query += " LIMIT {}".format(data_dict["limit"])
+        # Search by query
+        self.env.cr.execute(query, params)
+        result_dict_search = self.env.cr.dictfetchall()
+        return result_dict_search
+
     @api.model
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
         """For many2one, many2many, use name search to get id"""
@@ -358,4 +380,47 @@ class WebhookUtils(models.AbstractModel):
             p = self.env[model].browse(res_id)
             res["result"][self._search_key(model)] = p[self._search_key(model)]
         _logger.info("[{}].create_update_data(), output: {}".format(model, res))
+        return res
+
+    @api.model
+    def search_data(self, model, vals):
+        """
+        Description for search data
+            - search_field:
+                - []: for get all field
+                - ["<field_name1>", "<field_name2>"]: for get some field
+            - search_where:
+                - "": for not where
+                - "<condition query>": for add condition here
+            - limit:
+                - not send it, if you need get all record
+                - number of limit query
+            - order:
+                - []: for not order
+                - ["<field name1>", "field name2"]: for order by
+        ====================
+        Format search data
+        ====================
+        {
+            "params": {
+                "model": "account.move",
+                "vals": {
+                    "payload": {
+                        "search_field": ["name", "date"],
+                        "search_where": "move_type = 'in_invoice'",
+                        "limit": 1,
+                        "order": ["date desc", "name"]
+                    }
+                }
+            }
+        }
+        """
+        _logger.info("[{}].search_data(), input: {}".format(model, vals))
+        result_dict_search = self._common_search_data(model, vals)
+        res = {
+            "is_success": True,
+            "result": result_dict_search,
+            "messages": _("Record search successfully"),
+        }
+        _logger.info("[{}].search_data(), output: {}".format(model, res))
         return res
