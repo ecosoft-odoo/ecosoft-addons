@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 import datetime
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -48,8 +49,10 @@ class WizardSelectReplacementPurpose(models.TransientModel):
             .sudo()
             .get_param("frappe_etax_service.replacement_lock_date", 1)
         )
-        dt = (
-            invoice_date.replace(day=1) + datetime.timedelta(days=32)
-        ).replace(day=lock_date)
+        dt = (invoice_date.replace(day=1) + datetime.timedelta(days=32)).replace(
+            day=lock_date
+        )
         if datetime.date.today() > dt:
-            raise ValidationError(_("Create Replace e-Tax not allowed after %s") % dt.strftime("%d/%m/%Y"))
+            raise ValidationError(
+                _("Create Replace e-Tax not allowed after %s") % dt.strftime("%d/%m/%Y")
+            )

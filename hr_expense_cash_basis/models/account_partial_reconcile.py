@@ -18,12 +18,14 @@ class AccountPartialReconcile(models.Model):
             When register payment, it will create cash basis
             following lines of undue vat expense sheet
         """
+        # flake8: noqa: C901
         tax_cash_basis_values_per_move = {}
 
         if not self:
             return {}
 
         total_cash_basis = 0.0
+
         for partial in self:
             if partial.credit_move_id.expense_id and any(
                 x.tax_exigibility == "on_payment"
@@ -51,7 +53,8 @@ class AccountPartialReconcile(models.Model):
                     continue
                 move_values = tax_cash_basis_values_per_move[move.id]
 
-                # Check the cash basis configuration only when at least one cash basis tax entry need to be created.
+                # Check the cash basis configuration only
+                # when at least one cash basis tax entry need to be created.
                 journal = partial.company_id.tax_cash_basis_journal_id
 
                 if not journal:
@@ -88,7 +91,8 @@ class AccountPartialReconcile(models.Model):
                     include_receipts=True
                 ) and partial.credit_move_id.move_id.is_invoice(include_receipts=True):
                     # Will match when reconciling a refund with an invoice.
-                    # In this case, we want to use the rate of each businness document to compute its cash basis entry,
+                    # In this case, we want to use the rate of each businness document
+                    # to compute its cash basis entry,
                     # not the rate of what it's reconciled with.
                     rate_amount = source_line.balance
                     rate_amount_currency = source_line.amount_currency
@@ -108,7 +112,8 @@ class AccountPartialReconcile(models.Model):
                     )
 
                 if source_line.currency_id != counterpart_line.currency_id:
-                    # When the invoice and the payment are not sharing the same foreign currency, the rate is computed
+                    # When the invoice and the payment are not sharing
+                    # the same foreign currency, the rate is computed
                     # on-the-fly using the payment date.
                     payment_rate = self.env["res.currency"]._get_conversion_rate(
                         counterpart_line.company_currency_id,

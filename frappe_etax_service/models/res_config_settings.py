@@ -18,7 +18,6 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="frappe_etax_service.is_send_etax_email",
     )
     replacement_lock_date = fields.Integer(
-        string="Replacement Lock Date",
         config_parameter="frappe_etax_service.replacement_lock_date",
     )
 
