@@ -1,6 +1,6 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from odoo import _, api, fields, models
+from odoo import _, models
 from odoo.exceptions import ValidationError
 
 
@@ -9,11 +9,15 @@ class AccountMove(models.Model):
     _inherit = ["account.payment", "etax.th"]
 
     def action_draft(self):
-        if self.filtered(lambda l: l.etax_status in ("success", "processing", "to_process")):
-            raise ValidationError(_(
-                "Cannot reset to draft, eTax submission already started or succeeded.\n"
-                "You should do the refund process instead."
-            ))
+        if self.filtered(
+            lambda l: l.etax_status in ("success", "processing", "to_process")
+        ):
+            raise ValidationError(
+                _(
+                    "Cannot reset to draft, eTax submission already started or succeeded.\n"
+                    "You should do the refund process instead."
+                )
+            )
         return super().action_draft()
 
     def _get_branch_id(self):

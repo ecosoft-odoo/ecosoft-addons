@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <record id="ir_cron_run_update_processing_document" model="ir.cron">
         <field name="name">INET ETax Run Update Processing Document</field>
         <field name="interval_number">1</field>
         <field name="interval_type">minutes</field>
         <field name="numbercall">-1</field>
-        <field name="doall" eval="False"/>
-        <field name="model_id" ref="account.model_account_move"/>
+        <field name="doall" eval="False" />
+        <field name="model_id" ref="account.model_account_move" />
         <field name="code">model.run_update_processing_document()</field>
         <field name="state">code</field>
     </record>
@@ -15,8 +15,8 @@
         <field name="interval_number">1</field>
         <field name="interval_type">minutes</field>
         <field name="numbercall">-1</field>
-        <field name="doall" eval="False"/>
-        <field name="model_id" ref="account.model_account_move"/>
+        <field name="doall" eval="False" />
+        <field name="model_id" ref="account.model_account_move" />
         <field name="code">model.run_sign_etax()</field>
         <field name="state">code</field>
     </record>

@@ -26,7 +26,7 @@ class DocType(models.Model):
             ("out_invoice", "Customer Invoice"),
             ("out_refund", "Customer Credit Note"),
             ("out_invoice_debit", "Customer Debit Note"),
-            ("entry", "Customer Payment")
+            ("entry", "Customer Payment"),
         ],
         string="Type",
     )
