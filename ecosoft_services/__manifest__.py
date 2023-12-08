@@ -4,8 +4,9 @@
 {
     "name": "Ecosoft Services",
     "version": "15.0.1.0.0",
-    "author": "Theerayut A.",
+    "author": "Theerayut A., Ecosoft",
     "license": "AGPL-3",
+    "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": ["base", "l10n_th_partner"],
     "data": [
         "views/res_config_settings.xml",
