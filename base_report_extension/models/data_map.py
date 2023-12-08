@@ -9,7 +9,6 @@ class DataMapType(models.Model):
     _description = "Type of data map, will be created for each model"
 
     name = fields.Char(
-        string="Name",
         required=True,
     )
     line_ids = fields.One2many(

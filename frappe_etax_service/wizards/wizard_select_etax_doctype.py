@@ -34,7 +34,9 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         active_ids = self.env.context.get("active_ids")
         moves = self.env[res_model].browse(active_ids)
         move_type = list(set(moves.mapped("move_type")))
-        is_debit = list(set(moves.mapped(lambda l: l.debit_origin_id and True or False)))
+        is_debit = list(
+            set(moves.mapped(lambda l: l.debit_origin_id and True or False))
+        )
         template = moves.mapped("doc_name_template")
         template = False if len(template) > 1 else template
         if len(move_type) > 1 or len(is_debit) > 1:
@@ -43,15 +45,18 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         is_debit = is_debit and is_debit[0] or False
         if move_type == "out_invoice" and is_debit:
             move_type = "out_invoice_debit"
-        res.update({
-            "frappe_server_url": (
-                self.env["ir.config_parameter"].sudo()
-                .get_param("frappe_etax_service.frappe_server_url")
-            ),
-            "move_type": move_type,
-            "doc_name_template": template.id,
-            "run_background": len(moves) > 1
-        })
+        res.update(
+            {
+                "frappe_server_url": (
+                    self.env["ir.config_parameter"]
+                    .sudo()
+                    .get_param("frappe_etax_service.frappe_server_url")
+                ),
+                "move_type": move_type,
+                "doc_name_template": template.id,
+                "run_background": len(moves) > 1,
+            }
+        )
         # Validation
         if move_type not in ["entry", "out_invoice", "out_refund", "out_invoice_debit"]:
             raise ValidationError(_("Only customer invoice can sign eTax"))
@@ -82,8 +87,8 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         )
         if invalid:
             raise ValidationError(
-                _("%s, eTax status is in Processing/Success") %
-                ", ".join(invalid.mapped("name"))
+                _("%s, eTax status is in Processing/Success")
+                % ", ".join(invalid.mapped("name"))
             )
         # Not in valid customer invoice type
         invalid = invoices.filtered(
@@ -91,8 +96,8 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         )
         if invalid:
             raise ValidationError(
-                _("%s move_type not valid\nOnly customer invoices can sign eTax") %
-                ", ".join(invalid.mapped("name"))
+                _("%s move_type not valid\nOnly customer invoices can sign eTax")
+                % ", ".join(invalid.mapped("name"))
             )
         # Not posted
         invalid = invoices.filtered(lambda l: l.state != "posted")
@@ -104,4 +109,5 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         invalid = invoices.filtered(lambda l: not l.tax_invoice_ids)
         if invalid:
             raise ValidationError(
-                _("%s has no tax invoice") % ", ".join(invalid.mapped("name")))
+                _("%s has no tax invoice") % ", ".join(invalid.mapped("name"))
+            )

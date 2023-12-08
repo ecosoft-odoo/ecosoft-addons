@@ -12,10 +12,10 @@
                             domain="[('move_type', '=', move_type)]"
                             options="{'no_create_edit':True,'no_open': True,}"
                         />
-                        <field name="run_background"/>
+                        <field name="run_background" />
                     </group>
                     <group>
-                        <field name="frappe_server_url"/>
+                        <field name="frappe_server_url" />
                         <field name="move_type" invisible="1" />
                     </group>
                 </group>
