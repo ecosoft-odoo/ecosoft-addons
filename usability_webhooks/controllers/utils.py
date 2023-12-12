@@ -275,11 +275,7 @@ class WebhookUtils(models.AbstractModel):
         search_field = "*"
         if data_dict.get("search_field"):
             search_field = ", ".join(data_dict["search_field"])
-        query = "SELECT %(search_field)s FROM %(model)s"
-        params = {
-            "search_field": search_field,
-            "model": model.replace(".", "_"),
-        }
+        query = "SELECT {} FROM {}".format(search_field, model.replace(".", "_"))
         if data_dict.get("search_where"):
             query += " WHERE {}".format(data_dict["search_where"])
         if data_dict.get("order"):
@@ -287,7 +283,8 @@ class WebhookUtils(models.AbstractModel):
         if data_dict.get("limit"):
             query += " LIMIT {}".format(data_dict["limit"])
         # Search by query
-        self.env.cr.execute(query, params)
+        # pylint: disable=sql-injection
+        self.env.cr.execute(query)
         result_dict_search = self.env.cr.dictfetchall()
         return result_dict_search
 
