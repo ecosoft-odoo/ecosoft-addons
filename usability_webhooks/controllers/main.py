@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
 import json
+import traceback
 
 from odoo import http
 from odoo.http import request
@@ -28,10 +29,10 @@ class WebhookController(http.Controller):
             # Not success, rollback all data (if config in system parameter)
             if not res["is_success"] and rollback_state_failed:
                 request.env.cr.rollback()
-        except Exception as e:
+        except Exception:
             res = {
                 "is_success": False,
-                "messages": e,
+                "messages": traceback.format_exc(),
             }
             data_dict.update({"result": res, "state": "failed"})
             # Error from odoo exception, rollback all data (if config in system parameter)
@@ -60,10 +61,10 @@ class WebhookController(http.Controller):
             # Not success, rollback all data (if config in system parameter)
             if not res["is_success"] and rollback_state_failed:
                 request.env.cr.rollback()
-        except Exception as e:
+        except Exception:
             res = {
                 "is_success": False,
-                "messages": e,
+                "messages": traceback.format_exc(),
             }
             data_dict.update({"result": res, "state": "failed"})
             # Error from odoo exception, rollback all data (if config in system parameter)
@@ -92,10 +93,10 @@ class WebhookController(http.Controller):
             # Not success, rollback all data (if config in system parameter)
             if not res["is_success"] and rollback_state_failed:
                 request.env.cr.rollback()
-        except Exception as e:
+        except Exception:
             res = {
                 "is_success": False,
-                "messages": e,
+                "messages": traceback.format_exc(),
             }
             data_dict.update({"result": res, "state": "failed"})
             # Error from odoo exception, rollback all data (if config in system parameter)
