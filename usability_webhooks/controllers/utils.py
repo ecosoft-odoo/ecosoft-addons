@@ -160,7 +160,8 @@ class WebhookUtils(models.AbstractModel):
                     line_dict.update({line_sub_field: final_sub_line_dict})
                 final_line_append((0, 0, line_dict))
             rec_dict[line_field] = final_line_dict
-        obj = rec.create(rec_dict)
+        # Send context to function create()
+        obj = rec.with_context(api_payload=data_dict).create(rec_dict)
         # Create Attachment (if any)
         self._create_file_attachment(obj, data_dict, line_all_fields)
         res = {
