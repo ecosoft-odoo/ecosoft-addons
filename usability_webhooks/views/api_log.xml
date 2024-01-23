@@ -47,12 +47,12 @@
                         </group>
                     </group>
                     <group string="Input">
-                        <div>
+                        <div colspan="2">
                             <field name="data" />
                         </div>
                     </group>
                     <group string="Output">
-                        <div>
+                        <div colspan="2">
                             <field name="result" readonly="1" />
                         </div>
                     </group>
