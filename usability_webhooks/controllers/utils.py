@@ -3,7 +3,7 @@
 
 import logging
 
-from odoo import _, api, models
+from odoo import Command, _, api, models
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -149,7 +149,7 @@ class WebhookUtils(models.AbstractModel):
                         sub_line_dict = self._finalize_data_to_write(
                             rec[line_field][line_sub_field], sub_line_dict, auto_create
                         )
-                        final_sub_line_append((0, 0, sub_line_dict))
+                        final_sub_line_append(Command.create(sub_line_dict))
                         if line_sub_fields:
                             raise ValidationError(
                                 _(
@@ -158,7 +158,7 @@ class WebhookUtils(models.AbstractModel):
                                 )
                             )
                     line_dict.update({line_sub_field: final_sub_line_dict})
-                final_line_append((0, 0, line_dict))
+                final_line_append(Command.create(line_dict))
             rec_dict[line_field] = final_line_dict
         # Send context to function create()
         obj = rec.with_context(api_payload=data_dict).create(rec_dict)
@@ -249,7 +249,7 @@ class WebhookUtils(models.AbstractModel):
                         sub_line_dict = self._finalize_data_to_write(
                             rec[line_field][line_sub_field], sub_line_dict, auto_create
                         )
-                        final_sub_line_append((0, 0, sub_line_dict))
+                        final_sub_line_append(Command.create(sub_line_dict))
                         if line_sub_fields:
                             raise ValidationError(
                                 _(
@@ -258,7 +258,7 @@ class WebhookUtils(models.AbstractModel):
                                 )
                             )
                     line_dict.update({line_sub_field: final_sub_line_dict})
-                final_line_append((0, 0, line_dict))
+                final_line_append(Command.create(line_dict))
             rec_dict[line_field] = final_line_dict
         rec.write(rec_dict)
         # Create Attachment (if any)
