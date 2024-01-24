@@ -9,4 +9,5 @@
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": ["usability_webhooks", "queue_job"],
+    "data": ["data/queue_data.xml"],
 }

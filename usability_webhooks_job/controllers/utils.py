@@ -10,6 +10,8 @@ class WebhookUtils(models.AbstractModel):
     @api.model
     def create_data(self, model, vals):
         if vals.get("run_job_queue"):
+            # To avoid an infinite loop, remove the 'run_job_queue'
+            del vals["run_job_queue"]
             job = self.with_delay().create_data(model, vals)
             return {
                 "is_success": True,
