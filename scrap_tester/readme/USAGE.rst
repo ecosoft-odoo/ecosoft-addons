@@ -1,0 +1,3 @@
+- Go to Inventory > Operations > Scrap
+- Create a scarp order and select Tester.
+- A scrap location will be related from default location that you config.
