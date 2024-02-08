@@ -104,3 +104,35 @@ class WebhookController(http.Controller):
                 request.env.cr.rollback()
         request.env["api.log"].create(data_dict)
         return res
+
+    @http.route("/api/update_data", type="json", auth="user")
+    def update_data(self, model, vals):
+        # Add logs
+        data_dict = {
+            "data": json.dumps(vals),
+            "model": model,
+            "route": "/api/update_data",
+            "function_name": "update_data",
+        }
+        # Update Data & logs
+        ICP = request.env["ir.config_parameter"]
+        rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
+        rollback_except = ICP.sudo().get_param("webhook.rollback_except")
+        try:
+            res = request.env["webhook.utils"].update_data(model, vals)
+            state = "done" if res["is_success"] else "failed"
+            data_dict.update({"result": res, "state": state})
+            # Not success, rollback all data (if config in system parameter)
+            if not res["is_success"] and rollback_state_failed:
+                request.env.cr.rollback()
+        except Exception:
+            res = {
+                "is_success": False,
+                "messages": traceback.format_exc(),
+            }
+            data_dict.update({"result": res, "state": "failed"})
+            # Error from odoo exception, rollback all data (if config in system parameter)
+            if rollback_except:
+                request.env.cr.rollback()
+        request.env["api.log"].create(data_dict)
+        return res
