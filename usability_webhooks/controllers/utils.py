@@ -314,7 +314,11 @@ class WebhookUtils(models.AbstractModel):
                     )
                     value = []  # for many2many, result will be tuple
                     for val in search_vals:
-                        values = Model.name_search(val, operator="=")
+                        # Support multi company with account_id
+                        args = []
+                        if key == "account_id" and rec_dict.get("company_id"):
+                            args = [("company_id", "=", rec_dict.get("company_id"))]
+                        values = Model.name_search(val, args=args, operator="=")
                         # If failed, try again by ID
                         if len(values) != 1 and val and isinstance(val, int):
                             rec = Model.search([("id", "=", val)])
