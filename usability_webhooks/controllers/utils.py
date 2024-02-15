@@ -22,6 +22,10 @@ class WebhookUtils(models.AbstractModel):
         key = keys.get(model, "name")
         return key
 
+    def _get_ctx_lines(self):
+        """For hooks add context to do unlink lines"""
+        return {}
+
     def _get_o2m_line(self, line_data_dict, line_obj):
         rec_fields = []
         rec_fields_append = rec_fields.append
@@ -201,6 +205,7 @@ class WebhookUtils(models.AbstractModel):
         data_dict = vals.get("payload", {})
         auto_create = vals.get("auto_create", {})
         res = {}
+        ctx_line = self._get_ctx_lines()
         # Prepare Header Dict (non o2m)
         if not key_field or key_field not in data_dict:
             raise ValidationError(_("Method update_data() key_field is not valid!"))
@@ -226,7 +231,7 @@ class WebhookUtils(models.AbstractModel):
         for line_field in line_all_fields:
             lines = rec[line_field]
             # First, delete all lines o2m
-            lines.unlink()
+            lines.with_context(**ctx_line).unlink()
             final_line_dict = []
             final_line_append = final_line_dict.append
             # Loop all o2m lines, and recreate it
