@@ -79,6 +79,10 @@ class AccountMove(models.Model):
         if not (self.state == "posted" and self.etax_status == "success"):
             raise ValidationError(_("Only posted etax invoice can have a substitution"))
         res = self.with_context(include_business_fields=True).copy_data()
+        res = self.with_context({
+            "include_business_fields": True,
+            "force_copy_stock_moves": True,
+        }).copy_data()
         old_number = self.name
         suffix = "-R"
         if suffix in old_number:
