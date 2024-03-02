@@ -1,0 +1,50 @@
+.o_report_nxpo_account {
+    font-size: 16px;
+    font-family: "THSarabunNew";
+    // Company Info
+    .company-info {
+        font-size: 12pt;
+        .logo {
+            max-width: 120px;
+        }
+        .title {
+            font-size: 18pt;
+        }
+    }
+    // Partner Info
+    .partner-info {
+        .left-side,
+        .right-side {
+            border: 1px solid black;
+            padding: 5px;
+        }
+    }
+    // Table
+    table {
+        width: 100%;
+        th {
+            background-color: #d0d1d3;
+            border: 1px solid black;
+        }
+        td {
+            border-right: 1px solid black;
+            padding: 5px;
+        }
+    }
+    // Other
+    .state_not_ready {
+        line-height: 20px;
+        font-weight: bold;
+        font-size: 250px;
+        position: fixed;
+        right: 50mm;
+        top: 90mm;
+        color: gray;
+        opacity: 0.4;
+        transform: rotate(320deg);
+        -webkit-transform: rotate(340deg);
+    }
+    .opacity {
+        opacity: 0.4;
+    }
+}
