@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="view_print_form_account" model="ir.ui.view">
+        <field name="name">Account Print Form</field>
+        <field name="model">account.form.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Account Move">
+                <div>
+                    <group name="criteria">
+                        <group>
+                            <field
+                                name="doctype"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                        </group>
+                        <group />
+                    </group>
+                    <footer>
+                        <button
+                            name="action_print"
+                            type="object"
+                            string="Print"
+                            class="btn-primary"
+                        />
+                        <button
+                            string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"
+                        />
+                    </footer>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_open_move_form" model="ir.actions.act_window">
+        <field name="name">Print Form</field>
+        <field name="res_model">account.form.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_print_form_account" />
+        <field name="binding_model_id" ref="account.model_account_move" />
+        <field name="binding_view_types">list,form</field>
+        <field name="binding_type">report</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_open_payment_form" model="ir.actions.act_window">
+        <field name="name">Print Report</field>
+        <field name="res_model">account.form.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_print_form_account" />
+        <field name="binding_model_id" ref="account.model_account_payment" />
+        <field name="binding_view_types">list,form</field>
+        <field name="binding_type">report</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
