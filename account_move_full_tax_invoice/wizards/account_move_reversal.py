@@ -11,7 +11,7 @@ class AccountMoveReversal(models.TransientModel):
     full_tax_journal_id = fields.Many2one(
         comodel_name="account.journal",
         domain=[("type", "=", "sale")],
-        string="Use Specific Journal",
+        string="Use Specific Journal Full Tax",
         compute="_compute_full_tax_journal_id",
         readonly=False,
         store=True,
@@ -33,3 +33,9 @@ class AccountMoveReversal(models.TransientModel):
         for rec in self:
             if rec.is_full_tax:
                 rec.full_tax_journal_id = full_tax_journal_id
+
+    def reverse_moves(self):
+        action = super().reverse_moves()
+        if self.is_full_tax:
+            self.move_ids.write({"move_full_tax_id": action["res_id"]})
+        return action
