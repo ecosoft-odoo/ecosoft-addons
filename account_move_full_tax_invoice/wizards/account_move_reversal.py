@@ -37,5 +37,9 @@ class AccountMoveReversal(models.TransientModel):
     def reverse_moves(self):
         action = super().reverse_moves()
         if self.is_full_tax:
+            # Update link ABB to Full Tax
             self.move_ids.write({"move_full_tax_id": action["res_id"]})
+            # Update Journal in Full Tax
+            move_full_tax = self.env["account.move"].browse(action["res_id"])
+            move_full_tax.write({"journal_id": self.full_tax_journal_id.id})
         return action
