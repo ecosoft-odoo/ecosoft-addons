@@ -28,7 +28,7 @@ class AccountMoveReversal(models.TransientModel):
     @api.depends("is_full_tax")
     def _compute_full_tax_journal_id(self):
         full_tax_journal_id = self.env.ref(
-            "account_move_full_tax_invoice.account_full_tax_journal"
+            "account_move_tax_abb.account_full_tax_journal"
         )
         for rec in self:
             if rec.is_full_tax:

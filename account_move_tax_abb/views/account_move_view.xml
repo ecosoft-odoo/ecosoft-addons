@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
                 <button
-                    name="action_reverse"
+                    name="action_convert_to_full_tax"
                     class="oe_highlight"
                     string='Convert to Full Tax'
                     type='object'
@@ -19,6 +19,29 @@
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="move_full_tax_id" />
                 <field name="is_tax_abb" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_invoice_filter" model="ir.ui.view">
+        <field name="name">account.invoice.select</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='to_check']" position="after">
+                <separator />
+                <filter
+                    name="tax_abb"
+                    string="Tax ABB"
+                    domain="[('is_tax_abb', '!=', False)]"
+                />
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter
+                    string="Tax ABB"
+                    name="tax_abb"
+                    context="{'group_by': 'is_tax_abb'}"
+                />
             </xpath>
         </field>
     </record>

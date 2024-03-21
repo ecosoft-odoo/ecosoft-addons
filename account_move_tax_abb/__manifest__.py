@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Accounting - Full Tax Invoice",
+    "name": "Accounting - Tax ABB",
     "version": "16.0.1.0.0",
     "license": "AGPL-3",
     "summary": "change ABB to full tax invoice",
@@ -13,7 +13,7 @@
     "data": [
         "data/account_journal_data.xml",
         "views/account_move_view.xml",
-        "wizards/account_move_reversal_view.xml",
+        # "wizards/account_move_reversal_view.xml",
     ],
     "maintainers": ["Saran440"],
     "installable": True,
