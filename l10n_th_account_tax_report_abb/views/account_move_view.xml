@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Tax Invoice -->
+    <record id="view_tax_invoice_search" model="ir.ui.view">
+        <field name="model">account.move.tax.invoice</field>
+        <field name="inherit_id" ref="l10n_th_account_tax.view_tax_invoice_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="before">
+                <filter
+                    name="tax_aab"
+                    string="Tax ABB"
+                    domain="[('is_tax_abb', '=', True)]"
+                />
+                <filter
+                    name="not_tax_aab"
+                    string="Not Tax ABB"
+                    domain="[('is_tax_abb', '!=', True)]"
+                />
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter
+                    string="Tax ABB"
+                    name="tax_abb"
+                    context="{'group_by':'is_tax_abb'}"
+                />
+            </xpath>
+        </field>
+    </record>
+    <record id="view_tax_invoice_form" model="ir.ui.view">
+        <field name="model">account.move.tax.invoice</field>
+        <field name="inherit_id" ref="l10n_th_account_tax.view_tax_invoice_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[2]" position="inside">
+                <field name="is_tax_abb" />
+            </xpath>
+        </field>
+    </record>
+    <record id="view_tax_invoice_tree" model="ir.ui.view">
+        <field name="model">account.move.tax.invoice</field>
+        <field name="inherit_id" ref="l10n_th_account_tax.view_tax_invoice_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="is_tax_abb" />
+            </xpath>
+        </field>
+    </record>
+</odoo>
