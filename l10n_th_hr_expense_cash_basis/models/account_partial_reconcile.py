@@ -12,7 +12,7 @@ class AccountPartialReconcile(models.Model):
         """Allow post cash basis for set to_clear_tax=True
         and reset it back to draft"""
         moves = super()._create_tax_cash_basis_moves_expense()
-        moves._post()
+        moves._post(soft=False)
         # EXPERIMENT: remove income / expense account move lines
         ml_groups = self.env["account.move.line"].read_group(
             domain=[("move_id", "in", moves.ids)],
