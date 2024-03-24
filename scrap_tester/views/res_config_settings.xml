@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.stock</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@data-key='stock']" position="inside">
+                <h2 class="mt32">Scrapping</h2>
+                <div
+                    class="row mt16 o_settings_container"
+                    name="scrapping_setting_container"
+                >
+                    <div class="col-12 col-lg-6 o_setting_box" id="enable_scrap_tester">
+                        <div class="o_setting_left_pane">
+                            <field name="enable_scrap_tester" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="enable_scrap_tester" />
+                            <div class="text-muted">
+                                Set to auto default scrap.
+                            </div>
+                            <div
+                                class="content-group"
+                                attrs="{'invisible': [('enable_scrap_tester', '=', False)]}"
+                            >
+                                <div class="row mt16">
+                                    <label
+                                        for="scrap_tester_location_default"
+                                        string="Tester Location"
+                                        class="col-lg-4 o_light_label"
+                                    />
+                                    <field
+                                        name="scrap_tester_location_default"
+                                        attrs="{'required': [('enable_scrap_tester', '!=', False)]}"
+                                    />
+                                </div>
+                                <div class="row">
+                                    <label
+                                        for="scrap_account_template_default"
+                                        string="Move Template"
+                                        class="col-lg-4 o_light_label"
+                                    />
+                                    <field
+                                        name="scrap_account_template_default"
+                                        attrs="{'required': [('enable_scrap_tester', '!=', False)]}"
+                                    />
+                                </div>
+                                <div class="row">
+                                    <label
+                                        for="scrap_move_state"
+                                        string="Journal Entry Status"
+                                        class="col-lg-4 o_light_label"
+                                    />
+                                    <field
+                                        name="scrap_move_state"
+                                        attrs="{'required': [('enable_scrap_tester', '!=', False)]}"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

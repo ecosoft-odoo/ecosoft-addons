@@ -1,0 +1,36 @@
+<odoo>
+    <record id="stock_scrap_form_view" model="ir.ui.view">
+        <field name="name">stock.scrap.form</field>
+        <field name="model">stock.scrap</field>
+        <field name="inherit_id" ref="stock.stock_scrap_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]" position='inside'>
+                <field name="enable_scrap_tester" invisible="1" />
+                <span attrs="{'invisible': [('enable_scrap_tester', '=', False)]}">
+                    <field name="is_tester" />
+                    <label for="is_tester" />
+                </span>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field
+                    name="tester_product_id"
+                    attrs="{
+                        'invisible': [('is_tester', '=', False)],
+                        'required': [('is_tester', '!=', False)]}"
+                />
+            </xpath>
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field
+                    name="tester_lot_id"
+                    attrs="{'invisible': [('is_tester', '=', False)]}"
+                />
+            </xpath>
+            <xpath expr="//group[2]" position='inside'>
+                <field
+                    name="move_from_template_id"
+                    attrs="{'invisible': [('move_from_template_id', '=', False)]}"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
