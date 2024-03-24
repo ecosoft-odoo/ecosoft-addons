@@ -90,6 +90,7 @@ class StockScrap(models.Model):
     def do_scrap(self):
         """This function will create new journal entry, if checked tester"""
         res = super().do_scrap()
+        self = self.sudo()
         move_template = self.env["account.move.template.run"]
         stock_valuation = self.env["stock.valuation.layer"]
         for scrap in self:
