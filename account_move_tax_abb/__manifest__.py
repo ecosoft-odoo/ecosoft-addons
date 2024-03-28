@@ -13,7 +13,7 @@
     "data": [
         "data/account_journal_data.xml",
         "views/account_move_view.xml",
-        # "wizards/account_move_reversal_view.xml",
+        "views/res_partner_views.xml",
     ],
     "maintainers": ["Saran440"],
     "installable": True,
