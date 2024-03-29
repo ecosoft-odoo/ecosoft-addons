@@ -1,7 +1,7 @@
 # Copyright 2024 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -16,10 +16,16 @@ class AccountMove(models.Model):
     )
     is_tax_abb = fields.Boolean(
         string="Tax (ABB)",
-        copy=False,
-        readonly=True,
+        compute="_compute_is_tax_abb",
+        store=True,
         states={"draft": [("readonly", "=", False)]},
     )
+
+    @api.depends("partner_id")
+    def _compute_is_tax_abb(self):
+        for rec in self:
+            if rec.move_type == "out_invoice":
+                rec.is_tax_abb = rec.partner_id.is_tax_abb
 
     def _get_update_value(self, move_full_tax):
         return {
