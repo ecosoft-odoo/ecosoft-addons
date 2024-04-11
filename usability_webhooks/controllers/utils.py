@@ -223,11 +223,13 @@ class WebhookUtils(models.AbstractModel):
         rec = self.env[model].search([(key_field, "=", data_dict[key_field])])
         if not rec:
             raise ValidationError(
-                _('Search key "%s" not found!') % data_dict[key_field]
+                _("Search key '%(key_field)s' not found!")
+                % {"key_field": data_dict[key_field]}
             )
         elif len(rec) > 1:
             raise ValidationError(
-                _('Search key "%s" found mutiple matches!') % data_dict[key_field]
+                _("Search key '%(key_field)s' found mutiple matches!")
+                % {"key_field": data_dict[key_field]}
             )
         rec_fields = []
         line_all_fields = []
@@ -343,7 +345,7 @@ class WebhookUtils(models.AbstractModel):
                         if len(values) > 1:
                             Model.clear_caches()
                             raise ValidationError(
-                                _('"%s" matched more than 1 record') % val
+                                _("'%(val)s' matched more than 1 record") % {"val": val}
                             )
                         # If not found, but auto_create it
                         if len(values) != 1 and auto_create.get(key):
@@ -357,7 +359,10 @@ class WebhookUtils(models.AbstractModel):
                             values = self._call_name_search_cache(Model, val)
                         elif not values:
                             Model.clear_caches()
-                            raise ValidationError(_('"%s" found no match.') % val)
+                            raise ValidationError(
+                                _("'%(key)s': '%(val)s' found no match.")
+                                % {"key": key, "val": val}
+                            )
                         if ftype == "many2one":
                             value = values[0][0]
                         elif ftype == "many2many":
