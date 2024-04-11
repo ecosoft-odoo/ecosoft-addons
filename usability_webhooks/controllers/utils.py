@@ -3,7 +3,7 @@
 
 import logging
 
-from odoo import _, api, models
+from odoo import _, api, models, tools
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -13,6 +13,7 @@ class WebhookUtils(models.AbstractModel):
     _name = "webhook.utils"
     _description = "Utils Class"
 
+    @tools.ormcache("model")
     def _search_key(self, model):
         """Return the unique search key for each model, else use 'name'"""
         keys = {
@@ -21,6 +22,15 @@ class WebhookUtils(models.AbstractModel):
         }
         key = keys.get(model, "name")
         return key
+
+    @tools.ormcache("model", "val")
+    def _call_name_search_cache(self, model, val, args=None):
+        args = args or []
+        return model.name_search(val, args=args, operator="=")
+
+    @tools.ormcache("model", "val")
+    def _call_search_cache(self, model, val):
+        return model.search([("id", "=", val)])
 
     def _get_ctx_lines(self):
         """For hooks add context to do unlink lines"""
@@ -77,6 +87,57 @@ class WebhookUtils(models.AbstractModel):
         if file_attach:
             Attachment.create(file_attach)
 
+    def _convert_data_to_id(self, model, vals):
+        data_dict = vals.get("payload", {})
+        auto_create = vals.get("auto_create", {})
+        rec = self.env[model].new()  # Dummy record
+        rec_fields = []
+        line_all_fields = []
+        for field, model_field in rec._fields.items():
+            if field in data_dict and model_field.type != "one2many":
+                rec_fields.append(field)
+            elif field in data_dict:
+                line_all_fields.append(field)
+        rec_dict = {k: v for k, v in data_dict.items() if k in rec_fields}
+        rec_dict = self._finalize_data_to_write(rec, rec_dict, auto_create)
+        # Prepare Line Dict (o2m)
+        for line_field in line_all_fields:
+            final_line_dict = []
+            final_line_append = final_line_dict.append
+            # Loop all o2m lines, and recreate it
+            for line_data_dict in data_dict[line_field]:
+                line_dict, line_fields = self._get_o2m_line(
+                    line_data_dict, rec[line_field]
+                )
+                line_dict = self._finalize_data_to_write(
+                    rec[line_field], line_dict, auto_create
+                )
+                # Prepare Sub Line Dict (o2m)
+                for line_sub_field in line_fields:
+                    final_sub_line_dict = []
+                    final_sub_line_append = final_sub_line_dict.append
+                    # Loop all o2m sub lines, and recreate it
+                    for line_sub_data_dict in line_data_dict[line_sub_field]:
+                        sub_line_dict, line_sub_fields = self._get_o2m_line(
+                            line_sub_data_dict, rec[line_field][line_sub_field]
+                        )
+                        sub_line_dict = self._finalize_data_to_write(
+                            rec[line_field][line_sub_field], sub_line_dict, auto_create
+                        )
+                        final_sub_line_append((0, 0, sub_line_dict))
+                        if line_sub_fields:
+                            rec.clear_caches()
+                            raise ValidationError(
+                                _(
+                                    "friendly_create_data() support "
+                                    "2 level of one2many lines"
+                                )
+                            )
+                    line_dict.update({line_sub_field: final_sub_line_dict})
+                final_line_append((0, 0, line_dict))
+            rec_dict[line_field] = final_line_dict
+        return rec_dict, rec, line_all_fields
+
     @api.model
     def friendly_create_data(self, model, vals):
         """Accept friendly data_dict in following format to create data,
@@ -116,54 +177,7 @@ class WebhookUtils(models.AbstractModel):
         }
         """
         data_dict = vals.get("payload", {})
-        auto_create = vals.get("auto_create", {})
-        res = {}
-        rec = self.env[model].new()  # Dummy record
-        rec_fields = []
-        line_all_fields = []
-        for field, model_field in rec._fields.items():
-            if field in data_dict and model_field.type != "one2many":
-                rec_fields.append(field)
-            elif field in data_dict:
-                line_all_fields.append(field)
-        rec_dict = {k: v for k, v in data_dict.items() if k in rec_fields}
-        rec_dict = self._finalize_data_to_write(rec, rec_dict, auto_create)
-        # Prepare Line Dict (o2m)
-        for line_field in line_all_fields:
-            final_line_dict = []
-            final_line_append = final_line_dict.append
-            # Loop all o2m lines, and recreate it
-            for line_data_dict in data_dict[line_field]:
-                line_dict, line_fields = self._get_o2m_line(
-                    line_data_dict, rec[line_field]
-                )
-                line_dict = self._finalize_data_to_write(
-                    rec[line_field], line_dict, auto_create
-                )
-                # Prepare Sub Line Dict (o2m)
-                for line_sub_field in line_fields:
-                    final_sub_line_dict = []
-                    final_sub_line_append = final_sub_line_dict.append
-
-                    # Loop all o2m sub lines, and recreate it
-                    for line_sub_data_dict in line_data_dict[line_sub_field]:
-                        sub_line_dict, line_sub_fields = self._get_o2m_line(
-                            line_sub_data_dict, rec[line_field][line_sub_field]
-                        )
-                        sub_line_dict = self._finalize_data_to_write(
-                            rec[line_field][line_sub_field], sub_line_dict, auto_create
-                        )
-                        final_sub_line_append((0, 0, sub_line_dict))
-                        if line_sub_fields:
-                            raise ValidationError(
-                                _(
-                                    "friendly_create_data() support "
-                                    "2 level of one2many lines"
-                                )
-                            )
-                    line_dict.update({line_sub_field: final_sub_line_dict})
-                final_line_append((0, 0, line_dict))
-            rec_dict[line_field] = final_line_dict
+        rec_dict, rec, line_all_fields = self._convert_data_to_id(model, vals)
         # Send context to function create()
         obj = rec.with_context(api_payload=data_dict).create(rec_dict)
         # Create Attachment (if any)
@@ -173,6 +187,8 @@ class WebhookUtils(models.AbstractModel):
             "result": {"id": obj.id},
             "messages": _("Record created successfully"),
         }
+        # Clear cache
+        rec.clear_caches()
         return res
 
     @api.model
@@ -258,6 +274,7 @@ class WebhookUtils(models.AbstractModel):
                         )
                         final_sub_line_append((0, 0, sub_line_dict))
                         if line_sub_fields:
+                            rec.clear_caches()
                             raise ValidationError(
                                 _(
                                     "friendly_update_data() support "
@@ -325,13 +342,14 @@ class WebhookUtils(models.AbstractModel):
                         args = []
                         if key == "account_id" and rec_dict.get("company_id"):
                             args = [("company_id", "=", rec_dict.get("company_id"))]
-                        values = Model.name_search(val, args=args, operator="=")
+                        values = self._call_name_search_cache(Model, val, args)
                         # If failed, try again by ID
                         if len(values) != 1 and val and isinstance(val, int):
-                            rec = Model.search([("id", "=", val)])
+                            rec = self._call_search_cache(Model, val)
                             values = len(rec) == 1 and [(rec.id,)] or values
                         # Found > 1, can't continue
                         if len(values) > 1:
+                            Model.clear_caches()
                             raise ValidationError(
                                 _("'%(val)s' matched more than 1 record") % {"val": val}
                             )
@@ -344,8 +362,9 @@ class WebhookUtils(models.AbstractModel):
                                 new_recs.append(auto_create[key])
                             for new_rec in new_recs:
                                 self.friendly_create_data(model, {"payload": new_rec})
-                            values = Model.name_search(val, operator="=")
+                            values = self._call_name_search_cache(Model, val, args)
                         elif not values:
+                            Model.clear_caches()
                             raise ValidationError(
                                 _("'%(key)s': '%(val)s' found no match.")
                                 % {"key": key, "val": val}
