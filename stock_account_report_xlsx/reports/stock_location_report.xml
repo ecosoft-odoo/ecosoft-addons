@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template
+        id="report_stock_location_report_lines_header"
+        inherit_id="stock_report_xlsx.report_stock_location_report_lines_header"
+    >
+        <xpath expr="//div[@id='header_lines']" position="inside">
+            <div class="act_as_cell">Cost</div>
+            <div class="act_as_cell">Average Cost</div>
+            <div class="act_as_cell">Sale Price</div>
+            <div class="act_as_cell">Sale Price / Unit</div>
+        </xpath>
+    </template>
+
+    <template
+        id="report_stock_location_report_lines"
+        inherit_id="stock_report_xlsx.report_stock_location_report_lines"
+    >
+        <xpath expr="//div[@id='report_lines']" position="inside">
+            <t
+                t-set="product_company"
+                t-value="line.product_id.with_company(line.company_id)"
+            />
+            <t t-if="product_company.quantity_svl">
+                <t
+                    t-set="cost"
+                    t-value="line.quantity * product_company.value_svl / product_company.quantity_svl"
+                />
+            </t>
+            <t t-else="">
+                <t t-set="cost" t-value="0" />
+            </t>
+            <t t-if="line.quantity">
+                <t t-set="avg_cost_unit" t-value="cost / line.quantity" />
+            </t>
+            <t t-else="">
+                <t t-set="avg_cost_unit" t-value="0.0" />
+            </t>
+            <t t-set="sale_price_unit" t-value="product_company.list_price" />
+            <t t-set="sale_price" t-value="sale_price_unit * line.quantity" />
+
+            <div class="act_as_cell right">
+                <span t-out="cost" t-options="{'widget': 'float', 'precision': 2}" />
+            </div>
+            <div class="act_as_cell right">
+                <span
+                    t-out="avg_cost_unit"
+                    t-options="{'widget': 'float', 'precision': 2}"
+                />
+            </div>
+            <div class="act_as_cell right">
+                <span
+                    t-out="sale_price"
+                    t-options="{'widget': 'float', 'precision': 2}"
+                />
+            </div>
+            <div class="act_as_cell right">
+                <span
+                    t-out="sale_price_unit"
+                    t-options="{'widget': 'float', 'precision': 2}"
+                />
+            </div>
+        </xpath>
+    </template>
+</odoo>

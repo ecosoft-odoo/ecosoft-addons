@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <menuitem
+        id="menu_stock_report"
+        name="Inventory by Location"
+        parent="stock.menu_warehouse_report"
+        action="stock_report_xlsx.action_stock_location_report"
+        groups="stock.group_stock_manager"
+    />
+</odoo>

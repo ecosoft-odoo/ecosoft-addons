@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Template Stock Report -->
+    <template id="report_stock_location">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="stock_report_xlsx.internal_layout">
+                    <t t-call="stock_report_xlsx.report_stock_location_report_base" />
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="stock_report_xlsx.internal_layout">
+        <div class="article">
+            <t t-raw="0" />
+        </div>
+        <div class="footer">
+            <div class="row">
+                <div class="col-6 text-right custom_footer">
+                    <span class="page" />
+                    /
+                    <span class="topage" />
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_stock_location_report_base">
+        <div class="page">
+            <!-- Display Title -->
+            <div>
+                <t t-set="header_name" t-value="o._get_header_name()" />
+                <t t-set="today" t-value="o._get_date_today()" />
+                <h4 name="header_name" class="text-center">
+                    <span t-out="header_name" />
+                </h4>
+                <h6 name="header_date" class="text-center">
+                    At date: <span t-out="today" t-options="{'widget': 'date'}" />
+                </h6>
+            </div>
+            <!-- Display filters -->
+            <t t-call="stock_report_xlsx.report_stock_location_report_filters" />
+            <!-- Display tax report table -->
+            <div class="act_as_table data_table mt8">
+                <!-- Display header line -->
+                <t
+                    t-call="stock_report_xlsx.report_stock_location_report_lines_header"
+                />
+                <!-- Display each lines -->
+                <t t-set="n" t-value="1" />
+                <t t-foreach="o.results" t-as="line">
+                    <t t-call="stock_report_xlsx.report_stock_location_report_lines" />
+                    <t t-set="n" t-value="n+1" />
+                </t>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_stock_location_report_filters">
+        <div class="act_as_table data_table">
+            <div class="act_as_row labels">
+                <div class="act_as_cell">Location(s)</div>
+                <div class="act_as_cell">Product(s)</div>
+            </div>
+            <div class="act_as_row">
+                <div class="act_as_cell">
+                    <span t-field="o.location_ids" />
+                </div>
+                <div class="act_as_cell">
+                    <span t-field="o.product_ids" />
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_stock_location_report_lines_header">
+        <div id="header_lines" class="act_as_thead act_as_row labels">
+            <div class="act_as_cell">#</div>
+            <div class="act_as_cell">Location</div>
+            <div class="act_as_cell">Code</div>
+            <div class="act_as_cell">Product</div>
+            <div class="act_as_cell">Quantity</div>
+        </div>
+    </template>
+
+    <template id="report_stock_location_report_lines">
+        <div id="report_lines" class="act_as_row lines">
+            <div class="act_as_cell">
+                <t t-out="n" />
+            </div>
+            <div class="act_as_cell left">
+                <t t-out="line.location_id.name" />
+            </div>
+            <div class="act_as_cell left">
+                <t t-out="line.product_id.default_code" />
+            </div>
+            <div class="act_as_cell left">
+                <t t-out="line.product_id.name" />
+            </div>
+            <div class="act_as_cell right">
+                <t
+                    t-out="line.quantity"
+                    t-options="{'widget': 'float', 'precision': 2}"
+                />
+            </div>
+        </div>
+    </template>
+</odoo>
