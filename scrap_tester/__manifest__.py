@@ -12,6 +12,7 @@
     "depends": ["stock", "account_move_template"],
     "data": [
         "views/res_config_settings.xml",
+        "views/product_views.xml",
         "views/stock_scrap_views.xml",
         "views/account_move_views.xml",
     ],
