@@ -2,8 +2,12 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 import json
+import logging
+from datetime import datetime, timedelta
 
-from odoo import fields, models
+from odoo import api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class APILog(models.Model):
@@ -47,4 +51,22 @@ class APILog(models.Model):
                 "messages": e,
             }
             self.write({"result": res, "state": "failed"})
+        return True
+
+    @api.model
+    def autovacuum(self, days, chunk_size=None):
+        """Delete all logs older than ``days``
+        Called from a cron.
+        """
+        days = (days > 0) and int(days) or 0
+        deadline = datetime.now() - timedelta(days=days)
+        records = self.env["api.log"].search(
+            [("create_date", "<=", fields.Datetime.to_string(deadline))],
+            limit=chunk_size,
+            order="create_date asc",
+        )
+        nb_records = len(records)
+        with self.env.norecompute():
+            records.unlink()
+        _logger.info("AUTOVACUUM - %s 'api.log' records deleted", nb_records)
         return True
