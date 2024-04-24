@@ -11,24 +11,8 @@ class ReportStockLocationXlsx(models.TransientModel):
 
     def _get_stock_location_template(self):
         stock_location_template = super()._get_stock_location_template()
-
-        stock_location_template["6_cost"] = {
-            "header": {"value": "Cost"},
-            "data": {
-                "value": self._render("cost"),
-                "format": FORMATS["format_tcell_amount_right"],
-            },
-            "width": 20,
-        }
-        stock_location_template["7_avg_cost_unit"] = {
-            "header": {"value": "Average Cost / Unit"},
-            "data": {
-                "value": self._render("avg_cost_unit"),
-                "format": FORMATS["format_tcell_amount_right"],
-            },
-            "width": 20,
-        }
-        stock_location_template["8_sale_price"] = {
+        # Add sale price
+        stock_location_template["6_sale_price"] = {
             "header": {"value": "Sale Price"},
             "data": {
                 "value": self._render("sale_price"),
@@ -36,7 +20,7 @@ class ReportStockLocationXlsx(models.TransientModel):
             },
             "width": 20,
         }
-        stock_location_template["9_sale_price_unit"] = {
+        stock_location_template["7_sale_price_unit"] = {
             "header": {"value": "Sale Price / Unit"},
             "data": {
                 "value": self._render("sale_price_unit"),
@@ -48,16 +32,7 @@ class ReportStockLocationXlsx(models.TransientModel):
 
     def _get_render_space(self, index, line):
         render_space = super()._get_render_space(index, line)
-
-        # Add cost in report
         product_company = line.product_id.with_company(line.company_id)
-        value = 0.0
-        if product_company.quantity_svl:
-            value = (
-                line.quantity * product_company.value_svl / product_company.quantity_svl
-            )
-        render_space["cost"] = value
-        render_space["avg_cost_unit"] = line.quantity and (value / line.quantity) or 0.0
         render_space["sale_price_unit"] = product_company.list_price
         render_space["sale_price"] = product_company.list_price * line.quantity
         return render_space
