@@ -12,6 +12,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/config_parameter.xml",
+        "data/ir_cron.xml",
         "views/api_log.xml",
     ],
 }
