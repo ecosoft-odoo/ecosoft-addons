@@ -14,8 +14,8 @@
     "data": [
         "security/ir.model.access.csv",
         "data/report_data.xml",
-        "reports/stock_location_report.xml",
-        "wizards/stock_location_report_wizard_view.xml",
+        "reports/stock_inventory_report.xml",
+        "wizards/stock_inventory_report_wizard_view.xml",
         "views/stock_menu_views.xml",
     ],
     "assets": {

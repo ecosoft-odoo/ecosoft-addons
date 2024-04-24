@@ -13,10 +13,10 @@ from odoo.addons.report_xlsx_helper.report.report_xlsx_format import (
 _logger = logging.getLogger(__name__)
 
 
-class ReportStockLocationXlsx(models.TransientModel):
-    _name = "report.stock_report_xlsx.report_stock_location_xlsx"
+class ReportStockInventoryXlsx(models.TransientModel):
+    _name = "report.stock_report_xlsx.report_stock_inventory_xlsx"
     _inherit = "report.report_xlsx.abstract"
-    _description = "Stock Location Report Excel"
+    _description = "Stock Inventory Report Excel"
 
     def _define_formats(self, workbook):
         res = super()._define_formats(workbook)
@@ -26,7 +26,7 @@ class ReportStockLocationXlsx(models.TransientModel):
         )
         return res
 
-    def _get_stock_location_template(self):
+    def _get_stock_inventory_template(self):
         return {
             "1_index": {
                 "header": {"value": "#"},
@@ -61,13 +61,13 @@ class ReportStockLocationXlsx(models.TransientModel):
         }
 
     def _get_ws_params(self, wb, data, objects):
-        stock_location_template = self._get_stock_location_template()
+        stock_inventory_template = self._get_stock_inventory_template()
         ws_params = {
-            "ws_name": "Stock Location Report",
-            "generate_ws_method": "_stock_location_report",
-            "title": "Stock Location Report",
-            "wanted_list": [k for k in sorted(stock_location_template.keys())],
-            "col_specs": stock_location_template,
+            "ws_name": "Stock Inventory Report",
+            "generate_ws_method": "_stock_inventory_report",
+            "title": "Stock Inventory Report",
+            "wanted_list": [k for k in sorted(stock_inventory_template.keys())],
+            "col_specs": stock_inventory_template,
         }
         return [ws_params]
 
@@ -129,7 +129,7 @@ class ReportStockLocationXlsx(models.TransientModel):
         )
         return row_pos
 
-    def _stock_location_report(self, wb, ws, ws_params, data, objects):
+    def _stock_inventory_report(self, wb, ws, ws_params, data, objects):
         ws.set_portrait()
         ws.fit_to_pages(1, 0)
         ws.set_header(XLS_HEADERS["xls_headers"]["standard"])

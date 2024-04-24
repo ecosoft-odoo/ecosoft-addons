@@ -11,6 +11,6 @@
         "stock_account",
         "stock_report_xlsx",
     ],
-    "data": ["reports/stock_location_report.xml"],
+    "data": ["reports/stock_inventory_report.xml"],
     "license": "AGPL-3",
 }

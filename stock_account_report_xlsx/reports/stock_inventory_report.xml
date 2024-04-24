@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <template
-        id="report_stock_location_report_lines_header"
-        inherit_id="stock_report_xlsx.report_stock_location_report_lines_header"
+        id="report_stock_inventory_report_lines_header"
+        inherit_id="stock_report_xlsx.report_stock_inventory_report_lines_header"
     >
         <xpath expr="//div[@id='header_lines']" position="inside">
             <div class="act_as_cell">Unit Price</div>
@@ -11,8 +11,8 @@
     </template>
 
     <template
-        id="report_stock_location_report_lines"
-        inherit_id="stock_report_xlsx.report_stock_location_report_lines"
+        id="report_stock_inventory_report_lines"
+        inherit_id="stock_report_xlsx.report_stock_inventory_report_lines"
     >
         <xpath expr="//div[@id='report_lines']" position="inside">
             <t t-set="unit_price" t-value="line.product_id.list_price" />

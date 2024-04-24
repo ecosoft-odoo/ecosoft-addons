@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <!-- PDF/HMTL/XLSX REPORTS -->
-    <!-- Stock Location Report -->
-    <record id="action_print_report_stock_location_qweb" model="ir.actions.report">
-        <field name="name">Stock Location Report</field>
-        <field name="model">stock.location.report.wizard</field>
+    <!-- Stock Inventory Report -->
+    <record id="action_print_report_stock_inventory_qweb" model="ir.actions.report">
+        <field name="name">Stock Inventory Report</field>
+        <field name="model">stock.inventory.report.wizard</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">stock_report_xlsx.report_stock_location</field>
-        <field name="report_file">stock_report_xlsx.report_stock_location</field>
+        <field name="report_name">stock_report_xlsx.report_stock_inventory</field>
+        <field name="report_file">stock_report_xlsx.report_stock_inventory</field>
         <field name="print_report_name">object._get_report_base_filename()</field>
         <!-- <field
             name="paperformat_id"
             ref="stock_report_xlsx.paperformat_tax_report"
         /> -->
     </record>
-    <record id="action_print_report_stock_location_html" model="ir.actions.report">
-        <field name="name">Stock Location Report</field>
-        <field name="model">stock.location.report.wizard</field>
+    <record id="action_print_report_stock_inventory_html" model="ir.actions.report">
+        <field name="name">Stock Inventory Report</field>
+        <field name="model">stock.inventory.report.wizard</field>
         <field name="report_type">qweb-html</field>
-        <field name="report_name">stock_report_xlsx.report_stock_location</field>
-        <field name="report_file">stock_report_xlsx.report_stock_location</field>
+        <field name="report_name">stock_report_xlsx.report_stock_inventory</field>
+        <field name="report_file">stock_report_xlsx.report_stock_inventory</field>
     </record>
-    <record id="action_print_report_stock_location_xlsx" model="ir.actions.report">
-        <field name="name">Stock Location Report XLSX</field>
-        <field name="model">stock.location.report.wizard</field>
+    <record id="action_print_report_stock_inventory_xlsx" model="ir.actions.report">
+        <field name="name">Stock Inventory Report XLSX</field>
+        <field name="model">stock.inventory.report.wizard</field>
         <field name="report_type">xlsx</field>
-        <field name="report_name">stock_report_xlsx.report_stock_location_xlsx</field>
-        <field name="report_file">stock_report_xlsx.report_stock_location_xlsx</field>
+        <field name="report_name">stock_report_xlsx.report_stock_inventory_xlsx</field>
+        <field name="report_file">stock_report_xlsx.report_stock_inventory_xlsx</field>
         <field name="print_report_name">object._get_report_base_filename()</field>
     </record>
 </odoo>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <!-- Template Stock Report -->
-    <template id="report_stock_location">
+    <template id="report_stock_inventory">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-call="stock_report_xlsx.internal_layout">
-                    <t t-call="stock_report_xlsx.report_stock_location_report_base" />
+                    <t t-call="stock_report_xlsx.report_stock_inventory_report_base" />
                 </t>
             </t>
         </t>
@@ -26,7 +26,7 @@
         </div>
     </template>
 
-    <template id="report_stock_location_report_base">
+    <template id="report_stock_inventory_report_base">
         <div class="page">
             <!-- Display Title -->
             <div>
@@ -40,17 +40,17 @@
                 </h6>
             </div>
             <!-- Display filters -->
-            <t t-call="stock_report_xlsx.report_stock_location_report_filters" />
+            <t t-call="stock_report_xlsx.report_stock_inventory_report_filters" />
             <!-- Display tax report table -->
             <div class="act_as_table data_table mt8">
                 <!-- Display header line -->
                 <t
-                    t-call="stock_report_xlsx.report_stock_location_report_lines_header"
+                    t-call="stock_report_xlsx.report_stock_inventory_report_lines_header"
                 />
                 <t t-set="n" t-value="1" />
                 <!-- Display each lines -->
                 <t t-foreach="o.results" t-as="line">
-                    <t t-call="stock_report_xlsx.report_stock_location_report_lines" />
+                    <t t-call="stock_report_xlsx.report_stock_inventory_report_lines" />
                     <t t-set="n" t-value="n+1" />
                 </t>
                 <!-- Display total lines -->
@@ -59,7 +59,7 @@
         </div>
     </template>
 
-    <template id="report_stock_location_report_filters">
+    <template id="report_stock_inventory_report_filters">
         <div class="act_as_table data_table">
             <div class="act_as_row labels">
                 <div class="act_as_cell">Location(s)</div>
@@ -76,7 +76,7 @@
         </div>
     </template>
 
-    <template id="report_stock_location_report_lines_header">
+    <template id="report_stock_inventory_report_lines_header">
         <div id="header_lines" class="act_as_thead act_as_row labels">
             <div class="act_as_cell">#</div>
             <div class="act_as_cell">Location</div>
@@ -86,7 +86,7 @@
         </div>
     </template>
 
-    <template id="report_stock_location_report_lines">
+    <template id="report_stock_inventory_report_lines">
         <div id="report_lines" class="act_as_row lines">
             <div class="act_as_cell">
                 <t t-out="n" />

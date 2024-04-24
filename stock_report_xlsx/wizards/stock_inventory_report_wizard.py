@@ -5,9 +5,9 @@
 from odoo import fields, models
 
 
-class StockLocationReportWizard(models.TransientModel):
-    _name = "stock.location.report.wizard"
-    _description = "Wizard for Stock Location Report"
+class StockInventoryReportWizard(models.TransientModel):
+    _name = "stock.inventory.report.wizard"
+    _description = "Wizard for Stock Inventory Report"
 
     # Search Criteria
     company_id = fields.Many2one(
@@ -25,7 +25,7 @@ class StockLocationReportWizard(models.TransientModel):
     )
     # Data fields, used to browse report data
     results = fields.Many2many(
-        comodel_name="stock.location.report.view",
+        comodel_name="stock.inventory.report.view",
         compute="_compute_results",
         help="Use compute fields, so there is nothing store in database",
     )
@@ -48,9 +48,9 @@ class StockLocationReportWizard(models.TransientModel):
     def _print_report(self, report_type):
         self.ensure_one()
         if report_type == "xlsx":
-            report_name = "stock_report_xlsx.report_stock_location_xlsx"
+            report_name = "stock_report_xlsx.report_stock_inventory_xlsx"
         else:
-            report_name = "stock_report_xlsx.report_stock_location"
+            report_name = "stock_report_xlsx.report_stock_inventory"
         return (
             self.env["ir.actions.report"]
             .search(
@@ -62,11 +62,11 @@ class StockLocationReportWizard(models.TransientModel):
 
     def _get_report_base_filename(self):
         self.ensure_one()
-        return "StockLocation-{}".format(self._get_date_today())
+        return "StockInventory-{}".format(self._get_date_today())
 
     def _get_header_name(self):
         """Hooks header name here"""
-        return "Stock Location Report"
+        return "Stock Inventory Report"
 
     def _get_date_today(self):
         return fields.Date.context_today(self)
@@ -134,15 +134,15 @@ class StockLocationReportWizard(models.TransientModel):
             (self.company_id.id,),
         )
         tax_report_results = self._cr.dictfetchall()
-        StockLocationObj = self.env["stock.location.report.view"]
+        StockInventoryObj = self.env["stock.inventory.report.view"]
         self.results = False
         for line in tax_report_results:
-            self.results += StockLocationObj.new(line)
+            self.results += StockInventoryObj.new(line)
 
 
-class StockLocationReportView(models.TransientModel):
-    _name = "stock.location.report.view"
-    _description = "Stock Location Report View"
+class StockInventoryReportView(models.TransientModel):
+    _name = "stock.inventory.report.view"
+    _description = "Stock Inventory Report View"
     _order = "id"
 
     company_id = fields.Many2one(comodel_name="res.company")

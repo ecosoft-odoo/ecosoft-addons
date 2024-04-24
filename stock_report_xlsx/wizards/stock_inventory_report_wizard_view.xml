@@ -1,7 +1,7 @@
 <odoo>
-    <record id="stock_location_report_wizard_form" model="ir.ui.view">
-        <field name="name">stock.location.report.wizard.form</field>
-        <field name="model">stock.location.report.wizard</field>
+    <record id="stock_inventory_report_wizard_form" model="ir.ui.view">
+        <field name="name">stock.inventory.report.wizard.form</field>
+        <field name="model">stock.inventory.report.wizard</field>
         <field name="arch" type="xml">
             <form>
                 <group name="criteria">
@@ -49,9 +49,9 @@
             </form>
         </field>
     </record>
-    <record id="action_stock_location_report" model="ir.actions.act_window">
-        <field name="name">Inventory By Location</field>
-        <field name="res_model">stock.location.report.wizard</field>
+    <record id="action_stock_inventory_report" model="ir.actions.act_window">
+        <field name="name">Stock Inventory</field>
+        <field name="res_model">stock.inventory.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>

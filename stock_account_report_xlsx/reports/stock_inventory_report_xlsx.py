@@ -6,13 +6,13 @@ from odoo import models
 from odoo.addons.report_xlsx_helper.report.report_xlsx_format import FORMATS
 
 
-class ReportStockLocationXlsx(models.TransientModel):
-    _inherit = "report.stock_report_xlsx.report_stock_location_xlsx"
+class ReportStockInventoryXlsx(models.TransientModel):
+    _inherit = "report.stock_report_xlsx.report_stock_inventory_xlsx"
 
-    def _get_stock_location_template(self):
-        stock_location_template = super()._get_stock_location_template()
+    def _get_stock_inventory_template(self):
+        stock_inventory_template = super()._get_stock_inventory_template()
         # Add sale price
-        stock_location_template["6_sale_price_unit"] = {
+        stock_inventory_template["6_sale_price_unit"] = {
             "header": {"value": "Unit Price"},
             "data": {
                 "value": self._render("sale_price_unit"),
@@ -20,7 +20,7 @@ class ReportStockLocationXlsx(models.TransientModel):
             },
             "width": 20,
         }
-        stock_location_template["7_sale_price"] = {
+        stock_inventory_template["7_sale_price"] = {
             "header": {"value": "Subtotal"},
             "data": {
                 "value": self._render("sale_price"),
@@ -28,7 +28,7 @@ class ReportStockLocationXlsx(models.TransientModel):
             },
             "width": 20,
         }
-        return stock_location_template
+        return stock_inventory_template
 
     def _get_render_space(self, index, line):
         render_space = super()._get_render_space(index, line)

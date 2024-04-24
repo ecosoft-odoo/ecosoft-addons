@@ -2,9 +2,9 @@
 <odoo>
     <menuitem
         id="menu_stock_report"
-        name="Inventory by Location"
+        name="Stock Inventory Report"
         parent="stock.menu_warehouse_report"
-        action="stock_report_xlsx.action_stock_location_report"
+        action="stock_report_xlsx.action_stock_inventory_report"
         groups="stock.group_stock_manager"
     />
 </odoo>

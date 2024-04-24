@@ -1,1 +1,1 @@
-from . import stock_location_report_xlsx
+from . import stock_inventory_report_xlsx
