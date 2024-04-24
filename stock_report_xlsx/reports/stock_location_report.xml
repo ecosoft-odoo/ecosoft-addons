@@ -47,12 +47,14 @@
                 <t
                     t-call="stock_report_xlsx.report_stock_location_report_lines_header"
                 />
-                <!-- Display each lines -->
                 <t t-set="n" t-value="1" />
+                <!-- Display each lines -->
                 <t t-foreach="o.results" t-as="line">
                     <t t-call="stock_report_xlsx.report_stock_location_report_lines" />
                     <t t-set="n" t-value="n+1" />
                 </t>
+                <!-- Display total lines -->
+                <t t-call="stock_report_xlsx.report_tax_report_total_lines" />
             </div>
         </div>
     </template>
@@ -101,6 +103,21 @@
             <div class="act_as_cell right">
                 <t
                     t-out="line.quantity"
+                    t-options="{'widget': 'float', 'precision': 2}"
+                />
+            </div>
+        </div>
+    </template>
+
+    <template id="report_tax_report_total_lines">
+        <div class="act_as_thead act_as_row labels">
+            <div class="act_as_cell" />
+            <div class="act_as_cell" />
+            <div class="act_as_cell" />
+            <div class="act_as_cell" />
+            <div class="act_as_cell amount">
+                <t
+                    t-out="sum(o.results.mapped('quantity'))"
                     t-options="{'widget': 'float', 'precision': 2}"
                 />
             </div>

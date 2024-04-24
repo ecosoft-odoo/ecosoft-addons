@@ -111,6 +111,24 @@ class ReportStockLocationXlsx(models.TransientModel):
             index += 1
         return row_pos
 
+    def _write_footer_value_hook(self, results):
+        return [
+            sum(results.mapped("quantity")),
+        ]
+
+    def _write_ws_footer(self, row_pos, ws, ws_params, objects):
+        results = objects.results
+        col_end = ws_params["wanted_list"].index("4_product_name")
+        ws.merge_range(row_pos, 0, row_pos, col_end, "")
+        ws.write_row(row_pos, 0, ["Total"], FORMATS["format_theader_blue_right"])
+        ws.write_row(
+            row_pos,
+            col_end + 1,
+            self._write_footer_value_hook(results),
+            FORMATS["format_theader_blue_amount_right"],
+        )
+        return row_pos
+
     def _stock_location_report(self, wb, ws, ws_params, data, objects):
         ws.set_portrait()
         ws.fit_to_pages(1, 0)
@@ -122,6 +140,7 @@ class ReportStockLocationXlsx(models.TransientModel):
         row_pos = self._write_ws_title(ws, row_pos, ws_params, merge_range=True)
         row_pos = self._write_ws_header(row_pos, ws, header_data_list)
         row_pos = self._write_ws_lines(row_pos, ws, ws_params, objects)
+        row_pos = self._write_ws_footer(row_pos, ws, ws_params, objects)
 
     def _get_header_data_list(self, objects):
         return [

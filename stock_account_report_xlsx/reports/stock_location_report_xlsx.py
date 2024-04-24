@@ -12,18 +12,18 @@ class ReportStockLocationXlsx(models.TransientModel):
     def _get_stock_location_template(self):
         stock_location_template = super()._get_stock_location_template()
         # Add sale price
-        stock_location_template["6_sale_price"] = {
-            "header": {"value": "Sale Price"},
+        stock_location_template["6_sale_price_unit"] = {
+            "header": {"value": "Unit Price"},
             "data": {
-                "value": self._render("sale_price"),
+                "value": self._render("sale_price_unit"),
                 "format": FORMATS["format_tcell_amount_right"],
             },
             "width": 20,
         }
-        stock_location_template["7_sale_price_unit"] = {
-            "header": {"value": "Sale Price / Unit"},
+        stock_location_template["7_sale_price"] = {
+            "header": {"value": "Subtotal"},
             "data": {
-                "value": self._render("sale_price_unit"),
+                "value": self._render("sale_price"),
                 "format": FORMATS["format_tcell_amount_right"],
             },
             "width": 20,
@@ -36,3 +36,11 @@ class ReportStockLocationXlsx(models.TransientModel):
         render_space["sale_price_unit"] = product_company.list_price
         render_space["sale_price"] = product_company.list_price * line.quantity
         return render_space
+
+    def _write_footer_value_hook(self, results):
+        dict_value_footer = super()._write_footer_value_hook(results)
+        results.mapped("product_id.list_price")
+        return dict_value_footer + [
+            "",
+            sum([result.product_id.list_price * result.quantity for result in results]),
+        ]

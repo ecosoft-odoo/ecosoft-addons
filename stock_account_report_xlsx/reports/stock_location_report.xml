@@ -5,8 +5,8 @@
         inherit_id="stock_report_xlsx.report_stock_location_report_lines_header"
     >
         <xpath expr="//div[@id='header_lines']" position="inside">
-            <div class="act_as_cell">Sale Price</div>
-            <div class="act_as_cell">Sale Price / Unit</div>
+            <div class="act_as_cell">Unit Price</div>
+            <div class="act_as_cell">Subtotal</div>
         </xpath>
     </template>
 
@@ -15,24 +15,40 @@
         inherit_id="stock_report_xlsx.report_stock_location_report_lines"
     >
         <xpath expr="//div[@id='report_lines']" position="inside">
-            <t
-                t-set="product_company"
-                t-value="line.product_id.with_company(line.company_id)"
-            />
-            <t t-set="sale_price_unit" t-value="product_company.list_price" />
-            <t t-set="sale_price" t-value="sale_price_unit * line.quantity" />
+            <t t-set="unit_price" t-value="line.product_id.list_price" />
+            <t t-set="subtotal" t-value="unit_price * line.quantity" />
             <div class="act_as_cell right">
                 <span
-                    t-out="sale_price"
+                    t-out="unit_price"
                     t-options="{'widget': 'float', 'precision': 2}"
                 />
             </div>
             <div class="act_as_cell right">
                 <span
-                    t-out="sale_price_unit"
+                    t-out="subtotal"
                     t-options="{'widget': 'float', 'precision': 2}"
                 />
             </div>
         </xpath>
     </template>
+
+    <template
+        id="report_tax_report_total_lines"
+        inherit_id="stock_report_xlsx.report_tax_report_total_lines"
+    >
+        <xpath expr="//div[hasclass('act_as_thead')]" position="inside">
+            <t
+                t-set="total_amount"
+                t-value="sum([result.product_id.list_price * result.quantity for result in o.results])"
+            />
+            <div class="act_as_cell" />
+            <div class="act_as_cell amount">
+                <t
+                    t-out="total_amount"
+                    t-options="{'widget': 'float', 'precision': 2}"
+                />
+            </div>
+        </xpath>
+    </template>
+
 </odoo>
