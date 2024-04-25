@@ -25,7 +25,8 @@ class StockScrap(models.Model):
     )
     tester_product_id = fields.Many2one(
         comodel_name="product.product",
-        domain="[('tester_ok', 'in', True), ('company_id', '=', company_id)]",
+        domain="[('tester_ok', 'in', True), "
+        "'|', ('company_id', '=', False), ('company_id', '=', company_id)]",
         states={"done": [("readonly", True)]},
         check_company=True,
     )
