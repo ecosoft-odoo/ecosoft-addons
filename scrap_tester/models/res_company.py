@@ -10,7 +10,7 @@ class ResCompany(models.Model):
     enable_scrap_tester = fields.Boolean()
     scrap_tester_location_default = fields.Many2one(
         comodel_name="stock.location",
-        domain="[('scrap_location', '=', True), ('company_id', 'in', [company_id, False])]",
+        domain="[('tester_location', '=', True), ('company_id', 'in', [company_id, False])]",
         help="Select source location for auto create picking type",
     )
     scrap_account_template_default = fields.Many2one(

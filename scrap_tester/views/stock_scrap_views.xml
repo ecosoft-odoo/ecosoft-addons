@@ -19,6 +19,11 @@
                         'required': [('is_tester', '!=', False)]}"
                 />
             </xpath>
+            <xpath expr="//field[@name='scrap_location_id']" position="attributes">
+                <attribute
+                    name="attrs"
+                >{'readonly': ['|', ('state', '=', 'done'), ('is_tester', '=', True)]}</attribute>
+            </xpath>
             <xpath expr="//field[@name='lot_id']" position="after">
                 <field
                     name="tester_lot_id"
