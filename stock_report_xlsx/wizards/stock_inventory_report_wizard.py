@@ -77,18 +77,18 @@ class StockInventoryReportWizard(models.TransientModel):
         return fields.Date.context_today(self)
 
     def _query_select(self):
-        return "product_id, location_id, sum(quantity) as quantity"
+        return "sq.product_id, sq.location_id, sum(sq.quantity) as quantity"
 
     def _query_groupby(self):
-        return "product_id, location_id"
+        return "sq.product_id, sq.location_id"
 
     def _query_having(self):
         if not self.show_zero_stock:
-            return "HAVING sum(quantity) != 0.0"
+            return "HAVING sum(sq.quantity) != 0.0"
         return ""
 
     def _query_orderby(self):
-        return "location_id, product_id"
+        return "sq.location_id, sq.product_id"
 
     def _domain_where_clause(self):
         # Get all product
@@ -101,7 +101,7 @@ class StockInventoryReportWizard(models.TransientModel):
             if len(self.location_ids) == 1:
                 op = "="
             condition.append(
-                "location_id %(op)s %(location)s"
+                "sq.location_id %(op)s %(location)s"
                 % {
                     "op": op,
                     "location": tuple(self.location_ids.ids)
@@ -114,7 +114,7 @@ class StockInventoryReportWizard(models.TransientModel):
             if len(self.product_ids) == 1:
                 op = "="
             condition.append(
-                "product_id %(op)s %(location)s"
+                "sq.product_id %(op)s %(location)s"
                 % {
                     "op": op,
                     "location": tuple(self.product_ids.ids)
@@ -133,8 +133,10 @@ class StockInventoryReportWizard(models.TransientModel):
         domain = self._domain_where_clause()
         self._cr.execute(
             """
-                SELECT {} FROM stock_quant
-                WHERE company_id = %s {}
+                SELECT {}
+                FROM stock_quant sq
+                LEFT JOIN stock_location sl ON sq.location_id = sl.id
+                WHERE sq.company_id = %s AND sl.usage = 'internal' {}
                 GROUP BY {}
                 {}  -- optional
                 ORDER BY {}
