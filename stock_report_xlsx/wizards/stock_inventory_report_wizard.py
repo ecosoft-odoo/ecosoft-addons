@@ -22,6 +22,11 @@ class StockInventoryReportWizard(models.TransientModel):
     )
     location_ids = fields.Many2many(
         comodel_name="stock.location",
+        domain="[('usage','=','internal'), "
+        "'|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+    )
+    show_zero_stock = fields.Boolean(
+        default=True,
     )
     # Data fields, used to browse report data
     results = fields.Many2many(
@@ -77,14 +82,20 @@ class StockInventoryReportWizard(models.TransientModel):
     def _query_groupby(self):
         return "product_id, location_id"
 
+    def _query_having(self):
+        if not self.show_zero_stock:
+            return "HAVING sum(quantity) != 0.0"
+        return ""
+
     def _query_orderby(self):
         return "location_id, product_id"
 
     def _domain_where_clause(self):
+        condition = []
         # Get all product
         if not (self.location_ids or self.product_ids):
-            return ""
-        condition = []
+            return condition
+
         if self.location_ids:
             op = "in"
             if len(self.location_ids) == 1:
@@ -124,11 +135,14 @@ class StockInventoryReportWizard(models.TransientModel):
             """
                 SELECT {} FROM stock_quant
                 WHERE company_id = %s {}
-                GROUP BY {} ORDER BY {}
+                GROUP BY {}
+                {}  -- optional
+                ORDER BY {}
             """.format(
                 self._query_select(),
                 domain,
                 self._query_groupby(),
+                self._query_having(),
                 self._query_orderby(),
             ),
             (self.company_id.id,),

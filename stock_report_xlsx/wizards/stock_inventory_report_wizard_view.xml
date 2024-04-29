@@ -6,6 +6,8 @@
             <form>
                 <group name="criteria">
                     <group colspan="4">
+                        <!-- Company for domain (no permission) -->
+                        <field name="company_id" invisible="1" />
                         <field
                             name="company_id"
                             options="{'no_create_edit': True, 'no_open': True}"
@@ -21,6 +23,7 @@
                             options="{'no_create': True, 'no_create_edit': True}"
                             widget="many2many_tags"
                         />
+                        <field name="show_zero_stock" />
                     </group>
                 </group>
                 <footer>
