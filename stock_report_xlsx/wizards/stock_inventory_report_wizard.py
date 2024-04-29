@@ -91,11 +91,11 @@ class StockInventoryReportWizard(models.TransientModel):
         return "location_id, product_id"
 
     def _domain_where_clause(self):
-        condition = []
         # Get all product
         if not (self.location_ids or self.product_ids):
-            return condition
+            return ""
 
+        condition = []
         if self.location_ids:
             op = "in"
             if len(self.location_ids) == 1:
