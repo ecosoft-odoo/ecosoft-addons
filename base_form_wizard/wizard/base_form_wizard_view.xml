@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
 
-    <record id="view_print_form_account" model="ir.ui.view">
-        <field name="name">Account Print Form</field>
-        <field name="model">account.form.wizard</field>
+    <record id="view_print_form_base" model="ir.ui.view">
+        <field name="name">Base Print Form</field>
+        <field name="model">base.form.wizard</field>
         <field name="arch" type="xml">
-            <form string="Account Move">
+            <form>
                 <div>
                     <group name="criteria">
                         <group>
@@ -34,11 +34,12 @@
         </field>
     </record>
 
+    <!-- Account Print Form -->
     <record id="action_open_move_form" model="ir.actions.act_window">
         <field name="name">Print Form</field>
-        <field name="res_model">account.form.wizard</field>
+        <field name="res_model">base.form.wizard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_print_form_account" />
+        <field name="view_id" ref="view_print_form_base" />
         <field name="binding_model_id" ref="account.model_account_move" />
         <field name="binding_view_types">list,form</field>
         <field name="binding_type">report</field>
@@ -47,9 +48,9 @@
 
     <record id="action_open_payment_form" model="ir.actions.act_window">
         <field name="name">Print Report</field>
-        <field name="res_model">account.form.wizard</field>
+        <field name="res_model">base.form.wizard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_print_form_account" />
+        <field name="view_id" ref="view_print_form_base" />
         <field name="binding_model_id" ref="account.model_account_payment" />
         <field name="binding_view_types">list,form</field>
         <field name="binding_type">report</field>

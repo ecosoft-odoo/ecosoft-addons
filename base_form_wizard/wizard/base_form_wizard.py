@@ -4,9 +4,9 @@
 from odoo import api, fields, models
 
 
-class AccountFormWizard(models.TransientModel):
-    _name = "account.form.wizard"
-    _description = "Account Form Wizard"
+class BaseFormWizard(models.TransientModel):
+    _name = "base.form.wizard"
+    _description = "Base Form Wizard"
 
     doctype = fields.Many2one(
         comodel_name="ir.actions.report",

@@ -1,0 +1,1 @@
+This module add wizard in print action for domain or hook function when printed
