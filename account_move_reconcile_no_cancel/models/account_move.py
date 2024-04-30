@@ -8,38 +8,33 @@ from odoo.exceptions import ValidationError
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def _get_receivable_payable_lines(self):
-        return self.line_ids.filtered(
-            lambda l: l.account_internal_type in ["receivable", "payable"],
-        )
-
     def _check_fiscalyear_lock_date(self):
         if self._context.get("bypass_lockdate"):
             return True
         return super()._check_fiscalyear_lock_date()
 
-    def button_draft(self):
+    def _check_move_reconciled(self, action=""):
         for rec in self:
-            rec_pay_lines = rec._get_receivable_payable_lines()
-            # Expense case journal only (not include payment)
-            sheet = rec.line_ids.mapped("expense_id").mapped("sheet_id")
-            sheet_not_post = sheet.filtered(lambda l: l.state != "post")
-            if (
-                rec.move_type in ["in_invoice", "out_invoice"]
-                and (
-                    rec_pay_lines.matched_debit_ids or rec_pay_lines.matched_credit_ids
-                )
-            ) or (sheet and sheet_not_post and not rec.payment_id):
-                raise ValidationError(
-                    _("You cannot reset to draft reconciled entries.")
-                )
+            matched_debit_credit_ids = rec.line_ids.mapped(
+                "matched_debit_ids"
+            ) | rec.line_ids.mapped("matched_credit_ids")
+            if matched_debit_credit_ids:
+                # Check reconciled from invoice and expense's move (not included payment)
+                sheet = rec.line_ids.mapped("expense_id.sheet_id")
+                if rec.move_type in [
+                    "{}_{}".format(x, y)
+                    for x in ["in", "out"]
+                    for y in ["invoice", "refund"]
+                ] or (sheet and not rec.payment_id):
+                    raise ValidationError(
+                        _("You cannot {} reconciled entries.").format(action)
+                    )
+        return True
+
+    def button_draft(self):
+        self._check_move_reconciled(action="reset to draft")
         return super().button_draft()
 
     def button_cancel(self):
-        for rec in self:
-            rec_pay_lines = rec._get_receivable_payable_lines()
-            if rec.move_type in ["in_invoice", "out_invoice"] and (
-                rec_pay_lines.matched_debit_ids or rec_pay_lines.matched_credit_ids
-            ):
-                raise ValidationError(_("You cannot cancel reconciled entries."))
+        self._check_move_reconciled(action="cancel")
         return super().button_cancel()
