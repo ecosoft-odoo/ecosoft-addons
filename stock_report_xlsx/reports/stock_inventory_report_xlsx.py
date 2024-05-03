@@ -145,6 +145,12 @@ class ReportStockInventoryXlsx(models.TransientModel):
     def _get_header_data_list(self, objects):
         return [
             ("Company", objects.company_id.display_name or "-"),
-            ("Location(s)", ", ".join(objects.location_ids.mapped("name")) or "-"),
-            ("Product(s)", ", ".join(objects.product_ids.mapped("name")) or "-"),
+            (
+                "Location(s)",
+                ", ".join(objects.location_ids.mapped("display_name")) or "All",
+            ),
+            (
+                "Product(s)",
+                ", ".join(objects.product_ids.mapped("display_name")) or "All",
+            ),
         ]

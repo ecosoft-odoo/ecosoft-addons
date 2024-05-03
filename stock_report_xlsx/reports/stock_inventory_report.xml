@@ -67,10 +67,14 @@
             </div>
             <div class="act_as_row">
                 <div class="act_as_cell">
-                    <span t-field="o.location_ids" />
+                    <span
+                        t-out="o.location_ids and ', '.join(o.location_ids.mapped('display_name')) or 'All'"
+                    />
                 </div>
                 <div class="act_as_cell">
-                    <span t-field="o.product_ids" />
+                    <span
+                        t-out="o.product_ids and ', '.join(o.product_ids.mapped('display_name')) or 'All'"
+                    />
                 </div>
             </div>
         </div>
