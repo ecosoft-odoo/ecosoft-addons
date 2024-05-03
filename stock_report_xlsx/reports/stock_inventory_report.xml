@@ -16,12 +16,10 @@
             <t t-raw="0" />
         </div>
         <div class="footer">
-            <div class="row">
-                <div class="col-6 text-right custom_footer">
-                    <span class="page" />
-                    /
-                    <span class="topage" />
-                </div>
+            <div class="text-right custom_footer">
+                <span class="page" />
+                /
+                <span class="topage" />
             </div>
         </div>
     </template>
