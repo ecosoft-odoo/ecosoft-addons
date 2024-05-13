@@ -18,7 +18,6 @@ class AccountMove(models.Model):
         string="Tax (ABB)",
         compute="_compute_is_tax_abb",
         store=True,
-        states={"draft": [("readonly", "=", False)]},
     )
 
     @api.depends("partner_id")
