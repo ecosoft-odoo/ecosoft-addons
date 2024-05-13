@@ -1,0 +1,1 @@
+This module is add queue job in stock report.

@@ -1,0 +1,20 @@
+<odoo>
+    <record id="stock_inventory_report_wizard_form" model="ir.ui.view">
+        <field name="name">stock.inventory.report.wizard.form</field>
+        <field name="model">stock.inventory.report.wizard</field>
+        <field
+            name="inherit_id"
+            ref="stock_report_xlsx.stock_inventory_report_wizard_form"
+        />
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_export_xlsx']" position="after">
+                or
+                <button
+                    name="button_export_xlsx_with_job"
+                    string="Export XLSX with Job"
+                    type="object"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
