@@ -98,17 +98,20 @@ class ReportStockInventoryXlsx(models.TransientModel):
             default_format=FORMATS["format_theader_blue_left"],
         )
         ws.freeze_panes(row_pos, 0)
-        index = 1
-        for line in objects.results:
-            row_pos = self._write_line(
-                ws,
-                row_pos,
-                ws_params,
-                col_specs_section="data",
-                render_space=self._get_render_space(index, line),
-                default_format=FORMATS["format_tcell_left"],
-            )
-            index += 1
+        default_format = FORMATS["format_tcell_left"]
+        row_pos = max(
+            [
+                self._write_line(
+                    ws,
+                    row_pos + index,
+                    ws_params,
+                    col_specs_section="data",
+                    render_space=self._get_render_space(index + 1, line),
+                    default_format=default_format,
+                )
+                for index, line in enumerate(objects.results)
+            ]
+        )
         return row_pos
 
     def _write_footer_value_hook(self, results):

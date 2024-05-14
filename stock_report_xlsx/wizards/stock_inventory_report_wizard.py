@@ -136,7 +136,9 @@ class StockInventoryReportWizard(models.TransientModel):
                 SELECT {}
                 FROM stock_quant sq
                 LEFT JOIN stock_location sl ON sq.location_id = sl.id
-                WHERE sq.company_id = %s AND sl.usage = 'internal' {}
+                LEFT JOIN product_product pp ON pp.id = sq.product_id
+                LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
+                WHERE sl.usage = 'internal' AND pt.active is True AND sq.company_id = %s {}
                 GROUP BY {}
                 {}  -- optional
                 ORDER BY {}
@@ -151,9 +153,7 @@ class StockInventoryReportWizard(models.TransientModel):
         )
         tax_report_results = self._cr.dictfetchall()
         StockInventoryObj = self.env["stock.inventory.report.view"]
-        self.results = False
-        for line in tax_report_results:
-            self.results += StockInventoryObj.new(line)
+        self.results = [StockInventoryObj.new(line).id for line in tax_report_results]
 
 
 class StockInventoryReportView(models.TransientModel):
