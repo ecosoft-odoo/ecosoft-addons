@@ -37,14 +37,20 @@ class StockScrap(models.Model):
         domain="[('product_id', '=', tester_product_id), ('company_id', '=', company_id)]",
         check_company=True,
     )
+    # Change field to compute
+    scrap_location_id = fields.Many2one(
+        comodel_name="stock.location",
+        compute="_compute_scrap_location",
+        store=True,
+    )
 
     @api.depends("company_id")
     def _compute_enable_scrap_tester(self):
         for rec in self:
             rec.enable_scrap_tester = rec.company_id.enable_scrap_tester
 
-    @api.onchange("is_tester")
-    def _onchange_scrap_tester(self):
+    @api.depends("is_tester")
+    def _compute_scrap_location(self):
         self.scrap_location_id = self._get_default_scrap_location_id()
         if self.is_tester:
             self.scrap_location_id = self.company_id.scrap_tester_location_default.id
