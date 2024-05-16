@@ -9,7 +9,11 @@
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "category": "Warehouse Management",
-    "depends": ["stock", "account_move_template"],
+    "depends": [
+        "stock",
+        "account_move_template",
+        "stock_move_backdating",
+    ],
     "data": [
         "views/res_config_settings.xml",
         "views/product_views.xml",

@@ -87,6 +87,7 @@ class StockScrap(models.Model):
                         "package_id": self.package_id.id,
                         "owner_id": self.owner_id.id,
                         "lot_id": self.tester_lot_id.id,
+                        "date_backdating": self.date_backdating,
                     }
                 )
             ],
