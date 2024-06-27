@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="seq_request" model="ir.sequence">
+        <field name="name">Request Sequence</field>
+        <field name="code">request.request</field>
+        <field name="padding" eval="5" />
+        <field name="prefix">RQ</field>
+    </record>
+</odoo>
