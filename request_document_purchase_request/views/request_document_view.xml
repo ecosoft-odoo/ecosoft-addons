@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_request_document_tree" model="ir.ui.view">
+        <field name="name">view.request.document.tree</field>
+        <field name="model">request.document</field>
+        <field name="inherit_id" ref="request_document.view_request_document_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="pr_estimated_cost" />
+            </xpath>
+        </field>
+    </record>
+    <record id="view_request_document_form" model="ir.ui.view">
+        <field name="name">view.request.document.form</field>
+        <field name="model">request.document</field>
+        <field name="inherit_id" ref="request_document.view_request_document_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <div
+                    attrs="{'invisible': [('request_type', '!=', 'purchase_request')]}"
+                >
+                    <group>
+                        <group>
+                            <field name="pr_requested_by" />
+                        </group>
+                        <group>
+                            <field name="pr_origin" class="oe_inline" />
+                            <field name="pr_description" />
+                        </group>
+                        <group>
+                            <field name="pr_date_start" />
+                            <field name="pr_picking_type_id" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="pr_line_ids">
+                                <tree
+                                    decoration-muted="cancelled == True"
+                                    editable="bottom"
+                                >
+                                    <field name="product_id" />
+                                    <field name="name" />
+                                    <field name="product_qty" />
+                                    <field
+                                        name="product_uom_category_id"
+                                        invisible="1"
+                                    />
+                                    <field
+                                        name="product_uom_id"
+                                        groups="uom.group_uom"
+                                    />
+                                    <field
+                                        name="analytic_account_id"
+                                        groups="analytic.group_analytic_accounting"
+                                    />
+                                    <field
+                                        name="analytic_tag_ids"
+                                        groups="analytic.group_analytic_accounting"
+                                        widget="many2many_tags"
+                                    />
+                                    <field name="date_required" />
+                                    <field name="estimated_cost" widget="monetary" />
+                                    <field name="currency_id" invisible="1" />
+                                    <field
+                                        name="company_id"
+                                        groups="base.group_multi_company"
+                                        widget="selection"
+                                    />
+                                    <field name="cancelled" invisible="1" />
+                                    <field name="is_editable" invisible="1" />
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <div class="oe_subtotal_footer_separator oe_inline">
+                                    <label for="pr_estimated_cost" />
+                                </div>
+                                <field
+                                    name="pr_estimated_cost"
+                                    nolabel="1"
+                                    class="oe_subtotal_footer_separator"
+                                    widget="monetary"
+                                    options="{'currency_field': 'currency_id'}"
+                                />
+                            </group>
+
+                        </page>
+                    </notebook>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
