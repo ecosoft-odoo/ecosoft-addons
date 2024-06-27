@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_request_document" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.request</field>
+        <field name="model">res.config.settings</field>
+        <field
+            name="inherit_id"
+            ref="request_document.res_config_settings_view_form_request_document"
+        />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//div[@name='request_document_setting_container']"
+                position="inside"
+            >
+                <div class="col-12 col-lg-6 o_setting_box" id="expense_state">
+                    <div class="o_setting_left_pane" />
+                    <div class="o_setting_right_pane">
+                        <label for="request_document_ex_state" />
+                        <div class="text-muted">
+                            Update expense state
+                        </div>
+                        <field name="request_document_ex_state" />
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
