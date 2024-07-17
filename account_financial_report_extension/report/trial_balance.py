@@ -16,10 +16,14 @@ class TrialBalanceReport(models.AbstractModel):
             # Mapping report data
             trial_balance = res_data["trial_balance"]
             trial_balance = map_type._get_report_data_mapping_afr(trial_balance)
+            # Sorting trial balance by code, name before grouping
+            trial_balance_sorted = sorted(
+                trial_balance, key=lambda x: (x["code"], x["name"])
+            )
             # Summary data mapping
             result = []
             for key, group in itertools.groupby(
-                trial_balance, key=lambda x: (x["code"], x["name"])
+                trial_balance_sorted, key=lambda x: (x["code"], x["name"])
             ):
                 group = list(group)
                 # Get sum groupby name, code
