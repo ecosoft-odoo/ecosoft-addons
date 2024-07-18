@@ -2,6 +2,8 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
 import logging
+import re
+import ast
 
 from odoo import _, api, models, tools
 from odoo.exceptions import ValidationError
@@ -294,12 +296,45 @@ class WebhookUtils(models.AbstractModel):
         }
         return res
 
-    def _common_search_data(self, model, vals):
+    def _search_data_recordset(self, model, vals):
         data_dict = vals.get("payload", {})
-        # default is get all field
+        # default is get all recordset in model
+        domain = []
+
+        if data_dict.get("search_where"):
+            search_string = data_dict["search_where"]
+            #split str domain json to tuple ex "move_type = 'in_invoice'" -> ('move_type', '=', 'in_invoice')
+            match = re.split(r'(\s*!=\s*|\s*>=\s*|\s*<=\s*|\s*=|\s*>\s*|\s*<\s*|\s+like\s+|\s+ilike\s+|\s+not like\s+|\s+not ilike\s+|\s+in\s+|\s+not in\s+|\s+child_of\s+)', search_string, 1)
+            if len(match) != 3:
+                raise ValueError("Search string must be in the format 'field_name operator value' with one of the operators =, !=, >, >=, <, <=, like, ilike, not like, not ilike, in, not in, child_of")
+            field_name = match[0].strip()
+            operator = match[1].strip()
+            value = match[2].strip()
+            #convert str to real type vals ex '1' to 1 , "['a','b','c']" to ['a', 'b', 'c']
+            value = ast.literal_eval(value)
+            domain = [(field_name,operator,value)]
+
+        #query field in recordset
+        if data_dict.get("order") and data_dict.get("limit"):
+            query = self.env[model].search(args= domain, order= "{}".format(", ".join(data_dict["order"])), limit=data_dict["limit"])
+        elif data_dict.get("order") or data_dict.get("limit"):
+            if data_dict.get("order"):
+                query = self.env[model].search(args = domain, order= "{}".format(", ".join(data_dict["order"])))
+            elif data_dict.get("limit"):
+                query = self.env[model].search(args = domain, limit=data_dict["limit"])
+        else:
+            query = self.env[model].search(args = domain)
+        result_dict_search = {}
+        #update vals in dict
+        for rec in query:
+            field_dict = rec.read(data_dict["search_field"])
+            result_dict_search.update({field_dict[0]["id"] : field_dict})
+        return result_dict_search
+
+    def _get_all_field(self, model, vals):
+        #get all field in datebase
         search_field = "*"
-        if data_dict.get("search_field"):
-            search_field = ", ".join(data_dict["search_field"])
+        data_dict = vals.get("payload", {})
         query = "SELECT {} FROM {}".format(search_field, model.replace(".", "_"))
         if data_dict.get("search_where"):
             query += " WHERE {}".format(data_dict["search_where"])
@@ -311,6 +346,21 @@ class WebhookUtils(models.AbstractModel):
         # pylint: disable=sql-injection
         self.env.cr.execute(query)
         result_dict_search = self.env.cr.dictfetchall()
+        return result_dict_search
+
+    def _common_search_data(self, model, vals):
+        data_dict = vals.get("payload", {})
+        # default is get all field
+        if data_dict.get("search_field"):
+            #if get all field
+            if data_dict["search_field"] == "*":
+                result_dict_search = self._get_all_field(model, vals)
+            #if get some field
+            else:
+                result_dict_search = self._search_data_recordset(model, vals)
+        else:
+            result_dict_search = self._get_all_field(model, vals)
+
         return result_dict_search
 
     @api.model

@@ -37,7 +37,12 @@ class WebhookController(http.Controller):
             # Error from odoo exception, rollback all data (if config in system parameter)
             if rollback_except:
                 request.env.cr.rollback()
-        request.env["api.log"].create(data_dict)
+        #block create api log when 'is_store' is set to flase
+        if "is_store" in vals:
+            if vals.get("is_store"):
+                request.env["api.log"].create(data_dict)
+        else:
+            request.env["api.log"].create(data_dict)
         return res
 
     @http.route("/api/create_data", type="json", auth="user")
