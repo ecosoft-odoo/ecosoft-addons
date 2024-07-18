@@ -10,7 +10,6 @@ class TestUsabilityWebhooks(TransactionCase):
         super().setUpClass()
 
     def test_01_create_data(self):
-        1 / 0
         self.env["webhook.utils"].create_data(
             model="res.users",
             vals={
