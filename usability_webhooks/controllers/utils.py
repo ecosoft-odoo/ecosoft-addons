@@ -1,6 +1,7 @@
 # Copyright 2022 Ecosoft Co., Ltd (http://ecosoft.co.th/)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
+import ast
 import logging
 
 from odoo import _, api, models, tools
@@ -290,26 +291,31 @@ class WebhookUtils(models.AbstractModel):
         return res
 
     def _common_search_data(self, model, vals):
+        """
+        Search and read data from the specified model based on the provided values.
+
+        Args:
+            model (str): The name of the model to search data from.
+            vals (dict): A dictionary containing the payload data.
+
+        Returns:
+            list: A list of records matching the search criteria.
+
+        """
         data_dict = vals.get("payload", {})
-        # default is get all field
-        search_field = "*"
+        limit = data_dict.get("limit", None)
+        order = data_dict.get("order", None)
+        # Search all fields if not specified
+        search_field = []
+        search_domain = []
         if data_dict.get("search_field"):
-            search_field = ", ".join(data_dict["search_field"])
-        query = "SELECT %(search_field)s FROM %(model)s"
-        params = {
-            "search_field": search_field,
-            "model": model.replace(".", "_"),
-        }
-        if data_dict.get("search_where"):
-            query += " WHERE {}".format(data_dict["search_where"])
-        if data_dict.get("order"):
-            query += " ORDER BY {}".format(", ".join(data_dict["order"]))
-        if data_dict.get("limit"):
-            query += " LIMIT {}".format(data_dict["limit"])
-        # Search by query
-        self.env.cr.execute(query, params)
-        result_dict_search = self.env.cr.dictfetchall()
-        return result_dict_search
+            search_field = data_dict["search_field"]
+        if data_dict.get("search_domain"):
+            search_domain = ast.literal_eval(data_dict["search_domain"])
+        result = self.env[model].search_read(
+            search_domain, search_field, limit=limit, order=order
+        )
+        return result
 
     @api.model
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
@@ -410,41 +416,63 @@ class WebhookUtils(models.AbstractModel):
     @api.model
     def search_data(self, model, vals):
         """
-        Description for search data
-            - search_field:
-                - []: for get all field
-                - ["<field_name1>", "<field_name2>"]: for get some field
-            - search_where:
-                - "": for not where
-                - "<condition query>": for add condition here
-            - limit:
-                - not send it, if you need get all record
-                - number of limit query
-            - order:
-                - []: for not order
-                - ["<field name1>", "field name2"]: for order by
-        ====================
-        Format search data
-        ====================
+        ==================================
+        Search Data Description
+        ==================================
+        This utility function facilitates querying records from a specified model
+        with customizable search criteria.
+        The search parameters include fields to fetch, filtering conditions,
+        record limits, and sorting orders.
+
+        Parameters:
+        - search_field:
+            - Use an empty list `[]` to retrieve all fields from the model.
+            - Specify a list of field names `["<field_name1>", "<field_name2>"]`
+                to retrieve only those fields.
+
+        - search_domain:
+            - Use an empty string `""` to apply no filtering conditions
+                (equivalent to fetching all records).
+            - Provide a string representation of a list of tuples
+                `"[('<field_name>', '<operation>', '<value>')]"`
+                to define filtering conditions. Each tuple should contain a field name,
+                an operator (e.g., '=', '>', '<'), and the value to compare against.
+
+        - limit:
+            - Omit this parameter or set it to `None`
+                to fetch all matching records without any limit.
+            - Specify an integer to limit the number of records returned.
+
+        - order:
+            - Omit this parameter or set it to `None`
+                to fetch all matching records any specific ordering.
+            - Provide a strings
+                `"<field_name1> asc|desc, <field_name2> asc|desc"`
+                to sort the results. Each string should specify a field name followed
+                by the sorting direction (`asc` for ascending, `desc` for descending).
+
+        ==================================
+        Example Format for Search Data:
+        ==================================
         {
             "params": {
-                "model": "account.move",
+                "model": "account.move",  # Model to search
                 "vals": {
                     "payload": {
                         "search_field": ["name", "date"],
-                        "search_where": "move_type = 'in_invoice'",
+                        "search_domain": "[('move_type', '=', 'in_invoice')]",
                         "limit": 1,
-                        "order": ["date desc", "name"]
+                        "order": "date desc, name"
                     }
                 }
             }
         }
         """
         _logger.info("[{}].search_data(), input: {}".format(model, vals))
-        result_dict_search = self._common_search_data(model, vals)
+        result = self._common_search_data(model, vals)
         res = {
             "is_success": True,
-            "result": result_dict_search,
+            "result": result,
             "messages": _("Record search successfully"),
         }
         _logger.info("[{}].search_data(), output: {}".format(model, res))
