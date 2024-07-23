@@ -3,6 +3,7 @@
 
 import json
 import traceback
+import ast
 
 from odoo import http
 from odoo.http import request
@@ -37,25 +38,38 @@ class WebhookController(http.Controller):
             # Error from odoo exception, rollback all data (if config in system parameter)
             if rollback_except:
                 request.env.cr.rollback()
-        request.env["api.log"].create(data_dict)
+        if vals["is_create_logs"]:
+            request.env["api.log"].create(data_dict)
         return res
+
+    def _set_is_create_logs(self, param, vals):
+        ICP = request.env["ir.config_parameter"]
+        is_create_logs = ICP.sudo().get_param(param)
+        #convert str to bool
+        is_create_logs = ast.literal_eval(is_create_logs.capitalize())
+        vals.update({"is_create_logs": is_create_logs})
+
 
     @http.route("/api/create_data", type="json", auth="user")
     def create_data(self, model, vals):
+        self._set_is_create_logs("webhook.create_data_store", vals)
         res = self._create_api_logs(model, vals, "create_data")
         return res
 
     @http.route("/api/update_data", type="json", auth="user")
     def update_data(self, model, vals):
+        self._set_is_create_logs("webhook.update_data_store", vals)
         res = self._create_api_logs(model, vals, "update_data")
         return res
 
     @http.route("/api/create_update_data", type="json", auth="user")
     def create_update_data(self, model, vals):
+        self._set_is_create_logs("webhook.create_update_data_store", vals)
         res = self._create_api_logs(model, vals, "create_update_data")
         return res
 
     @http.route("/api/search_data", type="json", auth="user")
     def search_data(self, model, vals):
+        self._set_is_create_logs("webhook.search_data_store", vals)
         res = self._create_api_logs(model, vals, "search_data")
         return res
