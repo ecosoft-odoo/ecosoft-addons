@@ -8,4 +8,20 @@
         <field name="key">webhook.rollback_except</field>
         <field name="value">1</field>
     </record>
+    <record id="webhook_create_data_log" model="ir.config_parameter">
+        <field name="key">webhook.create_data_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_update_data_log" model="ir.config_parameter">
+        <field name="key">webhook.update_data_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_create_update_data_log" model="ir.config_parameter">
+        <field name="key">webhook.create_update_data_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_search_data_log" model="ir.config_parameter">
+        <field name="key">webhook.search_data_log</field>
+        <field name="value">True</field>
+    </record>
 </odoo>
