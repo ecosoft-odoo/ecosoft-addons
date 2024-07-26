@@ -38,10 +38,10 @@ Step to see logs:
 Usage
 =====
 
-Before sending a REST API request to Odoo, an initial call to authenticate the API is necessary. 
+Before sending a REST API request to Odoo, an initial call to authenticate the API is necessary.
 You can achieve this by calling the '/web/session/authenticate' route.
 
-The authentication format requires a header with 'Content-type' set to 'application/json', 
+The authentication format requires a header with 'Content-type' set to 'application/json',
 and the body should include:
 
    .. code-block:: python
@@ -56,9 +56,9 @@ and the body should include:
          }
       }
 
-Following successful authentication, you can proceed with two API routes:
+Following successful authentication, you can proceed with four API routes:
 
-1. '/api/create_data': This route allows the creation of new data only. 
+1. '/api/create_data': This route allows the creation of new data only.
 The format for creating data should be in the following structure:
 
   .. code-block:: python
@@ -76,9 +76,61 @@ The format for creating data should be in the following structure:
       }
 
 
-2. '/api/create_update_data': This route facilitates updating data. 
-If the data does not exist, it will automatically create it. 
+2. '/api/create_update_data': This route facilitates updating data.
+If the data does not exist, it will automatically create it.
 The format follows that of 'create_data', but it requires a unique key in the field to update the values.
+
+  .. code-block:: python
+
+      {
+         "params": {
+            "model": "<model name>",
+            "vals": {
+                  "<unique key>": "value",  # can be ID or name search string
+                  "field1": "value1",
+                  ...
+            }
+         }
+      }
+
+
+3. '/api/update_data': This route allows updating exist data.
+ using a unique key in the field to find the desired data and update values in that recordset.
+
+  .. code-block:: python
+
+      {
+         "params": {
+            "model": "<model name>",
+            "vals": {
+                  "payload": {
+                     "<unique key>": "value", # can be ID or name search string
+                     "field1": "value1",
+                     ...
+                  }
+            }
+         }
+      }
+
+
+4. '/api/search_data': This route allows you to search for the value of a desired field in a model.
+ by using a search domain to find the desired recordset. You can also limit and order the resulting data
+
+  .. code-block:: python
+
+      {
+         "params": {
+            "model": "<model name>",
+            "vals": {
+                  "payload": {
+                     "search_field": ["field1", "field2", ...],
+                     "search_domain": "[('field', 'operator', 'value')]",
+                     "limit": 1,
+                     "order": "field1 , field2 desc, ...",
+                  }
+            }
+         }
+      }
 
 Bug Tracker
 ===========
