@@ -455,3 +455,40 @@ class WebhookUtils(models.AbstractModel):
         }
         _logger.info("[{}].search_data(), output: {}".format(model, res))
         return res
+
+    @api.model
+    def call_function(self, model, vals):
+        """
+        Call a function on a model object based on the provided input.
+        Parameters:
+        - name (str): The name of the model to perform the function on.
+        - method (str): The name of the function to call.
+        - parameter (dict):
+            A dictionary containing the arguments to pass to the function. (if any)
+        ==================================
+        Example Format for Call Function:
+        ==================================
+        {
+            "params": {
+                "model": "account.move",  # Model to call
+                "vals": {
+                    "payload": {
+                        "name": "INV/2021/0001",
+                        "method": "action_post",
+                        # Optional, see the function definition for required parameters
+                        "parameter": {},
+                    }
+                }
+            }
+        }
+        """
+        _logger.info("[{}].call_function(), input: {}".format(model, vals))
+        data_dict = vals.get("payload", {})
+        key = self._search_key(model)
+        obj = self.env[model].search([(key, "=", data_dict.get(key))])
+        res = getattr(obj, data_dict["method"])(**dict(data_dict.get("parameter")))
+        return {
+            "is_success": True,
+            "result": res,
+            "messages": "Function {} called successfully".format(data_dict["method"]),
+        }
