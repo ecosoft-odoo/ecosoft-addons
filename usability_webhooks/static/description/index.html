@@ -9,10 +9,11 @@
 
 /*
 :Author: David Goodger (goodger@python.org)
-:Id: $Id: html4css1.css 8954 2022-01-20 10:10:25Z milde $
+:Id: $Id: html4css1.css 9511 2024-01-13 09:50:07Z milde $
 :Copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
+Despite the name, some widely supported CSS2 features are used.
 
 See https://docutils.sourceforge.io/docs/howto/html-stylesheets.html for how to
 customize this style sheet.
@@ -275,7 +276,7 @@ pre.literal-block, pre.doctest-block, pre.math, pre.code {
   margin-left: 2em ;
   margin-right: 2em }
 
-pre.code .ln { color: grey; } /* line numbers */
+pre.code .ln { color: gray; } /* line numbers */
 pre.code, code { background-color: #eeeeee }
 pre.code .comment, code .comment { color: #5C6576 }
 pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
@@ -301,7 +302,7 @@ span.option {
 span.pre {
   white-space: pre }
 
-span.problematic {
+span.problematic, pre.problematic {
   color: red }
 
 span.section-subtitle {
@@ -380,17 +381,138 @@ ul.auto-toc {
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-1">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-2">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-3">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-4">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-5">Maintainers</a></li>
+<li><a class="reference internal" href="#usage" id="toc-entry-1">Usage</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-2">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-3">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-4">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-5">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-6">Maintainers</a></li>
 </ul>
 </li>
 </ul>
 </div>
+<div class="section" id="usage">
+<h1><a class="toc-backref" href="#toc-entry-1">Usage</a></h1>
+<p>Before sending a REST API request to Odoo, an initial call to authenticate the API is necessary.
+You can achieve this by calling the ‘/web/session/authenticate’ route.</p>
+<p>The authentication format requires a header with ‘Content-type’ set to ‘application/json’,
+and the body should include:</p>
+<blockquote>
+<pre class="code python literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;jsonrpc&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w">
+</span>   <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;call&quot;</span><span class="p">,</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;db&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;db_name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;login&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;username&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;password&gt;&quot;</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</blockquote>
+<p>Following successful authentication, you can proceed with five API routes:</p>
+<p>1. ‘/api/create_data’: This route allows the creation of new data only.
+The format for creating data should be in the following structure:</p>
+<blockquote>
+<pre class="code python literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>               <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+</span>               <span class="o">...</span><span class="w">
+</span>            <span class="p">}</span><span class="w">
+</span>      <span class="p">}</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</blockquote>
+<p>2. ‘/api/create_update_data’: This route facilitates updating data.
+If the data does not exist, it will automatically create it.
+The format follows that of ‘create_data’, but it requires a unique key in the field to update the values.</p>
+<blockquote>
+<pre class="code python literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="o">...</span><span class="w">
+</span>      <span class="p">}</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</blockquote>
+<p>3. ‘/api/update_data’: This route allows updating exist data.
+using a unique key in the field to find the desired data and update values in that recordset.</p>
+<blockquote>
+<pre class="code python literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>               <span class="s2">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="c1"># can be ID or name search string</span><span class="w">
+</span>               <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+</span>               <span class="o">...</span><span class="w">
+</span>            <span class="p">}</span><span class="w">
+</span>      <span class="p">}</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</blockquote>
+<p>4. ‘/api/search_data’: This route allows you to search for the value of a desired field in a model.
+by using a search domain to find the desired recordset. You can also limit and order the resulting data</p>
+<blockquote>
+<pre class="code python literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>               <span class="s2">&quot;search_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="s2">&quot;field2&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span><span class="w">
+</span>               <span class="s2">&quot;search_domain&quot;</span><span class="p">:</span> <span class="s2">&quot;[('field', 'operator', 'value')]&quot;</span><span class="p">,</span><span class="w">
+</span>               <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span><span class="w">
+</span>               <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;field1 , field2 desc, ...&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="p">}</span><span class="w">
+</span>      <span class="p">}</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</blockquote>
+<ol class="arabic simple" start="5">
+<li>‘/api/call_function’: This route allows you to call a function on a model object based on the provided input.</li>
+</ol>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><blockquote class="first">
+<ul class="simple">
+<li>name (str): The name of the model to perform the function on.</li>
+<li>method (str): The name of the function to call.</li>
+<li>parameter (dict): A dictionary containing the arguments to pass to the function. (if any)</li>
+</ul>
+</blockquote>
+<pre class="code python last literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>               <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>               <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;method&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>               <span class="s2">&quot;parameter&quot;</span><span class="p">:</span> <span class="p">{},</span><span class="w">
+</span>            <span class="p">}</span><span class="w">
+</span>      <span class="p">}</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</dd>
+</dl>
+</div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-1">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-2">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -398,22 +520,22 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-2">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-3">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-3">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-4">Authors</a></h2>
 <ul class="simple">
 <li>Ecosoft</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-4">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-5">Contributors</a></h2>
 <ul class="simple">
 <li>Kitti Upariphutthiphong &lt;<a class="reference external" href="mailto:kittiu&#64;ecosoft.co.th">kittiu&#64;ecosoft.co.th</a>&gt;</li>
 <li>Saran Lim. &lt;<a class="reference external" href="mailto:saranl&#64;ecosoft.co.th">saranl&#64;ecosoft.co.th</a>&gt;</li>
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-5">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-6">Maintainers</a></h2>
 <p>This module is part of the <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/tree/15.0/usability_webhooks">ecosoft-odoo/ecosoft-addons</a> project on GitHub.</p>
 <p>You are welcome to contribute.</p>
 </div>

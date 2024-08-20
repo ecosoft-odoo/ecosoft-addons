@@ -55,7 +55,7 @@ The format follows that of 'create_data', but it requires a unique key in the fi
 
 
 3. '/api/update_data': This route allows updating exist data.
-Using a unique key in the field to find the desired data and update values in that recordset.
+using a unique key in the field to find the desired data and update values in that recordset.
 
   .. code-block:: python
 
@@ -73,8 +73,8 @@ Using a unique key in the field to find the desired data and update values in th
       }
 
 
-4. '/api/search_data': This route allows you to search for the value of a desired field in a model 
-by using a search domain to find the desired recordset. You can also limit and order the resulting data.
+4. '/api/search_data': This route allows you to search for the value of a desired field in a model.
+by using a search domain to find the desired recordset. You can also limit and order the resulting data
 
   .. code-block:: python
 
