@@ -93,12 +93,12 @@ The format follows that of 'create_data', but it requires a unique key in the fi
       }
 
 
-  5. '/api/call_function': This route allows you to call a function on a model object based on the provided input.
-      Parameters:
-        - name (str): The name of the model to perform the function on.
-        - method (str): The name of the function to call.
-        - parameter (dict):
-            A dictionary containing the arguments to pass to the function. (if any)
+5. '/api/call_function': This route allows you to call a function on a model object based on the provided input.
+   Parameters:
+      - name (str): The name of the model to perform the function on.
+      - method (str): The name of the function to call.
+      - parameter (dict):
+         A dictionary containing the arguments to pass to the function. (if any)
 
   .. code-block:: python
 
