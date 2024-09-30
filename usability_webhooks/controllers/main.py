@@ -72,3 +72,8 @@ class WebhookController(http.Controller):
         self._set_create_logs("webhook.search_data_log", vals)
         res = self._create_api_logs(model, vals, "search_data")
         return res
+
+    @http.route("/api/call_function", type="json", auth="user")
+    def call_function(self, model, vals):
+        res = self._create_api_logs(model, vals, "call_function")
+        return res
