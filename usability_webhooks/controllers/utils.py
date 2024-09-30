@@ -3,6 +3,7 @@
 
 import ast
 import logging
+import re
 
 from odoo import _, api, models, tools
 from odoo.exceptions import ValidationError
@@ -295,6 +296,34 @@ class WebhookUtils(models.AbstractModel):
         }
         return res
 
+    def _update_child_2many(self, value, field_2many, sub_model):
+        search_domain = [("id", "in", value)]
+        return self.env[sub_model].search_read(search_domain, field_2many)
+
+    @tools.ormcache("key", "model_obj")
+    def _get_sub_model(self, key, model_obj):
+        sub_model = model_obj._fields[key].comodel_name
+        return sub_model
+
+    def _update_result_with_2many(self, result, result_dict, model_obj):
+        model_list = []
+        for res in result:
+            for key, value in res.items():
+                field_2many = result_dict.get(key)
+                # search values in one2many, many2many
+                if field_2many:
+                    sub_model = self._get_sub_model(key, model_obj)
+                    child_result = self._update_child_2many(
+                        value, field_2many, sub_model
+                    )
+                    # replace value with child result
+                    res[key] = child_result
+                    model_list.append(sub_model)
+        # Clear caches
+        for model in model_list:
+            self.env[model].clear_caches()
+        return result
+
     def _common_search_data(self, model, vals):
         """
         Search and read data from the specified model based on the provided values.
@@ -315,11 +344,38 @@ class WebhookUtils(models.AbstractModel):
         search_domain = []
         if data_dict.get("search_field"):
             search_field = data_dict["search_field"]
+            # Filter value one2many, many2many
+            filtered_values = [x for x in search_field if "{" in x]
+            # Update search_field without {}
+            search_field = [x.split("{")[0] for x in search_field]
+
+            result_dict = {}
+            # Regular expression pattern to match 'field_name{value1, value2}'
+            pattern = r"(\w+)\{([^}]*)\}"
+
+            # Iterate over each item in the list
+            for item in filtered_values:
+                # Use re.match to find matches according to the pattern
+                match = re.match(pattern, item)
+                if match:
+                    # Extract the field name and the values inside the curly braces
+                    field_name, values_str = match.groups()
+                    # Split the values string by ', ' to get a list of values
+                    values_list = [value.strip() for value in values_str.split(",")]
+                    # Assign to the result dictionary
+                    result_dict[field_name] = values_list
+
         if data_dict.get("search_domain"):
             search_domain = ast.literal_eval(data_dict["search_domain"])
-        result = self.env[model].search_read(
+
+        model_obj = self.env[model]
+        result = model_obj.search_read(
             search_domain, search_field, limit=limit, order=order
         )
+        # Update result with 2many fields
+        if result_dict:
+            result = self._update_result_with_2many(result, result_dict, model_obj)
+
         return result
 
     @api.model
