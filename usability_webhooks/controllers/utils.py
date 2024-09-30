@@ -310,19 +310,55 @@ class WebhookUtils(models.AbstractModel):
         for res in result:
             for key, value in res.items():
                 field_2many = result_dict.get(key)
-                # search values in one2many, many2many
+                # Search values that need to be displayed in the result
                 if field_2many:
+                    # For case many2one, convert to list
+                    if isinstance(value, tuple):
+                        value = [value[0]]
+
                     sub_model = self._get_sub_model(key, model_obj)
+                    # Recusive search for 2many fields
+                    filtered_values = [x for x in field_2many if "{" in x]
+                    sub_result = []
+                    if filtered_values:
+                        # Update search_field without {}
+                        field_2many = [x.split("{")[0] for x in field_2many]
+                        sub_result = self._search_subfield(filtered_values)
+
                     child_result = self._update_child_2many(
                         value, field_2many, sub_model
                     )
-                    # replace value with child result
+
+                    if filtered_values:
+                        child_result = self._update_result_with_2many(
+                            child_result, sub_result, self.env[sub_model]
+                        )
+                    # Replace value with child result
                     res[key] = child_result
                     model_list.append(sub_model)
         # Clear caches
         for model in model_list:
             self.env[model].clear_caches()
         return result
+
+    def _search_subfield(self, filtered_values):
+        result_dict = {}
+        # Regular expression pattern to match 'field_name{value1, value2}'
+        pattern = r"([\w.-]+)\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}"
+        # Iterate over each item in the list
+        for item in filtered_values:
+            # Use re.match to find matches according to the pattern
+            match = re.match(pattern, item)
+            if match:
+                # Extract the field name and the values inside the curly braces
+                field_name, values_str = match.groups()
+                # Regular expression to match the desired pattern
+                matches = re.findall(r"[^,]+{[^}]+}|[^,]+", values_str)
+                # Stripping any leading/trailing spaces from the elements
+                values_list = [match.strip() for match in matches]
+                # Assign to the result dictionary
+                result_dict[field_name] = values_list
+        return result_dict
 
     def _common_search_data(self, model, vals):
         """
@@ -344,26 +380,12 @@ class WebhookUtils(models.AbstractModel):
         search_domain = []
         if data_dict.get("search_field"):
             search_field = data_dict["search_field"]
-            # Filter value one2many, many2many
+            # Filter value with {}
             filtered_values = [x for x in search_field if "{" in x]
             # Update search_field without {}
             search_field = [x.split("{")[0] for x in search_field]
-
-            result_dict = {}
-            # Regular expression pattern to match 'field_name{value1, value2}'
-            pattern = r"(\w+)\{([^}]*)\}"
-
-            # Iterate over each item in the list
-            for item in filtered_values:
-                # Use re.match to find matches according to the pattern
-                match = re.match(pattern, item)
-                if match:
-                    # Extract the field name and the values inside the curly braces
-                    field_name, values_str = match.groups()
-                    # Split the values string by ', ' to get a list of values
-                    values_list = [value.strip() for value in values_str.split(",")]
-                    # Assign to the result dictionary
-                    result_dict[field_name] = values_list
+            # search sub field 'field_name{value1, value2}'
+            result_dict = self._search_subfield(filtered_values)
 
         if data_dict.get("search_domain"):
             search_domain = ast.literal_eval(data_dict["search_domain"])
@@ -494,6 +516,12 @@ class WebhookUtils(models.AbstractModel):
             - Use an empty list `[]` to retrieve all fields from the model.
             - Specify a list of field names `["<field_name1>", "<field_name2>"]`
                 to retrieve only those fields.
+            - For many2one, one2many and many2many fields, you can specify the fields to fetch
+                by using the following format:
+                `["<field_name1>", "<field_name2>{<field_name3>, <field_name4>}"]`
+                where `<field_name1>` and `<field_name2>` are fields from the model,
+                and `<field_name3>` and `<field_name4>` are fields from the related model.
+                The related fields will be fetched and displayed in the result.
 
         - search_domain:
             - Use an empty string `""` to apply no filtering conditions
@@ -524,7 +552,10 @@ class WebhookUtils(models.AbstractModel):
                 "model": "account.move",  # Model to search
                 "vals": {
                     "payload": {
-                        "search_field": ["name", "date"],
+                        "search_field": [
+                            "name", "date",
+                            "invoice_line_ids{product_id, name, account_id}"
+                        ],
                         "search_domain": "[('move_type', '=', 'in_invoice')]",
                         "limit": 1,
                         "order": "date desc, name"
