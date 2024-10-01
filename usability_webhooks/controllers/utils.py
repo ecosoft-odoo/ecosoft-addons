@@ -7,6 +7,7 @@ import re
 
 from odoo import _, api, models, tools
 from odoo.exceptions import ValidationError
+from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
@@ -109,6 +110,9 @@ class WebhookUtils(models.AbstractModel):
             final_line_append = final_line_dict.append
             # Loop all o2m lines, and recreate it
             for line_data_dict in data_dict[line_field]:
+                # Add company_id if not present
+                if "company_id" not in line_data_dict and "company_id" in data_dict:
+                    line_data_dict["company_id"] = data_dict["company_id"]
                 line_dict, line_fields = self._get_o2m_line(
                     line_data_dict, rec[line_field]
                 )
@@ -405,6 +409,10 @@ class WebhookUtils(models.AbstractModel):
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
         """For many2one, many2many, use name search to get id"""
         final_dict = {}
+        ICP = request.env["ir.config_parameter"]
+        ignore_checkcompany_model = ICP.sudo().get_param(
+            "webhook.ignore_checkcompany_model"
+        )
         if not auto_create:
             auto_create = {}
         for key, value in rec_dict.items():
@@ -425,9 +433,13 @@ class WebhookUtils(models.AbstractModel):
                         or rec_dict[key].split(",")
                     )
                     value = []  # for many2many, result will be tuple
+                    have_company = hasattr(Model, "company_id")
                     for val in search_vals:
-                        # Support multi company with account_id
+                        # Support multi company
                         args = []
+                        if have_company and model not in ignore_checkcompany_model:
+                            if rec_dict.get("company_id"):
+                                args = [("company_id", "=", rec_dict.get("company_id"))]
                         if key == "account_id" and rec_dict.get("company_id"):
                             args = [("company_id", "=", rec_dict.get("company_id"))]
                         values = self._call_name_search_cache(Model, val, args)
