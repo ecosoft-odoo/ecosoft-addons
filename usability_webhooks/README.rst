@@ -123,7 +123,7 @@ by using a search domain to find the desired recordset. You can also limit and o
             "model": "<model name>",
             "vals": {
                   "payload": {
-                     "search_field": ["field1", "field2", ...],
+                     "search_field": ["field1", "field2", "field3{subfield1, subfield2}", ...],
                      "search_domain": "[('field', 'operator', 'value')]",
                      "limit": 1,
                      "order": "field1 , field2 desc, ...",
@@ -150,7 +150,7 @@ by using a search domain to find the desired recordset. You can also limit and o
                   "payload": {
                      "name": "<name>",
                      "method": "<method>",
-                     "parameter": {},
+                     "parameter": {"<key>": "<value>", ...}
                   }
             }
          }
