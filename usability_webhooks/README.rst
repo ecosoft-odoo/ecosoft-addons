@@ -69,7 +69,7 @@ Following successful authentication, you can proceed with five API routes:
             "vals": {
                "payload": {
                   "field1": "value1",
-                  ...
+                  // other fields
                }
             }
          }
@@ -85,9 +85,9 @@ Following successful authentication, you can proceed with five API routes:
          "params": {
             "model": "<model name>",
             "vals": {
-               "<unique key>": "value",  # can be ID or name search string
+               "<unique key>": "value",  // can be ID or name search string
                "field1": "value1",
-               ...
+               // other fields
             }
          }
       }
@@ -102,9 +102,9 @@ Following successful authentication, you can proceed with five API routes:
             "model": "<model name>",
             "vals": {
                "payload": {
-                  "<unique key>": "value",  # can be ID or name search string
+                  "<unique key>": "value",  // can be ID or name search string
                   "field1": "value1",
-                  ...
+                  // other fields
                }
             }
          }
@@ -120,10 +120,10 @@ Following successful authentication, you can proceed with five API routes:
             "model": "<model name>",
             "vals": {
                "payload": {
-                  "search_field": ["field1", "field2", "field3{subfield1, subfield2}", ...],
+                  "search_field": ["field1", "field2", "field3{subfield1, subfield2}"],
                   "search_domain": "[('field', 'operator', 'value')]",
                   "limit": 1,
-                  "order": "field1 , field2 desc, ..."
+                  "order": "field1 , field2 desc"
                }
             }
          }
@@ -145,7 +145,7 @@ Following successful authentication, you can proceed with five API routes:
                "payload": {
                   "name": "<name>",
                   "method": "<method>",
-                  "parameter": {"<key>": "<value>", ...}
+                  "parameter": {"<key>": "<value>"}
                }
             }
          }
