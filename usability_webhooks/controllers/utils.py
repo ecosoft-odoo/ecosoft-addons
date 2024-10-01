@@ -19,6 +19,7 @@ class WebhookUtils(models.AbstractModel):
     def _search_key(self, model):
         """Return the unique search key for each model, else use 'name'"""
         keys = {
+            "product.template": "default_code",
             "product.product": "default_code",
             "res.partner": "ref",
         }
