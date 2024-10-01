@@ -1,7 +1,9 @@
 # Copyright 2022 Ecosoft Co., Ltd (http://ecosoft.co.th/)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
+import ast
 import logging
+import re
 
 from odoo import _, api, models, tools
 from odoo.exceptions import ValidationError
@@ -17,6 +19,7 @@ class WebhookUtils(models.AbstractModel):
     def _search_key(self, model):
         """Return the unique search key for each model, else use 'name'"""
         keys = {
+            "product.template": "default_code",
             "product.product": "default_code",
             "res.partner": "ref",
         }
@@ -289,27 +292,109 @@ class WebhookUtils(models.AbstractModel):
         }
         return res
 
+    def _update_child_2many(self, value, field_2many, sub_model):
+        search_domain = [("id", "in", value)]
+        return self.env[sub_model].search_read(search_domain, field_2many)
+
+    @tools.ormcache("key", "model_obj")
+    def _get_sub_model(self, key, model_obj):
+        sub_model = model_obj._fields[key].comodel_name
+        return sub_model
+
+    def _update_result_with_2many(self, result, result_dict, model_obj):
+        model_list = []
+        for res in result:
+            for key, value in res.items():
+                field_2many = result_dict.get(key)
+                # Search values that need to be displayed in the result
+                if field_2many:
+                    # For case many2one, convert to list
+                    if isinstance(value, tuple):
+                        value = [value[0]]
+
+                    sub_model = self._get_sub_model(key, model_obj)
+                    # Recusive search for 2many fields
+                    filtered_values = [x for x in field_2many if "{" in x]
+                    sub_result = []
+                    if filtered_values:
+                        # Update search_field without {}
+                        field_2many = [x.split("{")[0] for x in field_2many]
+                        sub_result = self._search_subfield(filtered_values)
+
+                    child_result = self._update_child_2many(
+                        value, field_2many, sub_model
+                    )
+
+                    if filtered_values:
+                        child_result = self._update_result_with_2many(
+                            child_result, sub_result, self.env[sub_model]
+                        )
+                    # Replace value with child result
+                    res[key] = child_result
+                    model_list.append(sub_model)
+        # Clear caches
+        for model in model_list:
+            self.env[model].clear_caches()
+        return result
+
+    def _search_subfield(self, filtered_values):
+        result_dict = {}
+        # Regular expression pattern to match 'field_name{value1, value2}'
+        pattern = r"([\w.-]+)\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}"
+        # Iterate over each item in the list
+        for item in filtered_values:
+            # Use re.match to find matches according to the pattern
+            match = re.match(pattern, item)
+            if match:
+                # Extract the field name and the values inside the curly braces
+                field_name, values_str = match.groups()
+                # Regular expression to match the desired pattern
+                matches = re.findall(r"[^,]+{[^}]+}|[^,]+", values_str)
+                # Stripping any leading/trailing spaces from the elements
+                values_list = [match.strip() for match in matches]
+                # Assign to the result dictionary
+                result_dict[field_name] = values_list
+        return result_dict
+
     def _common_search_data(self, model, vals):
+        """
+        Search and read data from the specified model based on the provided values.
+
+        Args:
+            model (str): The name of the model to search data from.
+            vals (dict): A dictionary containing the payload data.
+
+        Returns:
+            list: A list of records matching the search criteria.
+
+        """
         data_dict = vals.get("payload", {})
-        # default is get all field
-        search_field = "*"
+        limit = data_dict.get("limit", None)
+        order = data_dict.get("order", None)
+        # Search all fields if not specified
+        search_field = []
+        search_domain = []
         if data_dict.get("search_field"):
-            search_field = ", ".join(data_dict["search_field"])
-        query = "SELECT %(search_field)s FROM %(model)s"
-        params = {
-            "search_field": search_field,
-            "model": model.replace(".", "_"),
-        }
-        if data_dict.get("search_where"):
-            query += " WHERE {}".format(data_dict["search_where"])
-        if data_dict.get("order"):
-            query += " ORDER BY {}".format(", ".join(data_dict["order"]))
-        if data_dict.get("limit"):
-            query += " LIMIT {}".format(data_dict["limit"])
-        # Search by query
-        self.env.cr.execute(query, params)
-        result_dict_search = self.env.cr.dictfetchall()
-        return result_dict_search
+            search_field = data_dict["search_field"]
+            # Filter value with {}
+            filtered_values = [x for x in search_field if "{" in x]
+            # Update search_field without {}
+            search_field = [x.split("{")[0] for x in search_field]
+            # search sub field 'field_name{value1, value2}'
+            result_dict = self._search_subfield(filtered_values)
+
+        if data_dict.get("search_domain"):
+            search_domain = ast.literal_eval(data_dict["search_domain"])
+
+        model_obj = self.env[model]
+        result = model_obj.search_read(
+            search_domain, search_field, limit=limit, order=order
+        )
+        # Update result with 2many fields
+        if result_dict:
+            result = self._update_result_with_2many(result, result_dict, model_obj)
+
+        return result
 
     @api.model
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
@@ -410,41 +495,72 @@ class WebhookUtils(models.AbstractModel):
     @api.model
     def search_data(self, model, vals):
         """
-        Description for search data
-            - search_field:
-                - []: for get all field
-                - ["<field_name1>", "<field_name2>"]: for get some field
-            - search_where:
-                - "": for not where
-                - "<condition query>": for add condition here
-            - limit:
-                - not send it, if you need get all record
-                - number of limit query
-            - order:
-                - []: for not order
-                - ["<field name1>", "field name2"]: for order by
-        ====================
-        Format search data
-        ====================
+        ==================================
+        Search Data Description
+        ==================================
+        This utility function facilitates querying records from a specified model
+        with customizable search criteria.
+        The search parameters include fields to fetch, filtering conditions,
+        record limits, and sorting orders.
+
+        Parameters:
+        - search_field:
+            - Use an empty list `[]` to retrieve all fields from the model.
+            - Specify a list of field names `["<field_name1>", "<field_name2>"]`
+                to retrieve only those fields.
+            - For many2one, one2many and many2many fields, you can specify the fields to fetch
+                by using the following format:
+                `["<field_name1>", "<field_name2>{<field_name3>, <field_name4>}"]`
+                where `<field_name1>` and `<field_name2>` are fields from the model,
+                and `<field_name3>` and `<field_name4>` are fields from the related model.
+                The related fields will be fetched and displayed in the result.
+
+        - search_domain:
+            - Use an empty string `""` to apply no filtering conditions
+                (equivalent to fetching all records).
+            - Provide a string representation of a list of tuples
+                `"[('<field_name>', '<operation>', '<value>')]"`
+                to define filtering conditions. Each tuple should contain a field name,
+                an operator (e.g., '=', '>', '<'), and the value to compare against.
+
+        - limit:
+            - Omit this parameter or set it to `None`
+                to fetch all matching records without any limit.
+            - Specify an integer to limit the number of records returned.
+
+        - order:
+            - Omit this parameter or set it to `None`
+                to fetch all matching records any specific ordering.
+            - Provide a strings
+                `"<field_name1> asc|desc, <field_name2> asc|desc"`
+                to sort the results. Each string should specify a field name followed
+                by the sorting direction (`asc` for ascending, `desc` for descending).
+
+        ==================================
+        Example Format for Search Data:
+        ==================================
         {
             "params": {
-                "model": "account.move",
+                "model": "account.move",  # Model to search
                 "vals": {
                     "payload": {
-                        "search_field": ["name", "date"],
-                        "search_where": "move_type = 'in_invoice'",
+                        "search_field": [
+                            "name", "date",
+                            "invoice_line_ids{product_id, name, account_id}"
+                        ],
+                        "search_domain": "[('move_type', '=', 'in_invoice')]",
                         "limit": 1,
-                        "order": ["date desc", "name"]
+                        "order": "date desc, name"
                     }
                 }
             }
         }
         """
         _logger.info("[{}].search_data(), input: {}".format(model, vals))
-        result_dict_search = self._common_search_data(model, vals)
+        result = self._common_search_data(model, vals)
         res = {
             "is_success": True,
-            "result": result_dict_search,
+            "result": result,
             "messages": _("Record search successfully"),
         }
         _logger.info("[{}].search_data(), output: {}".format(model, res))
