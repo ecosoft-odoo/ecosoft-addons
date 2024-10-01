@@ -27,8 +27,9 @@ class WebhookUtils(models.AbstractModel):
         return key
 
     @tools.ormcache("model", "val")
-    def _call_name_search_cache(self, model, val):
-        return model.name_search(val, operator="=")
+    def _call_name_search_cache(self, model, val, args=None):
+        args = args or []
+        return model.name_search(val, args=args, operator="=")
 
     @tools.ormcache("model", "val")
     def _call_search_cache(self, model, val):
@@ -117,6 +118,12 @@ class WebhookUtils(models.AbstractModel):
 
                     # Loop all o2m sub lines, and recreate it
                     for line_sub_data_dict in line_data_dict[line_sub_field]:
+                        # Add company_id if not present
+                        if (
+                            "company_id" not in line_data_dict
+                            and "company_id" in data_dict
+                        ):
+                            line_data_dict["company_id"] = data_dict["company_id"]
                         sub_line_dict, line_sub_fields = self._get_o2m_line(
                             line_sub_data_dict, rec[line_field][line_sub_field]
                         )
@@ -177,8 +184,11 @@ class WebhookUtils(models.AbstractModel):
         """
         data_dict = vals.get("payload", {})
         rec_dict, rec, line_all_fields = self._convert_data_to_id(model, vals)
+        company_id = rec_dict.get("company_id") or self.env.company.id
         # Send context to function create()
-        obj = rec.with_context(api_payload=data_dict).create(rec_dict)
+        obj = rec.with_context(
+            api_payload=data_dict, default_company_id=company_id
+        ).create(rec_dict)
         # Create Attachment (if any)
         self._create_file_attachment(obj, data_dict, line_all_fields)
         res = {
@@ -223,7 +233,16 @@ class WebhookUtils(models.AbstractModel):
         # Prepare Header Dict (non o2m)
         if not key_field or key_field not in data_dict:
             raise ValidationError(_("Method update_data() key_field is not valid!"))
-        rec = self.env[model].search([(key_field, "=", data_dict[key_field])])
+        rec = self.env[model].search(
+            [
+                (key_field, "=", data_dict[key_field]),
+                (
+                    "company_id",
+                    "=",
+                    data_dict.get("company_id", self.env.company_id.id),
+                ),
+            ]
+        )
         if not rec:
             raise ValidationError(
                 _("Search key '%(key_field)s' not found!")
@@ -400,18 +419,17 @@ class WebhookUtils(models.AbstractModel):
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
         """For many2one, many2many, use name search to get id"""
         final_dict = {}
-        if not auto_create:
-            auto_create = {}
+        ICP = self.env["ir.config_parameter"]
+        ignore_checkcompany_model = ICP.sudo().get_param(
+            "webhook.ignore_checkcompany_model"
+        )
+        auto_create = auto_create or {}
+        main_company = self.env.company
         for key, value in rec_dict.items():
             ffield = rec._fields.get(key, False)
             if ffield:
                 ftype = ffield.type
-                if (
-                    key in rec_dict.keys()
-                    and ftype in ("many2one", "many2many")
-                    and rec_dict[key]
-                    and isinstance(rec_dict[key], str)
-                ):
+                if self._is_many2_field_with_string(ftype, key, rec_dict):
                     model = rec._fields[key].comodel_name
                     Model = self.env[model]
                     search_vals = (
@@ -420,8 +438,19 @@ class WebhookUtils(models.AbstractModel):
                         or rec_dict[key].split(",")
                     )
                     value = []  # for many2many, result will be tuple
+                    have_company = hasattr(Model, "company_id")
                     for val in search_vals:
-                        values = self._call_name_search_cache(Model, val)
+                        # Support multi company
+                        args = []
+                        if have_company and model not in ignore_checkcompany_model:
+                            args = [
+                                (
+                                    "company_id",
+                                    "=",
+                                    rec_dict.get("company_id", main_company.id),
+                                )
+                            ]
+                        values = self._call_name_search_cache(Model, val, args)
                         # If failed, try again by ID
                         if len(values) != 1 and val and isinstance(val, int):
                             rec = self._call_search_cache(Model, val)
@@ -434,14 +463,14 @@ class WebhookUtils(models.AbstractModel):
                             )
                         # If not found, but auto_create it
                         if len(values) != 1 and auto_create.get(key):
-                            new_recs = []
-                            if isinstance(auto_create[key], list):
-                                new_recs += auto_create[key]
-                            if isinstance(auto_create[key], dict):
-                                new_recs.append(auto_create[key])
+                            new_recs = (
+                                auto_create[key]
+                                if isinstance(auto_create[key], list)
+                                else [auto_create[key]]
+                            )
                             for new_rec in new_recs:
                                 self.friendly_create_data(model, {"payload": new_rec})
-                            values = self._call_name_search_cache(Model, val)
+                            values = self._call_name_search_cache(Model, val, args)
                         elif not values:
                             Model.clear_caches()
                             raise ValidationError(
@@ -454,6 +483,14 @@ class WebhookUtils(models.AbstractModel):
                             value.append((4, values[0][0]))
             final_dict.update({key: value})
         return final_dict
+
+    def _is_many2_field_with_string(self, ftype, key, rec_dict):
+        return (
+            key in rec_dict.keys()
+            and ftype in ("many2one", "many2many")
+            and rec_dict[key]
+            and isinstance(rec_dict[key], str)
+        )
 
     @api.model
     def create_data(self, model, vals):
