@@ -418,7 +418,7 @@ The format for creating data should be in the following structure:</p>
       </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
          </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
             </span><span class="nt">&quot;field1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-            </span><span class="err">...</span><span class="w">
+            </span><span class="c1">// other fields</span><span class="w">
          </span><span class="p">}</span><span class="w">
       </span><span class="p">}</span><span class="w">
    </span><span class="p">}</span><span class="w">
@@ -433,9 +433,9 @@ The format follows that of <tt class="docutils literal">create_data</tt>, but it
    </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
       </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
       </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-         </span><span class="nt">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="w">  </span><span class="err">#</span><span class="w"> </span><span class="err">ca</span><span class="kc">n</span><span class="w"> </span><span class="err">be</span><span class="w"> </span><span class="err">ID</span><span class="w"> </span><span class="err">or</span><span class="w"> </span><span class="kc">na</span><span class="err">me</span><span class="w"> </span><span class="err">search</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="w">
+         </span><span class="nt">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// can be ID or name search string</span><span class="w">
          </span><span class="nt">&quot;field1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-         </span><span class="err">...</span><span class="w">
+         </span><span class="c1">// other fields</span><span class="w">
       </span><span class="p">}</span><span class="w">
    </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span>
@@ -449,9 +449,9 @@ using a unique key in the field to find the desired data and update values in th
       </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
       </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
          </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-            </span><span class="nt">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="w">  </span><span class="err">#</span><span class="w"> </span><span class="err">ca</span><span class="kc">n</span><span class="w"> </span><span class="err">be</span><span class="w"> </span><span class="err">ID</span><span class="w"> </span><span class="err">or</span><span class="w"> </span><span class="kc">na</span><span class="err">me</span><span class="w"> </span><span class="err">search</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="w">
+            </span><span class="nt">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// can be ID or name search string</span><span class="w">
             </span><span class="nt">&quot;field1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-            </span><span class="err">...</span><span class="w">
+            </span><span class="c1">// other fields</span><span class="w">
          </span><span class="p">}</span><span class="w">
       </span><span class="p">}</span><span class="w">
    </span><span class="p">}</span><span class="w">
@@ -466,10 +466,10 @@ by using a search domain to find the desired recordset. You can also limit and o
       </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
       </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
          </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-            </span><span class="nt">&quot;search_field&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;field2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;field3{subfield1, subfield2}&quot;</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">],</span><span class="w">
+            </span><span class="nt">&quot;search_field&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;field2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;field3{subfield1, subfield2}&quot;</span><span class="p">],</span><span class="w">
             </span><span class="nt">&quot;search_domain&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[('field', 'operator', 'value')]&quot;</span><span class="p">,</span><span class="w">
             </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
-            </span><span class="nt">&quot;order&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;field1 , field2 desc, ...&quot;</span><span class="w">
+            </span><span class="nt">&quot;order&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;field1 , field2 desc&quot;</span><span class="w">
          </span><span class="p">}</span><span class="w">
       </span><span class="p">}</span><span class="w">
    </span><span class="p">}</span><span class="w">
@@ -494,7 +494,7 @@ by using a search domain to find the desired recordset. You can also limit and o
          </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
             </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;name&gt;&quot;</span><span class="p">,</span><span class="w">
             </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;method&gt;&quot;</span><span class="p">,</span><span class="w">
-            </span><span class="nt">&quot;parameter&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;&lt;key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">}</span><span class="w">
+            </span><span class="nt">&quot;parameter&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;&lt;key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">}</span><span class="w">
          </span><span class="p">}</span><span class="w">
       </span><span class="p">}</span><span class="w">
    </span><span class="p">}</span><span class="w">
