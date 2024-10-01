@@ -24,4 +24,9 @@
         <field name="key">webhook.search_data_log</field>
         <field name="value">True</field>
     </record>
+    <record id="webhook_call_function_log" model="ir.config_parameter">
+        <field name="key">webhook.call_function_log</field>
+        <field name="value">True</field>
+    </record>
+
 </odoo>
