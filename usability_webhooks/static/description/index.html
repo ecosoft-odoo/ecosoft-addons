@@ -393,126 +393,115 @@ ul.auto-toc {
 <div class="section" id="usage">
 <h1><a class="toc-backref" href="#toc-entry-1">Usage</a></h1>
 <p>Before sending a REST API request to Odoo, an initial call to authenticate the API is necessary.
-You can achieve this by calling the ‘/web/session/authenticate’ route.</p>
-<p>The authentication format requires a header with ‘Content-type’ set to ‘application/json’,
+You can achieve this by calling the <tt class="docutils literal">/web/session/authenticate</tt> route.</p>
+<p>The authentication format requires a header with <tt class="docutils literal"><span class="pre">Content-type</span></tt> set to <tt class="docutils literal">application/json</tt>,
 and the body should include:</p>
-<blockquote>
-<pre class="code python literal-block">
+<pre class="code json literal-block">
 <span class="p">{</span><span class="w">
-</span>   <span class="s2">&quot;jsonrpc&quot;</span><span class="p">:</span> <span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w">
-</span>   <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;call&quot;</span><span class="p">,</span><span class="w">
-</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>      <span class="s2">&quot;db&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;db_name&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>      <span class="s2">&quot;login&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;username&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>      <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;password&gt;&quot;</span><span class="w">
-</span>   <span class="p">}</span><span class="w">
+   </span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span><span class="w">
+   </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;call&quot;</span><span class="p">,</span><span class="w">
+   </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;db&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;db_name&gt;&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;login&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;username&gt;&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;password&gt;&quot;</span><span class="w">
+   </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span>
 </pre>
-</blockquote>
 <p>Following successful authentication, you can proceed with five API routes:</p>
-<p>1. ‘/api/create_data’: This route allows the creation of new data only.
+<ol class="arabic">
+<li><p class="first"><tt class="docutils literal">/api/create_data</tt>: This route allows the creation of new data only.
 The format for creating data should be in the following structure:</p>
-<blockquote>
-<pre class="code python literal-block">
+<pre class="code json literal-block">
 <span class="p">{</span><span class="w">
-</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>               <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-</span>               <span class="o">...</span><span class="w">
-</span>            <span class="p">}</span><span class="w">
-</span>      <span class="p">}</span><span class="w">
-</span>   <span class="p">}</span><span class="w">
+   </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+         </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">&quot;field1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+            </span><span class="err">...</span><span class="w">
+         </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+   </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span>
 </pre>
-</blockquote>
-<p>2. ‘/api/create_update_data’: This route facilitates updating data.
-If the data does not exist, it will automatically create it.
-The format follows that of ‘create_data’, but it requires a unique key in the field to update the values.</p>
-<blockquote>
-<pre class="code python literal-block">
-<span class="p">{</span><span class="w">
-</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
-</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-</span>            <span class="o">...</span><span class="w">
-</span>      <span class="p">}</span><span class="w">
-</span>   <span class="p">}</span><span class="w">
-</span><span class="p">}</span>
-</pre>
-</blockquote>
-<p>3. ‘/api/update_data’: This route allows updating exist data.
-using a unique key in the field to find the desired data and update values in that recordset.</p>
-<blockquote>
-<pre class="code python literal-block">
-<span class="p">{</span><span class="w">
-</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>               <span class="s2">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="c1"># can be ID or name search string</span><span class="w">
-</span>               <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-</span>               <span class="o">...</span><span class="w">
-</span>            <span class="p">}</span><span class="w">
-</span>      <span class="p">}</span><span class="w">
-</span>   <span class="p">}</span><span class="w">
-</span><span class="p">}</span>
-</pre>
-</blockquote>
-<p>4. ‘/api/search_data’: This route allows you to search for the value of a desired field in a model.
-by using a search domain to find the desired recordset. You can also limit and order the resulting data</p>
-<blockquote>
-<pre class="code python literal-block">
-<span class="p">{</span><span class="w">
-</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>               <span class="s2">&quot;search_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="s2">&quot;field2&quot;</span><span class="p">,</span> <span class="s2">&quot;field3{subfield1, subfield2}&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span><span class="w">
-</span>               <span class="s2">&quot;search_domain&quot;</span><span class="p">:</span> <span class="s2">&quot;[('field', 'operator', 'value')]&quot;</span><span class="p">,</span><span class="w">
-</span>               <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span><span class="w">
-</span>               <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;field1 , field2 desc, ...&quot;</span><span class="p">,</span><span class="w">
-</span>            <span class="p">}</span><span class="w">
-</span>      <span class="p">}</span><span class="w">
-</span>   <span class="p">}</span><span class="w">
-</span><span class="p">}</span>
-</pre>
-</blockquote>
-<ol class="arabic simple" start="5">
-<li>‘/api/call_function’: This route allows you to call a function on a model object based on the provided input.</li>
-</ol>
-<blockquote>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><ul class="first last simple">
-<li>name (str): The name of the model to perform the function on.</li>
-<li>method (str): The name of the function to call.</li>
-<li><dl class="first docutils">
-<dt>parameter (dict):</dt>
-<dd>A dictionary containing the arguments to pass to the function. (if any)</dd>
-</dl>
 </li>
+<li><p class="first"><tt class="docutils literal">/api/create_update_data</tt>: This route facilitates updating data.
+If the data does not exist, it will automatically create it.
+The format follows that of <tt class="docutils literal">create_data</tt>, but it requires a unique key in the field to update the values.</p>
+<pre class="code json literal-block">
+<span class="p">{</span><span class="w">
+   </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+         </span><span class="nt">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="w">  </span><span class="err">#</span><span class="w"> </span><span class="err">ca</span><span class="kc">n</span><span class="w"> </span><span class="err">be</span><span class="w"> </span><span class="err">ID</span><span class="w"> </span><span class="err">or</span><span class="w"> </span><span class="kc">na</span><span class="err">me</span><span class="w"> </span><span class="err">search</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="w">
+         </span><span class="nt">&quot;field1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+         </span><span class="err">...</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+   </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</li>
+<li><p class="first"><tt class="docutils literal">/api/update_data</tt>: This route allows updating existing data,
+using a unique key in the field to find the desired data and update values in that recordset.</p>
+<pre class="code json literal-block">
+<span class="p">{</span><span class="w">
+   </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+         </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="p">,</span><span class="w">  </span><span class="err">#</span><span class="w"> </span><span class="err">ca</span><span class="kc">n</span><span class="w"> </span><span class="err">be</span><span class="w"> </span><span class="err">ID</span><span class="w"> </span><span class="err">or</span><span class="w"> </span><span class="kc">na</span><span class="err">me</span><span class="w"> </span><span class="err">search</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="w">
+            </span><span class="nt">&quot;field1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+            </span><span class="err">...</span><span class="w">
+         </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+   </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</li>
+<li><p class="first"><tt class="docutils literal">/api/search_data</tt>: This route allows you to search for the value of a desired field in a model
+by using a search domain to find the desired recordset. You can also limit and order the resulting data.</p>
+<pre class="code json literal-block">
+<span class="p">{</span><span class="w">
+   </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+         </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">&quot;search_field&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;field2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;field3{subfield1, subfield2}&quot;</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">],</span><span class="w">
+            </span><span class="nt">&quot;search_domain&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[('field', 'operator', 'value')]&quot;</span><span class="p">,</span><span class="w">
+            </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="nt">&quot;order&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;field1 , field2 desc, ...&quot;</span><span class="w">
+         </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+   </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</li>
+<li><p class="first"><tt class="docutils literal">/api/call_function</tt>: This route allows you to call a function on a model object based on the provided input.</p>
+<dl class="docutils">
+<dt><strong>Parameters</strong>:</dt>
+<dd><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>): The name of the model to perform the function on.</li>
+<li><strong>method</strong> (<em>str</em>): The name of the function to call.</li>
+<li><strong>parameter</strong> (<em>dict</em>): A dictionary containing the arguments to pass to the function (if any).</li>
 </ul>
 </dd>
 </dl>
-<pre class="code python literal-block">
+<pre class="code json literal-block">
 <span class="p">{</span><span class="w">
-</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>               <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;name&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>               <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;method&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>               <span class="s2">&quot;parameter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;&lt;key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span><span class="w">
-</span>            <span class="p">}</span><span class="w">
-</span>      <span class="p">}</span><span class="w">
-</span>   <span class="p">}</span><span class="w">
+   </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+         </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;name&gt;&quot;</span><span class="p">,</span><span class="w">
+            </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;method&gt;&quot;</span><span class="p">,</span><span class="w">
+            </span><span class="nt">&quot;parameter&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;&lt;key&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">}</span><span class="w">
+         </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+   </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span>
 </pre>
-</blockquote>
+</li>
+</ol>
 </div>
 <div class="section" id="bug-tracker">
 <h1><a class="toc-backref" href="#toc-entry-2">Bug Tracker</a></h1>
