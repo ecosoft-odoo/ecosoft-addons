@@ -419,7 +419,8 @@ The format for creating data should be in the following structure:</p>
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="o">...</span><span class="w">
-</span>         <span class="p">}</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
+</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
@@ -433,9 +434,14 @@ The format follows that of <tt class="docutils literal">create_data</tt>, but it
 </span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>         <span class="s2">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
-</span>         <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-</span>         <span class="o">...</span><span class="w">
+</span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
+</span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="o">...</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
+</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
@@ -448,8 +454,10 @@ using a unique key in the field to find the desired data and update values in th
 </span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;unique key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
 </span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="o">...</span><span class="w">
 </span>         <span class="p">}</span><span class="w">
@@ -491,8 +499,10 @@ by using a search domain to find the desired recordset. You can also limit and o
 </span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;method&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="s2">&quot;parameter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;&lt;key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span><span class="w">
 </span>         <span class="p">}</span><span class="w">

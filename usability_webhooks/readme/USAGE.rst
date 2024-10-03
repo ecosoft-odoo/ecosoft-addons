@@ -30,7 +30,8 @@ Following successful authentication, you can proceed with five API routes:
                "payload": {
                   "field1": "value1",
                   ...
-               }
+               },
+               "result_field": ["field1", ...]  # optional
             }
          }
       }
@@ -45,9 +46,14 @@ Following successful authentication, you can proceed with five API routes:
          "params": {
             "model": "<model name>",
             "vals": {
-               "<unique key>": "value",  # can be ID or name search string
-               "field1": "value1",
-               ...
+               "search_key": {
+                  "<key_field>": "value",  # can be ID or name search string
+               },
+               "payload": {
+                  "field1": "value1",
+                  ...
+               },
+               "result_field": ["field1", ...]  # optional
             }
          }
       }
@@ -61,8 +67,10 @@ Following successful authentication, you can proceed with five API routes:
          "params": {
             "model": "<model name>",
             "vals": {
+               "search_key": {
+                  "<key_field>": "value",  # can be ID or name search string
+               },
                "payload": {
-                  "<unique key>": "value",  # can be ID or name search string
                   "field1": "value1",
                   ...
                }
@@ -102,8 +110,10 @@ Following successful authentication, you can proceed with five API routes:
          "params": {
             "model": "<model name>",
             "vals": {
+               "search_key": {
+                  "<key_field>": "value",  # can be ID or name search string
+               },
                "payload": {
-                  "name": "<name>",
                   "method": "<method>",
                   "parameter": {"<key>": "<value>", ...}
                }
