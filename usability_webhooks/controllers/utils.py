@@ -15,17 +15,6 @@ class WebhookUtils(models.AbstractModel):
     _name = "webhook.utils"
     _description = "Utils Class"
 
-    @tools.ormcache("model")
-    def _search_key(self, model):
-        """Return the unique search key for each model, else use 'name'"""
-        keys = {
-            "product.template": "default_code",
-            "product.product": "default_code",
-            "res.partner": "ref",
-        }
-        key = keys.get(model, "name")
-        return key
-
     @tools.ormcache("model", "val")
     def _call_name_search_cache(self, model, val, args=None):
         args = args or []
@@ -200,13 +189,28 @@ class WebhookUtils(models.AbstractModel):
         rec.clear_caches()
         return res
 
+    def _search_object(self, model, vals):
+        search_key = vals.get("search_key", {})
+        search_domain = [(k, "=", v) for k, v in search_key.items()]
+
+        # Prepare Header Dict (non o2m)
+        if not search_key:
+            raise ValidationError(_("Parameter 'search_key' in 'vals' not found!"))
+
+        # search record to update
+        rec = self.env[model].search(search_domain)
+        return rec
+
     @api.model
-    def friendly_update_data(self, model, vals, key_field):
+    def friendly_update_data(self, model, vals):
         """Accept friendly data_dict in following format to update existing rec
         This method, will always delete o2m lines and recreate it.
         -------------------------------------------------------------
         vals:
         {
+            'search_key': {
+                "<key_field>": "<key_value>",
+            },
             'payload': {
                 'field1': value1,
                 'field2_id': value2,  # can be ID or name search string
@@ -225,36 +229,24 @@ class WebhookUtils(models.AbstractModel):
                 # 'field4_id': [{'name': 'some name', ...}, {...}, {...}]
             }
         },
-        key_field: search_key  # i.e., name, ref, code, etc.
         """
         data_dict = vals.get("payload", {})
         auto_create = vals.get("auto_create", {})
-        res = {}
-        # Prepare Header Dict (non o2m)
-        if not key_field or key_field not in data_dict:
-            raise ValidationError(_("Method update_data() key_field is not valid!"))
-        rec = self.env[model].search(
-            [
-                (key_field, "=", data_dict[key_field]),
-                (
-                    "company_id",
-                    "=",
-                    data_dict.get("company_id", self.env.company_id.id),
-                ),
-            ]
-        )
-        if not rec:
+        search_key = vals.get("search_key", {})
+
+        rec = self._search_object(model, vals)
+
+        if len(rec) > 1:
             raise ValidationError(
-                _("Search key '%(key_field)s' not found!")
-                % {"key_field": data_dict[key_field]}
+                _(
+                    "Search key '%(key_field)s' in model '%(model)s' found mutiple matches!"
+                )
+                % {"key_field": search_key, "model": model}
             )
-        elif len(rec) > 1:
-            raise ValidationError(
-                _("Search key '%(key_field)s' found mutiple matches!")
-                % {"key_field": data_dict[key_field]}
-            )
+
         rec_fields = []
         line_all_fields = []
+
         for field, model_field in rec._fields.items():
             if field in data_dict and model_field.type != "one2many":
                 rec_fields.append(field)
@@ -499,18 +491,20 @@ class WebhookUtils(models.AbstractModel):
         if res["is_success"]:
             res_id = res["result"]["id"]
             p = self.env[model].browse(res_id)
-            res["result"][self._search_key(model)] = p[self._search_key(model)]
+            result_field = vals.get("result_field", [])
+            for result in result_field:
+                res["result"][result] = p[result]
         _logger.info("[{}].create_data(), output: {}".format(model, res))
         return res
 
     @api.model
     def update_data(self, model, vals):
         _logger.info("[{}].update_data(), input: {}".format(model, vals))
-        res = self.friendly_update_data(model, vals, self._search_key(model))
+        res = self.friendly_update_data(model, vals)
         if res["is_success"]:
-            res_id = res["result"]["id"]
-            p = self.env[model].browse(res_id)
-            res["result"][self._search_key(model)] = p[self._search_key(model)]
+            search_key = vals.get("search_key", {})
+            for key, value in search_key.items():
+                res["result"][key] = value
         _logger.info("[{}].update_data(), output: {}".format(model, res))
         return res
 
@@ -518,14 +512,14 @@ class WebhookUtils(models.AbstractModel):
     def create_update_data(self, model, vals):
         _logger.info("[{}].create_update_data(), input: {}".format(model, vals))
         # Update
-        search_value = vals["payload"].get(self._search_key(model))
-        if not self.env[model].search([(self._search_key(model), "=", search_value)]):
+        rec = self._search_object(model, vals)
+        if not rec:
             return self.create_data(model, vals)  # fall back to create
-        res = self.friendly_update_data(model, vals, self._search_key(model))
+        res = self.friendly_update_data(model, vals)
         if res["is_success"]:
-            res_id = res["result"]["id"]
-            p = self.env[model].browse(res_id)
-            res["result"][self._search_key(model)] = p[self._search_key(model)]
+            search_key = vals.get("search_key", {})
+            for key, value in search_key.items():
+                res["result"][key] = value
         _logger.info("[{}].create_update_data(), output: {}".format(model, res))
         return res
 
@@ -607,11 +601,14 @@ class WebhookUtils(models.AbstractModel):
     def call_function(self, model, vals):
         """
         Call a function on a model object based on the provided input.
-        Parameters:
-        - name (str): The name of the model to perform the function on.
-        - method (str): The name of the function to call.
-        - parameter (dict):
-            A dictionary containing the arguments to pass to the function. (if any)
+        Parameters (search_key) are used to search for the record:
+            - search_key: A dictionary containing the search criteria to find the record.
+
+        Parameters (payload) are used to call the function:
+            - method (str): The name of the function to call.
+            - parameter (dict):
+                A dictionary containing the arguments to pass to the function. (if any)
+
         ==================================
         Example Format for Call Function:
         ==================================
@@ -619,8 +616,10 @@ class WebhookUtils(models.AbstractModel):
             "params": {
                 "model": "account.move",  # Model to call
                 "vals": {
+                    "search_key": {
+                        "name": "INV/2021/0001"
+                    },
                     "payload": {
-                        "name": "INV/2021/0001",
                         "method": "action_post",
                         # Optional, see the function definition for required parameters
                         "parameter": {},
@@ -631,9 +630,10 @@ class WebhookUtils(models.AbstractModel):
         """
         _logger.info("[{}].call_function(), input: {}".format(model, vals))
         data_dict = vals.get("payload", {})
-        key = self._search_key(model)
-        obj = self.env[model].search([(key, "=", data_dict.get(key))])
-        res = getattr(obj, data_dict["method"])(**dict(data_dict.get("parameter")))
+        parameter = data_dict.get("parameter", {})
+
+        rec = self._search_object(model, vals)
+        res = getattr(rec, data_dict["method"])(**dict(parameter) if parameter else {})
         return {
             "is_success": True,
             "result": res,
