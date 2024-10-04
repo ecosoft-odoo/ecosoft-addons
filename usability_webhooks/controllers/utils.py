@@ -191,7 +191,9 @@ class WebhookUtils(models.AbstractModel):
 
     def _search_object(self, model, vals):
         search_key = vals.get("search_key", {})
-        search_domain = [(k, "=", v) for k, v in search_key.items()]
+        search_domain = [
+            (k, "in" if isinstance(v, list) else "=", v) for k, v in search_key.items()
+        ]
 
         # Prepare Header Dict (non o2m)
         if not search_key:
