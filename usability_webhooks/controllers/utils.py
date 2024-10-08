@@ -387,6 +387,7 @@ class WebhookUtils(models.AbstractModel):
         # Search all fields if not specified
         search_field = []
         search_domain = []
+        result_dict = []
         if data_dict.get("search_field"):
             search_field = data_dict["search_field"]
             # Filter value with {}
