@@ -15,9 +15,9 @@ class WebhookUtils(models.AbstractModel):
     _name = "webhook.utils"
     _description = "Utils Class"
 
-    @tools.ormcache("model", "val")
-    def _call_name_search_cache(self, model, val, args=None):
-        args = args or []
+    @tools.ormcache("model", "val", "args")
+    def _call_name_search_cache(self, model, val, args):
+        args = ast.literal_eval(args) or []
         return model.name_search(val, args=args, operator="=")
 
     @tools.ormcache("model", "val")
@@ -191,7 +191,9 @@ class WebhookUtils(models.AbstractModel):
 
     def _search_object(self, model, vals):
         search_key = vals.get("search_key", {})
-        search_domain = [(k, "=", v) for k, v in search_key.items()]
+        search_domain = [
+            (k, "in" if isinstance(v, list) else "=", v) for k, v in search_key.items()
+        ]
 
         # Prepare Header Dict (non o2m)
         if not search_key:
@@ -385,6 +387,7 @@ class WebhookUtils(models.AbstractModel):
         # Search all fields if not specified
         search_field = []
         search_domain = []
+        result_dict = []
         if data_dict.get("search_field"):
             search_field = data_dict["search_field"]
             # Filter value with {}
@@ -433,15 +436,18 @@ class WebhookUtils(models.AbstractModel):
                     have_company = hasattr(Model, "company_id")
                     for val in search_vals:
                         # Support multi company
-                        args = []
+                        # orm cache can't use in type list, so we need to convert to string
+                        args = "[]"
                         if have_company and model not in ignore_checkcompany_model:
-                            args = [
-                                (
-                                    "company_id",
-                                    "=",
-                                    rec_dict.get("company_id", main_company.id),
-                                )
-                            ]
+                            args = str(
+                                [
+                                    (
+                                        "company_id",
+                                        "=",
+                                        rec_dict.get("company_id", main_company.id),
+                                    )
+                                ]
+                            )
                         values = self._call_name_search_cache(Model, val, args)
                         # If failed, try again by ID
                         if len(values) != 1 and val and isinstance(val, int):
