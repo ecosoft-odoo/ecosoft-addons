@@ -21,6 +21,6 @@ class PurposeCode(models.Model):
     def name_get(self):
         res = []
         for rec in self:
-            name = ("%(code)s - %(name)s") % {"code": rec.code, "name": rec.name}
+            name = f"{rec.code} - {rec.name}"
             res.append((rec.id, name))
         return res
