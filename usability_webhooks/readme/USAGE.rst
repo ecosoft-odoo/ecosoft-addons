@@ -120,3 +120,30 @@ Following successful authentication, you can proceed with five API routes:
             }
          }
       }
+
+**Note**:
+If you want to attach a file to a record, you can add the key "attachment_ids" at any level of the payload.
+
+   **Example Request with Attachment**:
+
+   .. code-block:: python
+
+      {
+         "params": {
+            "model": "<model name>",
+            "vals": {
+               "search_key": {
+                  "<key_field>": "value",  # can be ID or name search string
+               },
+               "payload": {
+                  "attachment_ids": [
+                     {
+                        "name": "<file_name>",
+                        "datas": "<base64_encoded_data>"
+                     }
+                  ],
+                  ...
+               }
+            }
+         }
+      }
