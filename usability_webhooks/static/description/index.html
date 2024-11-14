@@ -512,6 +512,32 @@ by using a search domain to find the desired recordset. You can also limit and o
 </pre>
 </li>
 </ol>
+<p><strong>Note</strong>:
+If you want to attach a file to a record, you can add the key “attachment_ids” at any level of the payload.</p>
+<blockquote>
+<p><strong>Example Request with Attachment</strong>:</p>
+<pre class="code python literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
+</span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;attachment_ids&quot;</span><span class="p">:</span> <span class="p">[</span><span class="w">
+</span>               <span class="p">{</span><span class="w">
+</span>                  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;file_name&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>                  <span class="s2">&quot;datas&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;base64_encoded_data&gt;&quot;</span><span class="w">
+</span>               <span class="p">}</span><span class="w">
+</span>            <span class="p">],</span><span class="w">
+</span>            <span class="o">...</span><span class="w">
+</span>         <span class="p">}</span><span class="w">
+</span>      <span class="p">}</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</blockquote>
 </div>
 <div class="section" id="bug-tracker">
 <h1><a class="toc-backref" href="#toc-entry-2">Bug Tracker</a></h1>
