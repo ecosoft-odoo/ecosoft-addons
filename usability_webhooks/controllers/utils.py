@@ -24,10 +24,6 @@ class WebhookUtils(models.AbstractModel):
     def _call_search_cache(self, model, val):
         return model.search([("id", "=", val)])
 
-    def _get_ctx_lines(self):
-        """For hooks add context to do unlink lines"""
-        return {}
-
     def _get_o2m_line(self, line_data_dict, line_obj):
         rec_fields = []
         rec_fields_append = rec_fields.append
@@ -51,33 +47,44 @@ class WebhookUtils(models.AbstractModel):
             for attach in list_attachment
         ]
 
-    def _create_file_attachment(self, obj, data_dict, line_all_fields):
+    def _create_file_attachment(self, objs, data_dict, line_all_fields):
         Attachment = self.env["ir.attachment"]
-        file_attach = self._get_dict_attachment(
-            data_dict.get("attachment_ids", []), obj._name, obj.id
-        )
-        for line_field in line_all_fields:
-            # Add attachment on o2m level 1
-            for i, obj_line in enumerate(obj[line_field]):
-                line_data_dict = data_dict[line_field][i]
-                file_attach += self._get_dict_attachment(
-                    line_data_dict.get("attachment_ids", []),
-                    obj_line._name,
-                    obj_line.id,
-                )
-                # Find sub line in line
-                line_fields = self._get_o2m_line(line_data_dict, obj_line)[1]
-                for line_sub_field in line_fields:
-                    # Add attachment on o2m level 2
-                    for j, obj_sub_line in enumerate(obj_line[line_sub_field]):
-                        sub_line_data_dict = line_data_dict[line_sub_field][j]
-                        file_attach += self._get_dict_attachment(
-                            sub_line_data_dict.get("attachment_ids", []),
-                            obj_sub_line._name,
-                            obj_sub_line.id,
-                        )
+
+        def add_attachments(obj, data_dict, file_attach):
+            file_attach += self._get_dict_attachment(
+                data_dict.get("attachment_ids", []), obj._name, obj.id
+            )
+            for line_field, line_data in data_dict.items():
+                if isinstance(line_data, list) and line_field in obj:
+                    for i, obj_line in enumerate(obj[line_field]):
+                        line_data_dict = line_data[i]
+                        add_attachments(obj_line, line_data_dict, file_attach)
+
+        file_attach = []
+        for obj in objs:
+            add_attachments(obj, data_dict, file_attach)
+
         if file_attach:
             Attachment.create(file_attach)
+
+    def process_lines(self, rec, data_dict, auto_create):
+        final_line_dict = []
+        final_line_append = final_line_dict.append
+
+        for line_data_dict in data_dict:
+            line_dict, line_fields = self._get_o2m_line(line_data_dict, rec)
+            line_dict = self._finalize_data_to_write(rec, line_dict, auto_create)
+
+            for line_sub_field in line_fields:
+                if line_sub_field in line_data_dict:
+                    sub_line_dicts = self.process_lines(
+                        rec[line_sub_field], line_data_dict[line_sub_field], auto_create
+                    )
+                    line_dict.update({line_sub_field: sub_line_dicts})
+
+            final_line_append((0, 0, line_dict))
+
+        return final_line_dict
 
     def _convert_data_to_id(self, model, vals):
         data_dict = vals.get("payload", {})
@@ -92,48 +99,13 @@ class WebhookUtils(models.AbstractModel):
                 line_all_fields.append(field)
         rec_dict = {k: v for k, v in data_dict.items() if k in rec_fields}
         rec_dict = self._finalize_data_to_write(rec, rec_dict, auto_create)
+
         # Prepare Line Dict (o2m)
         for line_field in line_all_fields:
-            final_line_dict = []
-            final_line_append = final_line_dict.append
-            # Loop all o2m lines, and recreate it
-            for line_data_dict in data_dict[line_field]:
-                line_dict, line_fields = self._get_o2m_line(
-                    line_data_dict, rec[line_field]
-                )
-                line_dict = self._finalize_data_to_write(
-                    rec[line_field], line_dict, auto_create
-                )
-                # Prepare Sub Line Dict (o2m)
-                for line_sub_field in line_fields:
-                    final_sub_line_dict = []
-                    final_sub_line_append = final_sub_line_dict.append
-                    # Loop all o2m sub lines, and recreate it
-                    for line_sub_data_dict in line_data_dict[line_sub_field]:
-                        # Add company_id if not present
-                        if (
-                            "company_id" not in line_data_dict
-                            and "company_id" in data_dict
-                        ):
-                            line_data_dict["company_id"] = data_dict["company_id"]
-                        sub_line_dict, line_sub_fields = self._get_o2m_line(
-                            line_sub_data_dict, rec[line_field][line_sub_field]
-                        )
-                        sub_line_dict = self._finalize_data_to_write(
-                            rec[line_field][line_sub_field], sub_line_dict, auto_create
-                        )
-                        final_sub_line_append((0, 0, sub_line_dict))
-                        if line_sub_fields:
-                            rec.clear_caches()
-                            raise ValidationError(
-                                _(
-                                    "friendly_create_data() support "
-                                    "2 level of one2many lines"
-                                )
-                            )
-                    line_dict.update({line_sub_field: final_sub_line_dict})
-                final_line_append((0, 0, line_dict))
-            rec_dict[line_field] = final_line_dict
+            rec_dict[line_field] = self.process_lines(
+                rec[line_field], data_dict[line_field], auto_create
+            )
+
         return rec_dict, rec, line_all_fields
 
     @api.model
@@ -237,21 +209,12 @@ class WebhookUtils(models.AbstractModel):
         """
         data_dict = vals.get("payload", {})
         auto_create = vals.get("auto_create", {})
-        search_key = vals.get("search_key", {})
+        vals.get("search_key", {})
 
         rec = self._search_object(model, vals)
 
-        if len(rec) > 1:
-            raise ValidationError(
-                _(
-                    "Search key '%(key_field)s' in model '%(model)s' found mutiple matches!"
-                )
-                % {"key_field": search_key, "model": model}
-            )
-
         rec_fields = []
         line_all_fields = []
-        ctx_line = self._get_ctx_lines()
 
         for field, model_field in rec._fields.items():
             if field in data_dict and model_field.type != "one2many":
@@ -260,51 +223,23 @@ class WebhookUtils(models.AbstractModel):
                 line_all_fields.append(field)
         rec_dict = {k: v for k, v in data_dict.items() if k in rec_fields}
         rec_dict = self._finalize_data_to_write(rec, rec_dict, auto_create)
+
         # Prepare Line Dict (o2m)
         for line_field in line_all_fields:
             lines = rec[line_field]
             # First, delete all lines o2m
-            lines.with_context(**ctx_line).unlink()
-            final_line_dict = []
-            final_line_append = final_line_dict.append
-            # Loop all o2m lines, and recreate it
-            for line_data_dict in data_dict[line_field]:
-                line_dict, line_fields = self._get_o2m_line(
-                    line_data_dict, rec[line_field]
-                )
-                line_dict = self._finalize_data_to_write(
-                    rec[line_field], line_dict, auto_create
-                )
-                # Prepare Sub Line Dict (o2m)
-                for line_sub_field in line_fields:
-                    final_sub_line_dict = []
-                    final_sub_line_append = final_sub_line_dict.append
-                    # Loop all o2m sub lines, and recreate it
-                    for line_sub_data_dict in line_data_dict[line_sub_field]:
-                        sub_line_dict, line_sub_fields = self._get_o2m_line(
-                            line_sub_data_dict, rec[line_field][line_sub_field]
-                        )
-                        sub_line_dict = self._finalize_data_to_write(
-                            rec[line_field][line_sub_field], sub_line_dict, auto_create
-                        )
-                        final_sub_line_append((0, 0, sub_line_dict))
-                        if line_sub_fields:
-                            rec.clear_caches()
-                            raise ValidationError(
-                                _(
-                                    "friendly_update_data() support "
-                                    "2 level of one2many lines"
-                                )
-                            )
-                    line_dict.update({line_sub_field: final_sub_line_dict})
-                final_line_append((0, 0, line_dict))
-            rec_dict[line_field] = final_line_dict
+            lines.unlink()
+            rec_dict[line_field] = self.process_lines(
+                rec[line_field], data_dict[line_field], auto_create
+            )
+
         rec.write(rec_dict)
+
         # Create Attachment (if any)
         self._create_file_attachment(rec, data_dict, line_all_fields)
         res = {
             "is_success": True,
-            "result": {"id": rec.id},
+            "result": {"id": rec.ids},
             "messages": _("Record updated successfully"),
         }
         return res
@@ -440,7 +375,8 @@ class WebhookUtils(models.AbstractModel):
                     have_company = hasattr(Model, "company_id")
                     for val in search_vals:
                         # Support multi company
-                        # orm cache can't use in type list, so we need to convert to string
+                        # orm cache can't use in type list,
+                        # so we need to convert to string
                         args = "[]"
                         if have_company and model not in ignore_checkcompany_model:
                             args = str(
@@ -549,11 +485,12 @@ class WebhookUtils(models.AbstractModel):
             - Use an empty list `[]` to retrieve all fields from the model.
             - Specify a list of field names `["<field_name1>", "<field_name2>"]`
                 to retrieve only those fields.
-            - For many2one, one2many and many2many fields, you can specify the fields to fetch
-                by using the following format:
+            - For many2one, one2many and many2many fields,
+                you can specify the fields to fetch by using the following format:
                 `["<field_name1>", "<field_name2>{<field_name3>, <field_name4>}"]`
                 where `<field_name1>` and `<field_name2>` are fields from the model,
-                and `<field_name3>` and `<field_name4>` are fields from the related model.
+                and `<field_name3>` and `<field_name4>` are fields
+                from the related model.
                 The related fields will be fetched and displayed in the result.
 
         - search_domain:
@@ -612,7 +549,8 @@ class WebhookUtils(models.AbstractModel):
         """
         Call a function on a model object based on the provided input.
         Parameters (search_key) are used to search for the record:
-            - search_key: A dictionary containing the search criteria to find the record.
+            - search_key:
+                A dictionary containing the search criteria to find the record.
 
         Parameters (payload) are used to call the function:
             - method (str): The name of the function to call.
