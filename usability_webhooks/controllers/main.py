@@ -15,7 +15,7 @@ class WebhookController(http.Controller):
         data_dict = {
             "data": json.dumps(vals),
             "model": model,
-            "route": "/api/%(function)s" % {"function": function},
+            "route": f"/api/{function}",
             "function_name": function,
         }
 
@@ -35,7 +35,8 @@ class WebhookController(http.Controller):
                 "messages": traceback.format_exc(),
             }
             data_dict.update({"result": res, "state": "failed"})
-            # Error from odoo exception, rollback all data (if config in system parameter)
+            # Error from odoo exception,
+            # rollback all data (if config in system parameter)
             if rollback_except:
                 request.env.cr.rollback()
         if vals["is_create_log"]:

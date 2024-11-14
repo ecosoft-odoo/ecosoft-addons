@@ -1,8 +1,10 @@
 # Do NOT update manually; changes here will be overwritten by Copier
-_commit: v1.24
+_commit: v1.27
 _src_path: gh:oca/oca-addons-repo-template
+additional_ruff_rules: []
 ci: GitHub
 convert_readme_fragments_to_markdown: false
+enable_checklog_odoo: false
 generate_requirements_txt: true
 github_check_license: true
 github_ci_extra_env: {}
@@ -21,6 +23,6 @@ repo_description: This project is custom module that we think other project can 
 repo_name: ecosoft-addons
 repo_slug: ecosoft-addons
 repo_website: https://github.com/ecosoft-odoo/ecosoft-addons
-use_pyproject_toml: false
-use_ruff: false
+use_pyproject_toml: true
+use_ruff: true
 
