@@ -9,5 +9,6 @@ class AccountAccountType(models.Model):
 
     skip_synchronization_reconcile_widget = fields.Boolean(
         string="Reconcile Widget - skip synchronization",
-        help="If check, it will 'skip_account_move_synchronization' when reconcile widget.",
+        help="If check, it will 'skip_account_move_synchronization' "
+        "when reconcile widget.",
     )

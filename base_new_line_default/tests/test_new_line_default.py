@@ -6,13 +6,14 @@ from odoo.tests.common import Form, TransactionCase
 
 class TestHrExpenseDefault(TransactionCase):
     def setUp(self):
-        super(TestHrExpenseDefault, self).setUp()
+        super().setUp()
         self.Group = self.env["res.groups"]
 
     def test_01_new_group_line(self):
         """
         Add new model access line to a group,
-        I expect that line 2 will default name as line 1 and default perm_read if shared group.
+        I expect that line 2 will default name as line 1 and
+        default perm_read if shared group.
         Using following context
         {'default_src_head': {'perm_read': share},
          'default_src_line': model_access,

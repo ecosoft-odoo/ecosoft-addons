@@ -27,8 +27,8 @@ class DataMapType(models.Model):
     def _get_data_mapping_afr(self, in_value):
         self.ensure_one()
         for line in self.line_ids.filtered(
-            lambda l: l.model_id.model == "account.account"
-            and l.field_id.name == "code"
+            lambda line: line.model_id.model == "account.account"
+            and line.field_id.name == "code"
         ):
             out_value = line.get_out_value(
                 self.name, "account.account", "code", in_value

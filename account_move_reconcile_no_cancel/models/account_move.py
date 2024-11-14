@@ -19,12 +19,10 @@ class AccountMove(models.Model):
                 "matched_debit_ids"
             ) | rec.line_ids.mapped("matched_credit_ids")
             if matched_debit_credit_ids:
-                # Check reconciled from invoice and expense's move (not included payment)
+                # Check reconciled from invoice and expense move (not included payment)
                 sheet = rec.line_ids.mapped("expense_id.sheet_id")
                 if rec.move_type in [
-                    "{}_{}".format(x, y)
-                    for x in ["in", "out"]
-                    for y in ["invoice", "refund"]
+                    f"{x}_{y}" for x in ["in", "out"] for y in ["invoice", "refund"]
                 ] or (sheet and not rec.payment_id):
                     raise ValidationError(
                         _("You cannot {} reconciled entries.").format(action)
