@@ -58,7 +58,7 @@ def prepare_data_invoice(doc):
     )
     doc_lines = []
     for line in doc.invoice_line_ids.filtered(
-        lambda l: not l.display_type and l.price_unit > 0
+        lambda inv_line: not inv_line.display_type and inv_line.price_unit > 0
     ):
         doc_lines.append(
             {

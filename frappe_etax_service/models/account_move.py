@@ -89,9 +89,9 @@ class AccountMove(models.Model):
         suffix = "-R"
         if suffix in old_number:
             [number, rev] = old_number.split(suffix)
-            res[0]["name"] = "%s%s%s" % (number, suffix, int(rev) + 1)
+            res[0]["name"] = f"{number}{suffix}{int(rev) + 1}"
         else:
-            res[0]["name"] = "%s%s%s" % (old_number, suffix, 1)
+            res[0]["name"] = f"{old_number}{suffix}{1}"
         res[0]["posted_before"] = self.posted_before
         res[0]["payment_reference"] = self.payment_reference
         res[0]["invoice_date"] = self.invoice_date

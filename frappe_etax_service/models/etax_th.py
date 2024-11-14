@@ -95,10 +95,11 @@ class ETaxTH(models.AbstractModel):
         auth_token, server_url = self._get_connection()
         field_api = self._get_field_api()
         url = (
-            '%s/api/resource/%s?filters=[["transaction_code","=","%s"]]'
-            "&fields=%s"
-            % (server_url, "INET ETax Document", self.etax_transaction_code, field_api)
+            f"{server_url}/api/resource/INET ETax Document?filters="
+            f'[["transaction_code","=","{self.etax_transaction_code}"]]'
+            f"&fields={field_api}"
         )
+
         res = requests.get(
             url,
             headers={"Authorization": "token %s" % auth_token},
@@ -213,13 +214,15 @@ class ETaxTH(models.AbstractModel):
         auth_token, server_url = self._get_connection()
         try:
             res = requests.post(
-                url="%s/api/method/%s"
-                % (server_url, "etax_inet.api.etax.sign_etax_document"),
-                headers={"Authorization": "token %s" % auth_token},
+                url="{}/api/method/{}".format(
+                    server_url, "etax_inet.api.etax.sign_etax_document"
+                ),
+                headers={"Authorization": f"token {auth_token}"},
                 data={
                     "doc_data": json.dumps(doc_data),
                     "form_type": form_type,  # odoo or frappe
-                    "form_name": form_name,  # odoo's report name or frappe's print format
+                    # odoo's report name or frappe's print format
+                    "form_name": form_name,
                     "pdf_content": pdf_content,
                 },
                 timeout=20,

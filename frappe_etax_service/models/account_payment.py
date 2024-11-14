@@ -10,11 +10,12 @@ class AccountMove(models.Model):
 
     def action_draft(self):
         if self.filtered(
-            lambda l: l.etax_status in ("success", "processing", "to_process")
+            lambda pay: pay.etax_status in ("success", "processing", "to_process")
         ):
             raise ValidationError(
                 _(
-                    "Cannot reset to draft, eTax submission already started or succeeded.\n"
+                    "Cannot reset to draft, eTax submission already started "
+                    "or succeeded.\n"
                     "You should do the refund process instead."
                 )
             )

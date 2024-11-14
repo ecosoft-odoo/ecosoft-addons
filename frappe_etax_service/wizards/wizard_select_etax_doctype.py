@@ -35,7 +35,7 @@ class WizardSelectEtaxDoctype(models.TransientModel):
         moves = self.env[res_model].browse(active_ids)
         move_type = list(set(moves.mapped("move_type")))
         is_debit = list(
-            set(moves.mapped(lambda l: l.debit_origin_id and True or False))
+            set(moves.mapped(lambda move: move.debit_origin_id and True or False))
         )
         template = moves.mapped("doc_name_template")
         template = False if len(template) > 1 else template
@@ -83,7 +83,7 @@ class WizardSelectEtaxDoctype(models.TransientModel):
     def pre_etax_validate(self, invoices):
         # Already under processing or succeed
         invalid = invoices.filtered(
-            lambda l: l.etax_status in ["success", "processing"]
+            lambda inv: inv.etax_status in ["success", "processing"]
         )
         if invalid:
             raise ValidationError(
@@ -92,7 +92,7 @@ class WizardSelectEtaxDoctype(models.TransientModel):
             )
         # Not in valid customer invoice type
         invalid = invoices.filtered(
-            lambda l: l.move_type in ["inv_invoice", "inv_refund"]
+            lambda inv: inv.move_type in ["inv_invoice", "inv_refund"]
         )
         if invalid:
             raise ValidationError(
@@ -100,13 +100,13 @@ class WizardSelectEtaxDoctype(models.TransientModel):
                 % ", ".join(invalid.mapped("name"))
             )
         # Not posted
-        invalid = invoices.filtered(lambda l: l.state != "posted")
+        invalid = invoices.filtered(lambda inv: inv.state != "posted")
         if invalid:
             raise ValidationError(
                 _("Some invoices are not posted and cannot sign eTax")
             )
         # No tax invoice
-        invalid = invoices.filtered(lambda l: not l.tax_invoice_ids)
+        invalid = invoices.filtered(lambda inv: not inv.tax_invoice_ids)
         if invalid:
             raise ValidationError(
                 _("%s has no tax invoice") % ", ".join(invalid.mapped("name"))
