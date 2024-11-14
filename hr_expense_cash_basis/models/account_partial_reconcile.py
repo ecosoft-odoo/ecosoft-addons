@@ -60,7 +60,8 @@ class AccountPartialReconcile(models.Model):
                     "fiscal_position_id": move.fiscal_position_id.id,
                 }
                 # Tracking of lines grouped all together.
-                # Used to reduce the number of generated lines and to avoid rounding issues.
+                # Used to reduce the number of generated lines
+                # and to avoid rounding issues.
                 partial_lines_to_create = {}
                 for caba_treatment, line in move_values["to_process_lines"]:
                     if (
@@ -69,11 +70,11 @@ class AccountPartialReconcile(models.Model):
                         != partial.credit_move_id.expense_id.untaxed_amount
                     ):
                         continue
-                    # ==========================================================================
+                    # =================================================================
                     # Compute the balance of the current line on the cash basis entry.
-                    # This balance is a percentage representing the part of the journal entry
-                    # that is actually paid by the current partial.
-                    # ==========================================================================
+                    # This balance is a percentage representing the part of the
+                    # journal entry that is actually paid by the current partial.
+                    # =================================================================
 
                     # Percentage expressed in the foreign currency.
                     amount_currency = line.currency_id.round(line.amount_currency)
@@ -83,15 +84,15 @@ class AccountPartialReconcile(models.Model):
                         or 0.0
                     )
 
-                    # ==========================================================================
+                    # =================================================================
                     # Prepare the mirror cash basis journal item of the current line.
-                    # Group them all together as much as possible to reduce the number of
-                    # generated journal items.
-                    # Also track the computed balance in order to avoid rounding issues when
-                    # the journal entry will be fully paid. At that case, we expect the exact
-                    # amount of each line has been covered by the cash basis journal entries
-                    # and well reported in the Tax Report.
-                    # ==========================================================================
+                    # Group them all together as much as possible to reduce
+                    # the number of generated journal items.
+                    # Also track the computed balance in order to avoid rounding
+                    # issues when the journal entry will be fully paid. At that case,
+                    # we expect the exact amount of each line has been covered by the
+                    # cash basis journal entries and well reported in the Tax Report.
+                    # =================================================================
                     # Tax line.
                     cb_line_vals = self._prepare_cash_basis_tax_line_vals(
                         line, balance, amount_currency
@@ -113,12 +114,13 @@ class AccountPartialReconcile(models.Model):
                             }
                         )
 
-                # ==========================================================================
+                # =====================================================================
                 # Create the counterpart journal items.
-                # ==========================================================================
+                # =====================================================================
 
-                # To be able to retrieve the correct matching between the tax lines to reconcile
-                # later, the lines will be created using a specific sequence.
+                # To be able to retrieve the correct matching between the tax lines
+                # to reconcile later,
+                # the lines will be created using a specific sequence.
                 sequence = 0
 
                 for grouping_key, aggregated_vals in partial_lines_to_create.items():

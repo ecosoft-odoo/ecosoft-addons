@@ -496,7 +496,7 @@ class WebhookUtils(models.AbstractModel):
 
     @api.model
     def create_data(self, model, vals):
-        _logger.info("[{}].create_data(), input: {}".format(model, vals))
+        _logger.info(f"[{model}].create_data(), input: {vals}")
         res = self.friendly_create_data(model, vals)
         if res["is_success"]:
             res_id = res["result"]["id"]
@@ -504,23 +504,23 @@ class WebhookUtils(models.AbstractModel):
             result_field = vals.get("result_field", [])
             for result in result_field:
                 res["result"][result] = p[result]
-        _logger.info("[{}].create_data(), output: {}".format(model, res))
+        _logger.info(f"[{model}].create_data(), output: {res}")
         return res
 
     @api.model
     def update_data(self, model, vals):
-        _logger.info("[{}].update_data(), input: {}".format(model, vals))
+        _logger.info(f"[{model}].update_data(), input: {vals}")
         res = self.friendly_update_data(model, vals)
         if res["is_success"]:
             search_key = vals.get("search_key", {})
             for key, value in search_key.items():
                 res["result"][key] = value
-        _logger.info("[{}].update_data(), output: {}".format(model, res))
+        _logger.info(f"[{model}].update_data(), output: {res}")
         return res
 
     @api.model
     def create_update_data(self, model, vals):
-        _logger.info("[{}].create_update_data(), input: {}".format(model, vals))
+        _logger.info(f"[{model}].create_update_data(), input: {vals}")
         # Update
         rec = self._search_object(model, vals)
         if not rec:
@@ -530,7 +530,7 @@ class WebhookUtils(models.AbstractModel):
             search_key = vals.get("search_key", {})
             for key, value in search_key.items():
                 res["result"][key] = value
-        _logger.info("[{}].create_update_data(), output: {}".format(model, res))
+        _logger.info(f"[{model}].create_update_data(), output: {res}")
         return res
 
     @api.model
@@ -597,14 +597,14 @@ class WebhookUtils(models.AbstractModel):
             }
         }
         """
-        _logger.info("[{}].search_data(), input: {}".format(model, vals))
+        _logger.info(f"[{model}].search_data(), input: {vals}")
         result = self._common_search_data(model, vals)
         res = {
             "is_success": True,
             "result": result,
             "messages": _("Record search successfully"),
         }
-        _logger.info("[{}].search_data(), output: {}".format(model, res))
+        _logger.info(f"[{model}].search_data(), output: {res}")
         return res
 
     @api.model
@@ -638,7 +638,7 @@ class WebhookUtils(models.AbstractModel):
             }
         }
         """
-        _logger.info("[{}].call_function(), input: {}".format(model, vals))
+        _logger.info(f"[{model}].call_function(), input: {vals}")
         data_dict = vals.get("payload", {})
         parameter = data_dict.get("parameter", {})
 
