@@ -10,6 +10,13 @@ from odoo.http import request
 
 
 class WebhookController(http.Controller):
+    def _call_function_api(self, model, vals, function):
+        """
+        This function will call the function from webhook.utils
+        Can be hook to add something before or after the function
+        """
+        return getattr(request.env["webhook.utils"], function)(model, vals)
+
     def _create_api_logs(self, model, vals, function):
         # Add logs
         data_dict = {
@@ -23,7 +30,7 @@ class WebhookController(http.Controller):
         rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
         rollback_except = ICP.sudo().get_param("webhook.rollback_except")
         try:
-            res = getattr(request.env["webhook.utils"], function)(model, vals)
+            res = self._call_function_api(model, vals, function)
             state = "done" if res["is_success"] else "failed"
             data_dict.update({"result": res, "state": state})
             # Not success, rollback all data (if config in system parameter)
