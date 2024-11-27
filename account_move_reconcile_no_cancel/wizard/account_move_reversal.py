@@ -12,6 +12,8 @@ class AccountMoveReversal(models.TransientModel):
         moves = self.move_ids
         moves._check_move_reconciled(action="reset to draft / reverse")
         res = super().reverse_moves()
+        # NOTE: Misleading, this is not a good practice,
+        # as it will affect the original move
         # Overwite payment state to reversed
-        moves.with_context(bypass_lockdate=1).write({"payment_state": "reversed"})
+        # moves.with_context(bypass_lockdate=1).write({"payment_state": "reversed"})
         return res
