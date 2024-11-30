@@ -62,7 +62,7 @@ def prepare_data_invoice(doc):
     ):
         doc_lines.append(
             {
-                "product_code": line.product_id and line.product_id.default_code,
+                "product_code": line.product_id and line.product_id.default_code or "",
                 "product_name": line.product_id and line.product_id.name or line.name,
                 "product_price": line.price_unit,
                 "product_quantity": line.quantity,
