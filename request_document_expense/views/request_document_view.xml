@@ -17,7 +17,10 @@
         <field name="inherit_id" ref="request_document.view_request_document_form" />
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
-                <div attrs="{'invisible': [('request_type', '!=', 'expense')]}">
+                <div
+                    name="expense_type"
+                    attrs="{'invisible': [('request_type', '!=', 'expense')]}"
+                >
                     <div class="oe_title">
                         <label for="expense_name" />
                         <h1>
