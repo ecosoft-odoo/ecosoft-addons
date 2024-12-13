@@ -43,24 +43,26 @@ class RequestDocument(models.Model):
                 sheet.expense_line_ids.mapped("total_amount_company")
             )
 
+    def _get_exp_value(self, exp):
+        return {
+            "name": exp.name,
+            "product_id": exp.product_id.id,
+            "unit_amount": exp.unit_amount,
+            "quantity": exp.quantity,
+            "product_uom_id": exp.product_uom_id.id,
+            "total_amount": exp.total_amount,
+            "currency_id": exp.currency_id.id,
+            "analytic_account_id": exp.analytic_account_id.id,
+            "analytic_tag_ids": [(6, 0, exp.analytic_tag_ids.ids)],
+            "tax_ids": [(6, 0, exp.tax_ids.ids)],
+            "date": exp.date,
+            "employee_id": exp.employee_id.id,
+            "payment_mode": exp.payment_mode,
+        }
+
     def _get_expense_values(self):
         self.ensure_one()
-        expense_list = [
-            {
-                "name": exp.name,
-                "product_id": exp.product_id.id,
-                "unit_amount": exp.unit_amount,
-                "quantity": exp.quantity,
-                "product_uom_id": exp.product_uom_id.id,
-                "total_amount": exp.total_amount,
-                "currency_id": exp.currency_id.id,
-                "tax_ids": [(6, 0, exp.tax_ids.ids)],
-                "date": exp.date,
-                "employee_id": exp.employee_id.id,
-                "payment_mode": exp.payment_mode,
-            }
-            for exp in self.expense_line_ids
-        ]
+        expense_list = [self._get_exp_value(exp) for exp in self.expense_line_ids]
         return expense_list
 
     def _get_sheet_values(self, expense_list):
