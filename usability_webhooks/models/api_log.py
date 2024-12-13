@@ -60,13 +60,32 @@ class APILog(models.Model):
         """
         days = (days > 0) and int(days) or 0
         deadline = datetime.now() - timedelta(days=days)
-        records = self.env["api.log"].search(
-            [("create_date", "<=", fields.Datetime.to_string(deadline))],
-            limit=chunk_size,
-            order="create_date asc",
-        )
-        nb_records = len(records)
-        with self.env.norecompute():
-            records.unlink()
+        domain = [("create_date", "<=", fields.Datetime.to_string(deadline))]
+
+        # Count the number of records to be deleted
+        nb_records = self.env["api.log"].search_count(domain)
+
+        if chunk_size:
+            # Use direct SQL query for deletion with limit
+            query = """
+                DELETE FROM api_log
+                WHERE id IN (
+                    SELECT id FROM api_log
+                    WHERE create_date <= %s
+                    ORDER BY create_date ASC
+                    LIMIT %s
+                )
+            """
+            self.env.cr.execute(
+                query, (fields.Datetime.to_string(deadline), chunk_size)
+            )
+        else:
+            # Use direct SQL query for deletion
+            query = """
+                DELETE FROM api_log
+                WHERE create_date <= %s
+            """
+            self.env.cr.execute(query, (fields.Datetime.to_string(deadline),))
+
         _logger.info("AUTOVACUUM - %s 'api.log' records deleted", nb_records)
         return True
