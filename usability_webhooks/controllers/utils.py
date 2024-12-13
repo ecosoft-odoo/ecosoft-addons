@@ -267,7 +267,13 @@ class WebhookUtils(models.AbstractModel):
                     if isinstance(value, tuple):
                         value = [value[0]]
 
-                    sub_model = self._get_sub_model(key, model_obj)
+                    # For case reference type, convert to list
+                    if model_obj._fields[key].type == "reference":
+                        sub_model = value.split(",")[0]
+                        value = [value.split(",")[1]]
+                    else:
+                        sub_model = self._get_sub_model(key, model_obj)
+
                     # Recusive search for 2many fields
                     filtered_values = [x for x in field_2many if "{" in x]
                     sub_result = []
