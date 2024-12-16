@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_request_request_tree" model="ir.ui.view">
+        <field name="name">view.request.request.tree</field>
+        <field name="model">request.request</field>
+        <field name="inherit_id" ref="request_document.view_request_request_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='state']" position="before">
+                <field name="exception_ids" widget="many2many_tags" />
+            </xpath>
+        </field>
+    </record>
+    <record id="view_request_request_form" model="ir.ui.view">
+        <field name="name">view.request.request.form</field>
+        <field name="model">request.request</field>
+        <field name="inherit_id" ref="request_document.view_request_request_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='request_left']" position="inside">
+                <field
+                    name="ignore_exception"
+                    states="submit"
+                    groups="base_exception.group_exception_rule_manager"
+                />
+                <field
+                    name="exception_ids"
+                    widget="many2many_tags"
+                    attrs="{'invisible': [('exception_ids', '=', [])]}"
+                    readonly="True"
+                />
+            </xpath>
+            <sheet position="before">
+                <div
+                    class="alert alert-danger"
+                    role="alert"
+                    style="margin-bottom:0px;"
+                    attrs="{'invisible': [('exceptions_summary','=',False)]}"
+                >
+                    <p>
+                        <strong>There are exceptions blocking this Requests:</strong>
+                    </p>
+                    <field name="exceptions_summary" />
+                    <button
+                        name="action_ignore_exceptions"
+                        type="object"
+                        class="btn-danger"
+                        string="Ignore Exceptions"
+                        help="Click here to be able to confirm this Agreement regardless of the exceptions."
+                        groups="base_exception.group_exception_rule_manager"
+                    />
+                </div>
+            </sheet>
+        </field>
+    </record>
+
+    <!-- Add exception menu in request -->
+    <record id="action_request_exception_tree" model="ir.actions.act_window">
+        <field name="name">Request Exception Rules</field>
+        <field name="res_model">exception.rule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="base_exception.view_exception_rule_tree" />
+        <field
+            name="domain"
+        >[('model', 'in', ['request.request', 'request.document'])]</field>
+        <field
+            name="context"
+        >{'active_test': False, 'default_model' : 'request.request'}</field>
+    </record>
+    <menuitem
+        action="action_request_exception_tree"
+        id="menu_request_exceptions"
+        parent="request_document.request_config_menu"
+        sequence="20"
+    />
+</odoo>
