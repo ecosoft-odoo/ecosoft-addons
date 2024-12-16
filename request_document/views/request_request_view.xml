@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name" />
+                <field name="create_uid" />
                 <field name="company_id" groups="base.group_multi_company" />
                 <field
                     name="state"
@@ -71,6 +72,7 @@
                     </div>
                     <group>
                         <group name="request_left">
+                            <field name="create_uid" />
                         </group>
                         <group name="request_right">
                             <field
@@ -91,6 +93,30 @@
                     <field name="message_ids" widget="mail_thread" />
                 </div>
             </form>
+        </field>
+    </record>
+    <record id="view_request_request_search" model="ir.ui.view">
+        <field name="name">view.request.request.search</field>
+        <field name="model">request.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="create_uid" />
+                <group string="Group By">
+                    <filter
+                        name="groupby_create_by"
+                        string="Created By"
+                        domain="[]"
+                        context="{'group_by': 'create_uid'}"
+                    />
+                    <filter
+                        name="groupby_state"
+                        string="State"
+                        domain="[]"
+                        context="{'group_by': 'state'}"
+                    />
+                </group>
+            </search>
         </field>
     </record>
 
