@@ -12,9 +12,11 @@
     "depends": [
         "base_sequence_option",
         "l10n_th_account_wht_cert_form",
+        "l10n_th_account_tax_report",
     ],
     "data": [
         "data/withholding_tax_cert_data.xml",
+        "reports/report_wht_qweb.xml",
         "reports/withholding_tax_cert_form_view.xml",
         "views/withholding_tax_cert_view.xml",
     ],

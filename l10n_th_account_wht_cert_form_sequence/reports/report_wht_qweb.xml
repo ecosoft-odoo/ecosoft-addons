@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Header Lines -->
+    <template
+        id="header_line_report_withholding_tax"
+        inherit_id="l10n_th_account_tax_report.header_line_report_withholding_tax"
+    >
+        <xpath expr="//div[hasclass('act_as_row')]" position="inside">
+            <div class="act_as_cell">Number</div>
+        </xpath>
+    </template>
+    <!-- Lines -->
+    <template
+        id="line_report_withholding_tax"
+        inherit_id="l10n_th_account_tax_report.line_report_withholding_tax"
+    >
+        <xpath expr="//div[hasclass('act_as_row')]" position="inside">
+            <div class="act_as_cell left">
+                <span t-field="line.cert_id.number" />
+            </div>
+        </xpath>
+    </template>
+    <!-- Total Lines -->
+    <template
+        id="total_line_report_withholding_tax"
+        inherit_id="l10n_th_account_tax_report.total_line_report_withholding_tax"
+    >
+        <xpath expr="//div[hasclass('act_as_row')]" position="inside">
+            <div class="act_as_cell" />
+        </xpath>
+    </template>
+</odoo>
