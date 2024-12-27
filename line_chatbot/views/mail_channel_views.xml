@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="mail_channel_view_form_" model="ir.ui.view">
+        <field name="name">mail.channel.view.form.inherit.line</field>
+        <field name="model">mail.channel</field>
+        <field name="inherit_id" ref="mail.mail_channel_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='group_ids']" position="after">
+                <field name="line_connect" />
+            </xpath>
+            <xpath
+                expr="//field[@name='channel_last_seen_partner_ids']/tree"
+                position="inside"
+            >
+                <field name="use_line" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

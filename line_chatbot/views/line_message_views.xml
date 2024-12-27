@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2024 Ecosoft Co., Ltd.
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="line_message_view_tree" model="ir.ui.view">
+        <field name="name">line.message.view.tree</field>
+        <field name="model">line.message</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="create_date" />
+                <field name="log_type" />
+                <field name="partner_id" />
+                <field name="message_type" />
+                <field name="message" />
+                <field name="message_error" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-success="state == 'sent'"
+                    decoration-danger="state == 'failed'"
+                />
+            </tree>
+        </field>
+    </record>
+    <record id="line_message_view_form" model="ir.ui.view">
+        <field name="name">line.message.view.form</field>
+        <field name="model">line.message</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet string="LINE Message">
+                    <group>
+                        <group name="main_left">
+                            <field name="create_date" />
+                            <field name="partner_id" />
+                        </group>
+                        <group name="main_right">
+                            <field name="log_type" />
+                        </group>
+                    </group>
+                    <group string="Message">
+                        <field name="message_type" />
+                        <field name="message" />
+                        <field
+                            name="message_error"
+                            attrs="{'invisible': [('state', '!=', 'failed')]}"
+                        />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="line_message_view_search" model="ir.ui.view">
+        <field name="name">line.message.view.search</field>
+        <field name="model">line.message</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id" string="Partner" />
+                <field name="message" string="Message" />
+                <filter
+                    name="filter_log_type_receive"
+                    string="Message Receive"
+                    domain="[('log_type', '=', 'receive')]"
+                />
+                <filter
+                    name="filter_log_type_send"
+                    string="Message Send"
+                    domain="[('log_type', '=', 'send')]"
+                />
+                <separator />
+                <filter
+                    name="filter_state_sent"
+                    string="Status - Sent"
+                    domain="[('state', '=', 'sent')]"
+                />
+                <filter
+                    name="filter_state_failed"
+                    string="Status - Failed"
+                    domain="[('state', '=', 'failed')]"
+                />
+                <separator />
+                <filter
+                    name="filter_message_type_text"
+                    string="Text"
+                    domain="[('message_type', '=', 'text')]"
+                />
+                <filter
+                    name="filter_message_type_image"
+                    string="Image"
+                    domain="[('message_type', '=', 'image')]"
+                />
+                <filter
+                    name="filter_message_type_video"
+                    string="Video"
+                    domain="[('message_type', '=', 'video')]"
+                />
+                <filter
+                    name="filter_message_type_audio"
+                    string="Audio"
+                    domain="[('message_type', '=', 'audio')]"
+                />
+                <filter
+                    name="filter_message_type_file"
+                    string="File"
+                    domain="[('message_type', '=', 'file')]"
+                />
+                <filter
+                    name="filter_message_type_location"
+                    string="Location"
+                    domain="[('message_type', '=', 'location')]"
+                />
+                <filter
+                    name="filter_message_type_sticker"
+                    string="Sticker"
+                    domain="[('message_type', '=', 'sticker')]"
+                />
+                <group string="Group By">
+                    <filter
+                        name="group_by_date"
+                        string="Create Date"
+                        domain="[]"
+                        context="{'group_by':'create_date'}"
+                    />
+                    <filter
+                        name="group_by_partner"
+                        string="Partner"
+                        domain="[]"
+                        context="{'group_by':'partner_id'}"
+                    />
+                    <filter
+                        name="group_by_log_type"
+                        string="Log Type"
+                        domain="[]"
+                        context="{'group_by':'log_type'}"
+                    />
+                    <filter
+                        name="group_by_message_type"
+                        string="Message Type"
+                        domain="[]"
+                        context="{'group_by':'message_type'}"
+                    />
+                    <separator />
+                    <filter
+                        name="group_by_state"
+                        string="Status"
+                        domain="[]"
+                        context="{'group_by':'state'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="line_app_action" model="ir.actions.act_window">
+        <field name="name">LINE Message</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">line.message</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem
+        id="menu_line_management"
+        parent="mail.menu_root_discuss"
+        action="line_app_action"
+    />
+</odoo>

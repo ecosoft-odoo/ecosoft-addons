@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.line.application</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='integration']" position="inside">
+                <div class="col-12 col-lg-6 o_setting_box" id="line_application">
+                    <div class="o_setting_left_pane">
+                        <field name="line_connect" />
+                    </div>
+                    <div class="o_setting_right_pane" id="web_unsplash_settings">
+                        <label for="line_connect" />
+                        <div class="text-muted">
+                            Connect to LINE Application
+                        </div>
+                        <div attrs="{'invisible': [('line_connect', '=', False)]}">
+                            <div class="content-group mt16">
+                                <label
+                                    for="line_login_channel_id"
+                                    class="o_light_label"
+                                />
+                                <field
+                                    name="line_login_channel_id"
+                                    attrs="{'required': [('line_connect', '!=', False)]}"
+                                />
+                                <label
+                                    for="line_login_channel_secret"
+                                    class="o_light_label"
+                                />
+                                <field
+                                    name="line_login_channel_secret"
+                                    attrs="{'required': [('line_connect', '!=', False)]}"
+                                />
+                                <label
+                                    for="line_channel_access_token"
+                                    class="o_light_label"
+                                />
+                                <field
+                                    name="line_channel_access_token"
+                                    attrs="{'required': [('line_connect', '!=', False)]}"
+                                />
+                                <label
+                                    for="line_channel_secret"
+                                    class="o_light_label"
+                                />
+                                <field
+                                    name="line_channel_secret"
+                                    attrs="{'required': [('line_connect', '!=', False)]}"
+                                />
+                            </div>
+                            <div>
+                                <a
+                                    href="https://developers.line.biz/en/services/messaging-api/"
+                                    class="oe_link"
+                                    target="_blank"
+                                >
+                                    <i
+                                        class="fa fa-arrow-right"
+                                    /> Generate an Access Key
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

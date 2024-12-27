@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="line_compose_message_wizard_form" model="ir.ui.view">
+        <field name="name">line.compose.message.form</field>
+        <field name="model">line.compose.message</field>
+        <field name="groups_id" eval="[Command.link(ref('base.group_user'))]" />
+        <field name="arch" type="xml">
+            <form string="Compose LINE">
+                <field name="model" invisible="1" />
+                <field name="res_id" invisible="1" />
+                <group>
+                    <field
+                        name="partner_ids"
+                        widget="many2many_tags"
+                        placeholder="Add recipients..."
+                        options="{'no_create': True}"
+                    />
+                    <field name="message" />
+                </group>
+                <group col="4">
+                    <field
+                        name="attachment_ids"
+                        widget="many2many_binary"
+                        string="Attach a file"
+                        nolabel="1"
+                        colspan="2"
+                    />
+                    <!-- <field name="template_id" options="{'no_create': True}"
+                            context="{'default_model': model, 'default_body_html': body, 'default_subject': subject}"/> -->
+                </group>
+                <footer>
+                    <button
+                        string="Send"
+                        name="action_send_line"
+                        type="object"
+                        class="btn-primary o_mail_send"
+                        data-hotkey="q"
+                    />
+                    <button
+                        string="Cancel"
+                        class="btn-secondary"
+                        special="cancel"
+                        data-hotkey="z"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_line_compose_message_wizard" model="ir.actions.act_window">
+        <field name="name">Compose LINE</field>
+        <field name="res_model">line.compose.message</field>
+        <field name="binding_model_id" ref="line_chatbot.model_line_compose_message" />
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
