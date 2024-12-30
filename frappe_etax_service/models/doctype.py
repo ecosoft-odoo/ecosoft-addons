@@ -41,7 +41,7 @@ class DocType(models.Model):
     )
     doctype_code = fields.Selection(
         selection=[
-            # ("380", "380 ใบแจ้งหนี้"),  # We don't use this, not a tax invoice
+            ("380", "380 ใบแจ้งหนี้"),  # We don't use this, not a tax invoice
             ("388", "388 ใบกํากับภาษี"),
             ("T02", "T02 ใบแจ้งหนี้/ใบกํากับภาษี"),
             ("T03", "T03 ใบเสร็จรับเงิน/ใบกํากับภาษี"),
