@@ -4,8 +4,14 @@
 import logging
 from datetime import datetime
 
-# import jwt
 import requests
+from linebot.v3.messaging import (
+    ApiClient,
+    Configuration,
+    MessagingApi,
+    ReplyMessageRequest,
+    TextMessage,
+)
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
@@ -100,12 +106,24 @@ class LINEService(models.AbstractModel):
         partner.sudo().write({"line_access_token": decoded_token.get("sub", False)})
         return partner, decoded_token
 
-    def _search_line_partner_token(self, access_token):
+    def _search_line_partner_token(self, event, configuration, message):
         partner = self.env["res.partner"].search(
-            [("line_access_token", "=", access_token)], limit=1
+            [("line_access_token", "=", event.source.user_id)], limit=1
         )
         if not partner:
-            raise UserError(_("The partner is not found"))
+            partner = self.env["res.partner"].search([("email", "=", message)], limit=1)
+            # Check email from message, if not found, return message to user
+            if not partner:
+                self.message_line_reply(
+                    configuration,
+                    event.reply_token,
+                    "The partner is not found in System, please contact admin.",
+                )
+            # Register the partner
+            partner.write({"line_access_token": event.source.user_id})
+            self.message_line_reply(
+                configuration, event.reply_token, "Register the partner successfully."
+            )
         return partner
 
     @api.model
@@ -193,7 +211,7 @@ class LINEService(models.AbstractModel):
     @api.model
     def handle_message_received_event(self, events, channel_access_token):
         self = self.sudo()
-        # configuration = Configuration(access_token=channel_access_token)
+        configuration = Configuration(access_token=channel_access_token)
         message_list = []
         # Use public user to create discuss channel
         public_user = self.env.ref("base.public_user")
@@ -207,8 +225,6 @@ class LINEService(models.AbstractModel):
         partner_permission_ids = users_with_permission.mapped("partner_id")
 
         for event in events:
-            user_access_token = event.source.user_id
-
             if event.message.type == "image":
                 # TODO: https://developers.line.biz/en/reference/messaging-api/#get-image-or-video-preview
                 # Preview image or video
@@ -221,11 +237,14 @@ class LINEService(models.AbstractModel):
             elif event.message.type == "location":
                 # How to show location in Odoo or not need?
                 # Format: latitude:longitude:address
-                message = f"{event.message.latitude}:{event.message.longitude}:{event.message.address}"
+                message = (
+                    f"{event.message.latitude}:{event.message.longitude}:"
+                    f"{event.message.address}"
+                )
             else:
                 message = event.message.text
 
-            partner = self._search_line_partner_token(user_access_token)
+            partner = self._search_line_partner_token(event, configuration, message)
 
             # Add log message
             message_list.append(
@@ -280,16 +299,15 @@ class LINEService(models.AbstractModel):
                 notify_by_email=False,
             )
 
-            # Send message to LINE (Reply message)
-            # if isinstance(event, MessageEvent) and isinstance(event.message, TextMessageContent):
-            #     with ApiClient(configuration) as api_client:
-            #         line_bot_api = MessagingApi(api_client)
-            #         line_bot_api.reply_message_with_http_info(
-            #             ReplyMessageRequest(
-            #                 reply_token=event.reply_token,
-            #                 messages=[TextMessage(text=event.message.text)]
-            #             )
-            #         )
-
         message_log = self.env["line.message"].create(message_list)
         return message_log
+
+    def message_line_reply(self, configuration, reply_token, message):
+        # Send message to LINE (Reply message)
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=reply_token, messages=[TextMessage(text=message)]
+                )
+            )
