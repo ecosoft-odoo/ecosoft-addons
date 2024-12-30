@@ -1,0 +1,6 @@
+<odoo noupdate="1">
+    <record id="line_url_api" model="ir.config_parameter">
+        <field name="key">line.url.api</field>
+        <field name="value">https://api.line.me/v2/bot</field>
+    </record>
+</odoo>

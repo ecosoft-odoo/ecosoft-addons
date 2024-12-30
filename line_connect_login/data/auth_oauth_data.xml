@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="provider_line" model="auth.oauth.provider">
+        <field name="name">LINE OA</field>
+        <field name="auth_endpoint">https://access.line.me/oauth2/v2.1/authorize</field>
+        <field name="scope">openid</field>
+        <field name="css_class">fa fa-fw fa-facebook-square</field>
+        <field name="body">Log in with LINE</field>
+        <field name="enabled">True</field>
+    </record>
+</odoo>

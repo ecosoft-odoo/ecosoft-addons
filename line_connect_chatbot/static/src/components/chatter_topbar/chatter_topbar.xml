@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <t
+        t-name="line_connect_chatbot.ChatterTopbar"
+        t-inherit="mail.ChatterTopbar"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <xpath
+            expr="//button[contains(@class, 'o_ChatterTopbar_buttonLogNote')]"
+            position="after"
+        >
+            <button
+                class="btn btn-link o_ChatterTopbar_button"
+                type="button"
+                t-att-class="{
+                    'o-active': chatter.composerView and !chatter.composerView.composer.isLog,
+                    'o-bordered': chatter.hasExternalBorder,
+                }"
+                t-att-disabled="chatter.isDisabled"
+                title="Send a LINE message"
+                data-hotkey="l"
+                t-on-click="chatter.onClickSendLineMessage"
+            >
+                Send LINE
+            </button>
+        </xpath>
+    </t>
+</odoo>

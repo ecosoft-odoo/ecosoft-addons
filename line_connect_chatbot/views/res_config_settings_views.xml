@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.line.application</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="line_connect.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='line_connect_settings']" position="inside">
+                <div attrs="{'invisible': [('line_connect', '=', False)]}">
+                    <div class="content-group mt16">
+                        <p><strong>LINE Chatbot Configuration</strong></p>
+                        <label for="line_channel_access_token" class="o_light_label" />
+                        <field
+                            name="line_channel_access_token"
+                            attrs="{'required': [('line_connect', '!=', False)]}"
+                        />
+                        <label for="line_channel_secret" class="o_light_label" />
+                        <field
+                            name="line_channel_secret"
+                            attrs="{'required': [('line_connect', '!=', False)]}"
+                        />
+                    </div>
+                    <div>
+                        <a
+                            href="https://developers.line.biz/en/services/messaging-api/"
+                            class="oe_link"
+                            target="_blank"
+                        >
+                            <i class="fa fa-arrow-right" /> Generate an Access Key
+                        </a>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
