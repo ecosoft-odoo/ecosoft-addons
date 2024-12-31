@@ -140,6 +140,22 @@ def prepare_data_payment(doc):
                 "line_total_amount": line.tax_base_amount + line.balance,
             }
         )
+    if not doc_lines:
+        invoice = doc.reconciled_invoice_ids
+        for line in invoice.invoice_line_ids:
+            doc_lines.append(
+                {
+                    "product_code": "",
+                    "product_name": line.name and line.name.split(" ")[0] or "",
+                    "product_price": line.price_unit,
+                    "product_quantity": line.quantity,
+                    "line_tax_type_code": "FRE",
+                    "line_tax_rate": 0.0,
+                    "line_base_amount": line.price_subtotal,
+                    "line_tax_amount": 0.0,
+                    "line_total_amount": line.price_subtotal,
+                }
+            )
     d["line_item_information"] = doc_lines
     # As of now, no use for payment
     d["original_amount_untaxed"] = False
