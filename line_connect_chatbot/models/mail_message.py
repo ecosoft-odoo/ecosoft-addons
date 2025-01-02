@@ -29,5 +29,10 @@ class Message(models.Model):
                 self.env["base.line.process"].message_line_push(
                     vals["body"], vals.get("line_partner_ids")
                 )
+                # Logs message with text only (attachment will use standard message)
+                message_text = [
+                    body["text"] for body in vals["body"] if body.get("type") == "text"
+                ]
+                vals["body"] = "\n".join(message_text)
                 # TODO: May be add log here?
         return super().create(vals_list)

@@ -15,7 +15,8 @@ class BaseLineProcess(models.AbstractModel):
     _name = "base.line.process"
     _description = "Base function LINE Process"
 
-    def message_line_push(self, message, partner_ids):
+    def message_line_push(self, message_list, partner_ids):
+        _logger.info(f"Send message to LINE with{message_list} to {partner_ids}")
         partners = self.env["res.partner"].browse(partner_ids)
         partner_line_access_token = partners.mapped("line_access_token")
 
@@ -39,12 +40,7 @@ class BaseLineProcess(models.AbstractModel):
         }
         payload = {
             "to": partner_line_access_token,
-            "messages": [
-                {
-                    "type": "text",
-                    "text": message,
-                }
-            ],
+            "messages": message_list,
         }
         error_message = ""
         try:
@@ -72,7 +68,7 @@ class BaseLineProcess(models.AbstractModel):
                 "partner_id": partner.id,  # TODO: Change to partner_ids
                 "log_type": "send",
                 "message_type": "text",  # TODO: Should support file or image type
-                "message": message,
+                "message": message_list,  # TODO: change list to message
                 "state": "sent" if response else "failed",
                 "message_error": error_message,
             }
