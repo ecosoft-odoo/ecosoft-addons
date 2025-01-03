@@ -56,67 +56,43 @@
                     attrs="{'invisible': ['|', ('etax_status', '!=', 'success'), ('state', '!=', 'posted')]}"
                 /> -->
             </xpath>
-            <xpath expr="//page[@name='tax_invoice']" position="after">
-                <page
-                    id="frappe_etax_service"
-                    string="e-Tax Info"
-                    attrs="{'invisible': [('tax_invoice_ids', '=', [])]}"
-                >
-                    <group>
-                        <group string="e-Tax">
-                            <field
-                                name="etax_doctype"
-                                string="Doctype"
-                                readonly="1"
-                                force_save="1"
-                            />
-                            <field
-                                name="etax_status"
-                                string="Status"
-                                widget="badge"
-                                decoration-success="etax_status=='success'"
-                                decoration-danger="etax_status=='error'"
-                                decoration-warning="etax_status in ['processing', 'to_process']"
-                                readonly="1"
-                                force_save="1"
-                            />
-                            <field
-                                name="etax_transaction_code"
-                                string="Transaction code"
-                                readonly="1"
-                                force_save="1"
-                            />
-                            <field
-                                name="etax_error_code"
-                                string="Error code"
-                                readonly="1"
-                                force_save="1"
-                            />
-                            <field
-                                name="etax_error_message"
-                                string="Error message"
-                                readonly="1"
-                                force_save="1"
-                            />
-                        </group>
-                        <group>
-                        </group>
-                        <!-- <group string="Additional Information">
-                            <field
-                                name="replaced_entry_id"
-                                attrs="{'invisible': [('replaced_entry_id', '=', False)]}"
-                            />
-                            <field
-                                name="create_purpose_code"
-                                attrs="{'required': [('replaced_entry_id', '!=', False)]}"
-                            />
-                            <field
-                                name="create_purpose"
-                                attrs="{'required': [('replaced_entry_id', '!=', False)]}"
-                            />
-                        </group> -->
-                    </group>
-                </page>
+            <xpath expr="//sheet/group" position="inside">
+                <group name="etax_info" string="e-Tax">
+                    <field
+                        name="etax_doctype"
+                        string="Doctype"
+                        readonly="1"
+                        force_save="1"
+                    />
+                    <field
+                        name="etax_status"
+                        string="Status"
+                        widget="badge"
+                        decoration-success="etax_status=='success'"
+                        decoration-danger="etax_status=='error'"
+                        decoration-warning="etax_status in ['processing', 'to_process']"
+                        readonly="1"
+                        force_save="1"
+                    />
+                    <field
+                        name="etax_transaction_code"
+                        string="Transaction code"
+                        readonly="1"
+                        force_save="1"
+                    />
+                    <field
+                        name="etax_error_code"
+                        string="Error code"
+                        readonly="1"
+                        force_save="1"
+                    />
+                    <field
+                        name="etax_error_message"
+                        string="Error message"
+                        readonly="1"
+                        force_save="1"
+                    />
+                </group>
             </xpath>
         </field>
     </record>
