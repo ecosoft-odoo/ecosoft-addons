@@ -105,9 +105,3 @@ class WizardSelectEtaxDoctype(models.TransientModel):
             raise ValidationError(
                 _("Some invoices are not posted and cannot sign eTax")
             )
-        # No tax invoice
-        invalid = invoices.filtered(lambda inv: not inv.tax_invoice_ids)
-        if invalid:
-            raise ValidationError(
-                _("%s has no tax invoice") % ", ".join(invalid.mapped("name"))
-            )
