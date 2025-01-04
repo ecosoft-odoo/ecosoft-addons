@@ -28,12 +28,16 @@ class DiscussControllerLINE(DiscussController):
                 )
                 post_data["line_partner_ids"] = channel_partner.partner_id.ids
                 # Convert message to LINE format
-                message_list = [
-                    {
-                        "type": "text",
-                        "text": post_data.get("body"),
-                    }
-                ]
+                if post_data.get("body"):
+                    message_list = [
+                        {
+                            "type": "text",
+                            "text": post_data.get("body"),
+                        }
+                    ]
+                else:
+                    message_list = []
+
                 if post_data.get("attachment_ids"):
                     attachments = request.env["ir.attachment"].browse(
                         post_data["attachment_ids"]

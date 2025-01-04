@@ -1,8 +1,10 @@
 # Copyright 2024 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import base64
 import logging
 
+import requests
 from linebot.v3.messaging import (
     ApiClient,
     Configuration,
@@ -23,27 +25,8 @@ LINE_TOKEN_VERIFY_ENDPOINT = "https://api.line.me/oauth2/v2.1/verify"
 
 
 class LINEService(models.AbstractModel):
-    _inherit = "line.service"
-
-    def _search_line_partner_token(self, event, configuration, message):
-        partner = self.env["res.partner"].search(
-            [("line_access_token", "=", event.source.user_id)], limit=1
-        )
-        if not partner:
-            partner = self.env["res.partner"].search([("email", "=", message)], limit=1)
-            # Check email from message, if not found, return message to user
-            if not partner:
-                self.message_line_reply(
-                    configuration,
-                    event.reply_token,
-                    "The partner is not found in System, please contact admin.",
-                )
-            # Register the partner
-            partner.write({"line_access_token": event.source.user_id})
-            self.message_line_reply(
-                configuration, event.reply_token, "Register the partner successfully."
-            )
-        return partner
+    _name = "line.service"
+    _description = "Common function for LINE Service"
 
     def _create_channel_discuss(self, partner, partner_permission_ids, MailChannel):
         all_partners = partner_permission_ids + partner
@@ -63,8 +46,134 @@ class LINEService(models.AbstractModel):
         ).write({"use_line": True})
         return mail_channel
 
+    def _call_get_line_image(self, uri, headers):
+        res = requests.request("get", uri, headers=headers, timeout=10)
+        res.raise_for_status()
+        status = res.status_code
+        if int(status) == 204:  # Page not found, no response
+            response = False
+        else:
+            response = res.content
+        return response
+
+    def _get_message_image(self, event, partner, headers):
+        url_line_image = (
+            self.env["ir.config_parameter"].sudo().get_param("line.url.api.image")
+        )
+        LINE_IMAGE_PREVIEW_ENDPOINT = (
+            f"{url_line_image}/message/{event.message.id}/content"
+        )
+
+        try:
+            content = self._call_get_line_image(LINE_IMAGE_PREVIEW_ENDPOINT, headers)
+        except requests.HTTPError as error:
+            if error.response.status_code in (204, 404):
+                content = ""
+            else:
+                _logger.exception("Bad line request : %s !", error.response.content)
+                raise error
+
+        # Call success, create attachment and add message with image
+        message = ""
+        if content:
+            channel = self.env["mail.channel"].search(
+                [("uuid", "=", partner.chat_uuid)]
+            )
+            attachment = self.env["ir.attachment"].create(
+                {
+                    "name": "LINE Image",
+                    "datas": base64.b64encode(content),
+                    "type": "binary",
+                    "res_model": "mail.channel",
+                    "res_id": channel.id,
+                }
+            )
+            message = '<img src="/web/content/%s" alt="LINE Image"/>' % attachment.id
+        return message
+
+    def _get_domain_register_partner(self, value_register):
+        """Can be override to add more domain"""
+        return [("email", "=", value_register)]
+
+    def _message_register_partner_connect_line(
+        self, event, value_register, configuration
+    ):
+        domain_partner = self._get_domain_register_partner(value_register)
+        partner = self.env["res.partner"].search(domain_partner, limit=1)
+
+        # Check email in system, if not found, reply message LINE to user
+        if not partner:
+            self.message_line_reply(
+                configuration,
+                event.reply_token,
+                "The partner is not found in System, "
+                "please try again or contact admin.",
+            )
+        else:
+            # Check if partner already registered, if not, register the partner
+            if partner.line_access_token:
+                self.message_line_reply(
+                    configuration,
+                    event.reply_token,
+                    "The partner is already registered.",
+                )
+                partner = False  # Return False to skip message post
+            else:
+                partner.write({"line_access_token": event.source.user_id})
+                self.message_line_reply(
+                    configuration,
+                    event.reply_token,
+                    "Register the partner successfully.",
+                )
+        return partner, event.message.text  # Return original message
+
+    def _message_received_partner_line(self, event, configuration, headers=None):
+        partner = self.env["res.partner"].search(
+            [("line_access_token", "=", event.source.user_id)], limit=1
+        )
+        # Send message before register email, return message error
+        if not partner:
+            self.message_line_reply(
+                configuration,
+                event.reply_token,
+                "Please register your email to connect with LINE.",
+            )
+            return partner, event.message.text
+
+        headers = headers or {}
+
+        if event.message.type == "image":
+            # Preview image or video
+            message = self._get_message_image(event, partner, headers)
+        elif event.message.type == "sticker":
+            # TODO: https://developers.line.biz/en/reference/messaging-api/#sticker-message
+            # How to show sticker in Odoo or not need?
+            # Format: packageId:stickerId
+            message = f"{event.message.package_id}:{event.message.sticker_id}"
+        elif event.message.type == "location":
+            # How to show location in Odoo or not need?
+            # Format: latitude:longitude:address
+            message = (
+                f"{event.message.latitude}:{event.message.longitude}:"
+                f"{event.message.address}"
+            )
+        else:
+            message = event.message.text
+        return partner, message
+
     @api.model
     def handle_message_received_event(self, events, channel_access_token):
+        """
+        Main function to handle message received from LINE. Steps:
+        1. Check message,
+            - if message is /register, register partner with email.
+            - else, check partner from line_access_token.
+                - if not found, return message to partner.
+                - if found, check message type and create message.
+        2. Create discuss channel if not exist.
+        3. Send message to discuss channel.
+        4. Create log message.
+        """
         self = self.sudo()
         configuration = Configuration(access_token=channel_access_token)
         message_list = []
@@ -79,27 +188,32 @@ class LINEService(models.AbstractModel):
         )
         partner_permission_ids = users_with_permission.mapped("partner_id")
 
+        # Headers for LINE API
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {channel_access_token}",
+        }
+
         for event in events:
-            if event.message.type == "image":
-                # TODO: https://developers.line.biz/en/reference/messaging-api/#get-image-or-video-preview
-                # Preview image or video
-                message = event.message.id  # Image ID
-            elif event.message.type == "sticker":
-                # TODO: https://developers.line.biz/en/reference/messaging-api/#sticker-message
-                # How to show sticker in Odoo or not need?
-                # Format: packageId:stickerId
-                message = f"{event.message.package_id}:{event.message.sticker_id}"
-            elif event.message.type == "location":
-                # How to show location in Odoo or not need?
-                # Format: latitude:longitude:address
-                message = (
-                    f"{event.message.latitude}:{event.message.longitude}:"
-                    f"{event.message.address}"
+            if event.message.type == "text" and event.message.text.startswith(
+                "/register"
+            ):
+                # Register partner with email
+                value_register = event.message.text.split(" ")[1]
+                partner, message = self._message_register_partner_connect_line(
+                    event, value_register, configuration
                 )
             else:
-                message = event.message.text
+                partner, message = self._message_received_partner_line(
+                    event, configuration, headers
+                )
 
-            partner = self._search_line_partner_token(event, configuration, message)
+            # No partner from 3 cases,
+            # 1. Partner not found in system
+            # 2. Partner already registered
+            # 3. Partner not register email but send message
+            if not partner:
+                continue
 
             # Add log message
             message_list.append(
@@ -110,13 +224,14 @@ class LINEService(models.AbstractModel):
                     "message": message,
                 }
             )
-            # Create discuss channel if not exist
+
+            # Create discuss channel if not exist (Register first time)
             mail_channel = False
             if not partner.chat_uuid:
                 mail_channel = self._create_channel_discuss(
                     partner, partner_permission_ids, MailChannel
                 )
-                # Update UUID TO partner 1:1 chat
+                # Update UUID to partner 1:1 chat
                 partner.write({"chat_uuid": mail_channel.uuid})
                 notification = _(
                     '<div class="o_mail_notification">joined the channel</div>'
@@ -135,6 +250,7 @@ class LINEService(models.AbstractModel):
                 mail_channel = MailChannel.search([("uuid", "=", partner.chat_uuid)])
 
             # Check if partner permission is not in channel, add partner to channel
+            # NOTE: Use for case remove channel, user will can't see channel in chat
             missing_partners = partner_permission_ids - mail_channel.channel_partner_ids
             if missing_partners:
                 mail_channel.write(

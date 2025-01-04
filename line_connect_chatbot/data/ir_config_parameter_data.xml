@@ -3,4 +3,9 @@
         <field name="key">line.url.api</field>
         <field name="value">https://api.line.me/v2/bot</field>
     </record>
+    <record id="line_url_api_image" model="ir.config_parameter">
+        <field name="key">line.url.api.image</field>
+        <field name="value">https://api-data.line.me/v2/bot</field>
+    </record>
+
 </odoo>
