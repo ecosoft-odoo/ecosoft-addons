@@ -27,4 +27,19 @@ class DiscussControllerLINE(DiscussController):
                     lambda x: x.use_line
                 )
                 post_data["line_partner_ids"] = channel_partner.partner_id.ids
+                # Convert message to LINE format
+                message_list = [
+                    {
+                        "type": "text",
+                        "text": post_data.get("body"),
+                    }
+                ]
+                if post_data.get("attachment_ids"):
+                    attachments = request.env["ir.attachment"].browse(
+                        post_data["attachment_ids"]
+                    )
+                    message_list = request.env["line.service"].message_line_attachment(
+                        attachments, message_list
+                    )
+                post_data["body"] = message_list
         return super().mail_message_post(thread_model, thread_id, post_data, **kwargs)

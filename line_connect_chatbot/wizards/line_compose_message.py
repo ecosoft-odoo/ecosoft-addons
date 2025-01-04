@@ -1,13 +1,12 @@
 # Copyright 2024 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo import fields, models
 
 
 class LINEComposer(models.TransientModel):
     _name = "line.compose.message"
-    _inherit = ["base.line.process", "mail.thread"]
+    _inherit = ["base.line.process", "mail.thread", "line.service"]
     _description = "LINE composition wizard"
 
     # content
@@ -52,48 +51,7 @@ class LINEComposer(models.TransientModel):
                 )
             attachments = self.attachment_ids
             if attachments:
-                attachments.generate_access_token()
-                for attach in attachments:
-                    content_url = "{}/web/image/{}?access_token={}".format(
-                        self.env["ir.config_parameter"]
-                        .sudo()
-                        .get_param("web.base.url"),
-                        attach.id,
-                        attach.access_token,
-                    )
-                    if attach.index_content == "image":
-                        message_list.append(
-                            {
-                                "type": "image",
-                                "originalContentUrl": content_url,
-                                "previewImageUrl": content_url,
-                            }
-                        )
-                    # Send data with template file
-                    elif attach.mimetype == "application/pdf":
-                        # TODO: support only pdf, other file can't open
-                        message_list.append(
-                            {
-                                "type": "template",
-                                "altText": attach.name,
-                                "template": {
-                                    "type": "buttons",
-                                    "title": attach.name,
-                                    "text": attach.mimetype[:59],  # limit 60 char
-                                    "actions": [
-                                        {
-                                            "type": "uri",
-                                            "label": "Open file",
-                                            "uri": content_url,
-                                        }
-                                    ],
-                                },
-                            }
-                        )
-                    else:
-                        raise UserError(
-                            _("Only PDF and Image files are allowed as attachments.")
-                        )
+                message_list = self.message_line_attachment(attachments, message_list)
             original_record.message_post(
                 body=message_list,
                 message_type="line",

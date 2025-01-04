@@ -12,6 +12,7 @@ from linebot.v3.messaging import (
 )
 
 from odoo import Command, _, api, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -156,6 +157,7 @@ class LINEService(models.AbstractModel):
         message_log = self.env["line.message"].create(message_list)
         return message_log
 
+    @api.model
     def message_line_reply(self, configuration, reply_token, message):
         # Send message to LINE (Reply message)
         with ApiClient(configuration) as api_client:
@@ -165,3 +167,50 @@ class LINEService(models.AbstractModel):
                     reply_token=reply_token, messages=[TextMessage(text=message)]
                 )
             )
+
+    @api.model
+    def message_line_attachment(self, attachments, message_list=None):
+        """Generate access token for attachment"""
+        message_list = message_list or []
+        web_base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
+        attachments.generate_access_token()
+        for attach in attachments:
+            content_url = "{}/web/image/{}?access_token={}".format(
+                web_base_url,
+                attach.id,
+                attach.access_token,
+            )
+            if attach.index_content == "image":
+                message_list.append(
+                    {
+                        "type": "image",
+                        "originalContentUrl": content_url,
+                        "previewImageUrl": content_url,
+                    }
+                )
+            # Send data with template file
+            elif attach.mimetype == "application/pdf":
+                # TODO: support only pdf, other file can't open
+                message_list.append(
+                    {
+                        "type": "template",
+                        "altText": attach.name,
+                        "template": {
+                            "type": "buttons",
+                            "title": attach.name,
+                            "text": attach.mimetype[:59],  # limit 60 char
+                            "actions": [
+                                {
+                                    "type": "uri",
+                                    "label": "Open file",
+                                    "uri": content_url,
+                                }
+                            ],
+                        },
+                    }
+                )
+            else:
+                raise UserError(
+                    _("Only PDF and Image files are allowed as attachments.")
+                )
+        return message_list
