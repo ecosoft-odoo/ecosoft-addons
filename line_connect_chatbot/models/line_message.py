@@ -26,6 +26,9 @@ class LINEMessage(models.Model):
         ],
         default="receive",
     )
+    is_broadcast = fields.Boolean(
+        string="Broadcast",
+    )
     message_type = fields.Selection(
         selection=[
             ("text", "Text"),

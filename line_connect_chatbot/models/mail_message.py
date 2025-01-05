@@ -26,7 +26,7 @@ class Message(models.Model):
         """
         for vals in vals_list:
             if vals.get("message_type") == "line" and vals.get("line_partner_ids"):
-                self.env["base.line.process"].message_line_push(
+                self.env["line.service"].message_line_push(
                     vals["body"], vals.get("line_partner_ids")
                 )
                 # Logs message with text only (attachment will use standard message)

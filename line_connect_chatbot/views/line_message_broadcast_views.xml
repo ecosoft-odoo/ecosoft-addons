@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2024 Ecosoft Co., Ltd.
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="action_line_broadcast_wizard" model="ir.actions.act_window">
+        <field name="name">LINE Broadcast</field>
+        <field name="res_model">line.compose.message</field>
+        <field
+            name="binding_model_id"
+            ref="line_connect_chatbot.model_line_compose_message"
+        />
+        <field name="type">ir.actions.act_window</field>
+        <field name="context">{'default_message_type': 'broadcast'}</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem
+        id="menu_line_broadcast"
+        parent="line_connect_chatbot.menu_line_management"
+        name="LINE Broadcast"
+        action="action_line_broadcast_wizard"
+    />
+</odoo>

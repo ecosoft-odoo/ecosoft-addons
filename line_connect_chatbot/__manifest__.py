@@ -19,6 +19,7 @@
         "views/res_partner_views.xml",
         "views/mail_channel_views.xml",
         "views/line_message_views.xml",
+        "views/line_message_broadcast_views.xml",
         "wizards/line_compose_message_views.xml",
     ],
     "assets": {

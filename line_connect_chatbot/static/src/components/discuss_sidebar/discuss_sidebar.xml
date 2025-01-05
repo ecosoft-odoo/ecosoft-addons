@@ -10,9 +10,10 @@
                     categoryLocalId="categoryLivechat.localId"
                 />
             </t> -->
-            1<span t-esc="discuss" />
+            .
+            <!-- 1<span t-esc="discuss" />
             2<span t-esc="discuss.categoryChannel" />
-            3<span t-esc="discuss.categoryLINEChat" />
+            3<span t-esc="discuss.categoryLINEChat" /> -->
             <!-- <DiscussSidebarCategory
                 class="o_DiscussSidebar_category o_DiscussSidebar_categoryChannel"
                 categoryLocalId="discuss.categoryLINEChat.localId"

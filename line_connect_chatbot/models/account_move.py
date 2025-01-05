@@ -6,7 +6,7 @@ from odoo import models
 
 class AccountMove(models.Model):
     _name = "account.move"
-    _inherit = ["account.move", "base.line.process"]
+    _inherit = ["account.move", "line.service"]
 
     # NOTE: This is a simple example, in real case, you may want to add more
     def action_post(self):

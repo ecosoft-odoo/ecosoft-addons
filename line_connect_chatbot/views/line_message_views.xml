@@ -10,6 +10,7 @@
                 <field name="create_date" />
                 <field name="log_type" />
                 <field name="partner_id" />
+                <field name="is_broadcast" />
                 <field name="message_type" />
                 <field name="message" />
                 <field name="message_error" />
@@ -41,6 +42,7 @@
                         </group>
                     </group>
                     <group string="Message">
+                        <field name="is_broadcast" />
                         <field name="message_type" />
                         <field name="message" />
                         <field
@@ -59,6 +61,12 @@
             <search>
                 <field name="partner_id" string="Partner" />
                 <field name="message" string="Message" />
+                <filter
+                    name="filter_broadcast"
+                    string="Broadcast"
+                    domain="[('is_broadcast', '=', True)]"
+                />
+                <separator />
                 <filter
                     name="filter_log_type_receive"
                     string="Message Receive"
@@ -152,7 +160,7 @@
             </search>
         </field>
     </record>
-    <record id="line_app_action" model="ir.actions.act_window">
+    <record id="line_message_log_action" model="ir.actions.act_window">
         <field name="name">LINE Message</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">line.message</field>
@@ -160,7 +168,12 @@
     </record>
     <menuitem
         id="menu_line_management"
+        name="LINE Management"
         parent="mail.menu_root_discuss"
-        action="line_app_action"
+    />
+    <menuitem
+        id="menu_line_message"
+        parent="line_connect_chatbot.menu_line_management"
+        action="line_message_log_action"
     />
 </odoo>

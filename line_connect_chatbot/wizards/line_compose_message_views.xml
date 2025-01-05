@@ -9,11 +9,13 @@
                 <field name="model" invisible="1" />
                 <field name="res_id" invisible="1" />
                 <group>
+                    <field name="message_type" readonly="1" />
                     <field
                         name="partner_ids"
                         widget="many2many_tags"
                         placeholder="Add recipients..."
                         options="{'no_create': True}"
+                        attrs="{'invisible': [('message_type', '!=', 'text')], 'required': [('message_type', '=', 'text')]}"
                     />
                     <field name="message" />
                 </group>
