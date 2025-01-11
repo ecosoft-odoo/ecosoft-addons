@@ -1,6 +1,8 @@
 # Copyright 2024 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import json
+
 from odoo import fields, models
 
 
@@ -11,15 +13,16 @@ class LINEComposer(models.TransientModel):
 
     # content
     message = fields.Text()
-    # template_id = fields.Many2one(
-    #     'mail.template', 'Use template', index=True,
-    #     domain="[('model', '=', model)]")
+    template_id = fields.Many2one(
+        comodel_name="line.template",
+        index=True,
+    )
     attachment_ids = fields.Many2many(
-        "ir.attachment",
-        "line_compose_message_ir_attachments_rel",
-        "wizard_id",
-        "attachment_id",
-        "Attachments",
+        comodel_name="ir.attachment",
+        relation="line_compose_message_ir_attachments_rel",
+        column1="wizard_id",
+        column2="attachment_id",
+        string="Attachments",
     )
     message_type = fields.Selection(
         selection=[
@@ -39,14 +42,21 @@ class LINEComposer(models.TransientModel):
         string="LINE to",
         domain="[('line_access_token', '!=', False)]",
     )
-
-    model = fields.Char("Related Document Model", index=True)
-    res_id = fields.Integer("Related Document ID", index=True)
+    model = fields.Char(string="Related Document Model", index=True)
+    res_id = fields.Integer(string="Related Document ID", index=True)
 
     def _get_message_list(self):
         message_list = []
         # TODO: Support flex message and else
-        if self.message:
+        if self.template_id:
+            template_json = json.loads(self.template_id.template_json)
+            template_message = {
+                "type": "flex",
+                "altText": "test",  # TODO: no hardcode
+                "contents": template_json,
+            }
+            message_list.append(template_message)
+        elif self.message:
             message_list.append(
                 {
                     "type": "text",

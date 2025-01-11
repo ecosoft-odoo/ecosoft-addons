@@ -10,16 +10,17 @@ class AccountMove(models.Model):
 
     # NOTE: This is a simple example, in real case, you may want to add more
     def action_post(self):
-        message_list = [
-            {
-                "type": "text",
-                "text": f"Invoice number {self.name} has been posted",
-            }
-        ]
-        # Add log and send to line
-        self.message_post(
-            body=message_list,
-            message_type="line",
-            line_partner_ids=self.partner_id.ids,
-        )
+        for rec in self:
+            message_list = [
+                {
+                    "type": "text",
+                    "text": f"Invoice number {rec.name} has been posted",
+                }
+            ]
+            # Add log and send to line
+            rec.message_post(
+                body=message_list,
+                message_type="line",
+                line_partner_ids=rec.partner_id.ids,
+            )
         return super().action_post()

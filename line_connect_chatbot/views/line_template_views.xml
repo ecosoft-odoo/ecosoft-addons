@@ -1,0 +1,73 @@
+<odoo>
+    <record id="line_template_view_tree" model="ir.ui.view">
+        <field name="name">line.template.view.tree</field>
+        <field name="model">line.template</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+    <record id="line_template_view_form" model="ir.ui.view">
+        <field name="name">line.template.view.form</field>
+        <field name="model">line.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <header />
+                <sheet string="LINE Template">
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1><field
+                                name="name"
+                                required="1"
+                                placeholder="e.g. Calendar: Reminder"
+                            /></h1>
+                    </div>
+                    <group>
+                        <group name="main_left" />
+                        <group name="main_right" />
+                    </group>
+                    <notebook>
+                        <page string="Content" name="content">
+                            <group>
+                                <field name="template_json" />
+                            </group>
+                        </page>
+                        <page string="Additional" name="additional">
+                            <field name="attachment_ids" widget="many2many_binary" />
+                        </page>
+                        <page string="Help" name="help">
+                            <div name="help">
+                                <p>
+                                    LINE Flex Message Simulator:
+                                    https://developers.line.biz/flex-simulator/
+
+                                    This is a tool to help you visualize and test a Flex Message JSON object and preview it in real time.
+                                </p>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_view_line_template" model="ir.actions.act_window">
+        <field name="name">LINE Templates</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">line.template</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Main menu -->
+    <menuitem id="menu_line" name="LINE" parent="base.menu_custom" sequence="5" />
+
+    <!-- Under Technical/LINE -->
+    <menuitem
+        name="LINE Templates"
+        id="menu_line_template"
+        parent="menu_line"
+        action="action_view_line_template"
+        sequence="1"
+    />
+</odoo>

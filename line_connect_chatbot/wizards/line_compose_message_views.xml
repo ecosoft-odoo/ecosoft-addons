@@ -27,8 +27,7 @@
                         nolabel="1"
                         colspan="2"
                     />
-                    <!-- <field name="template_id" options="{'no_create': True}"
-                            context="{'default_model': model, 'default_body_html': body, 'default_subject': subject}"/> -->
+                    <field name="template_id" options="{'no_create': True}" />
                 </group>
                 <footer>
                     <button
