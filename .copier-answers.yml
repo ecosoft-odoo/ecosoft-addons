@@ -1,0 +1,28 @@
+# Do NOT update manually; changes here will be overwritten by Copier
+_commit: v1.27
+_src_path: gh:oca/oca-addons-repo-template
+additional_ruff_rules: []
+ci: GitHub
+convert_readme_fragments_to_markdown: false
+enable_checklog_odoo: false
+generate_requirements_txt: true
+github_check_license: true
+github_ci_extra_env: {}
+github_enable_codecov: true
+github_enable_makepot: true
+github_enable_stale_action: true
+github_enforce_dev_status_compatibility: true
+include_wkhtmltopdf: false
+odoo_test_flavor: Both
+odoo_version: 15.0
+org_name: Ecosoft
+org_slug: ecosoft-odoo
+rebel_module_groups: []
+repo_description: This project is custom module that we think other project can re-use
+    module but not generic for global and thailand
+repo_name: ecosoft-addons
+repo_slug: ecosoft-addons
+repo_website: https://github.com/ecosoft-odoo/ecosoft-addons
+use_pyproject_toml: true
+use_ruff: true
+
