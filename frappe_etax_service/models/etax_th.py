@@ -69,6 +69,13 @@ class ETaxTH(models.AbstractModel):
         copy=False,
         help="Currently this field only support invoice and not payment",
     )
+    replaced_receipt_id = fields.Many2one(
+        comodel_name="account.payment",
+        string="Replaced Receipt Payment Document",
+        readonly=True,
+        copy=False,
+        help="This field support replacement payment",
+    )
     is_send_frappe = fields.Boolean(
         copy=False,
     )

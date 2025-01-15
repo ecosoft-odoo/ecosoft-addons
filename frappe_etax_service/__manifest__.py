@@ -15,6 +15,7 @@
         "security/ir.model.access.csv",
         "data/purpose_code_data.xml",
         "data/cron.xml",
+        "data/server_action.xml",
         "wizards/wizard_select_etax_doctype_view.xml",
         "wizards/account_move_reversal_view.xml",
         "wizards/account_debit_note_view.xml",

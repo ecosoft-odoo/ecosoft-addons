@@ -18,6 +18,19 @@ class AccountMove(models.Model):
     #         "target": "new",
     #     }
 
+    def action_open_replacement_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Create Replacement",
+            "res_model": "wizard.select.replacement.purpose",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_res_model": self._name,
+            },
+        }
+
     def _get_branch_id(self):
         """
         By default, core odoo do not provide branch_id field in
@@ -86,12 +99,6 @@ class AccountMove(models.Model):
             }
         ).copy_data()
         old_number = self.name
-        suffix = "-R"
-        if suffix in old_number:
-            [number, rev] = old_number.split(suffix)
-            res[0]["name"] = f"{number}{suffix}{int(rev) + 1}"
-        else:
-            res[0]["name"] = f"{old_number}{suffix}{1}"
         res[0]["posted_before"] = self.posted_before
         res[0]["payment_reference"] = self.payment_reference
         res[0]["invoice_date"] = self.invoice_date
