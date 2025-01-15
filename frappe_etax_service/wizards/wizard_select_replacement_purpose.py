@@ -26,7 +26,7 @@ class WizardSelectReplacementPurpose(models.TransientModel):
 
     @api.model
     def default_get(self, fields):
-        res = super(WizardSelectReplacementPurpose, self).default_get(fields)
+        res = super().default_get(fields)
         context = self.env.context
         if context.get('default_res_model'):
             res['res_model'] = context.get('default_res_model')

@@ -9,7 +9,6 @@ class AccountPayment(models.Model):
     _inherit = ["account.payment", "etax.th"]
 
     has_create_replacement = fields.Boolean(
-        string="Has Create Replacement",
         copy=False,
         default=False,
     )
