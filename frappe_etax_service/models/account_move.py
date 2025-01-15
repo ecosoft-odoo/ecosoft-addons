@@ -21,14 +21,14 @@ class AccountMove(models.Model):
     def action_open_replacement_wizard(self):
         self.ensure_one()
         return {
-            'type': 'ir.actions.act_window',
-            'name': 'Create Replacement',
-            'res_model': 'wizard.select.replacement.purpose',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_res_model': self._name,
-            }
+            "type": "ir.actions.act_window",
+            "name": "Create Replacement",
+            "res_model": "wizard.select.replacement.purpose",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_res_model": self._name,
+            },
         }
 
     def _get_branch_id(self):
