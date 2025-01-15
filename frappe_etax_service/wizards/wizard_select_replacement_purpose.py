@@ -20,16 +20,16 @@ class WizardSelectReplacementPurpose(models.TransientModel):
         required=True,
     )
     res_model = fields.Char(
-        string='Resource Model',
-        default=lambda self: self.env.context.get('default_res_model', '')
+        string="Resource Model",
+        default=lambda self: self.env.context.get("default_res_model", ""),
     )
 
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
         context = self.env.context
-        if context.get('default_res_model'):
-            res['res_model'] = context.get('default_res_model')
+        if context.get("default_res_model"):
+            res["res_model"] = context.get("default_res_model")
         return res
 
     @api.onchange("purpose_code_id")
@@ -38,10 +38,10 @@ class WizardSelectReplacementPurpose(models.TransientModel):
 
     def create_replacement(self):
         active_ids = self.env.context.get("active_ids", [])
-        if self.res_model == 'account.move':
+        if self.res_model == "account.move":
             move = self.env["account.move"].browse(active_ids)
             invoice_date = move.invoice_date
-        elif self.res_model == 'account.payment':
+        elif self.res_model == "account.payment":
             move = self.env["account.payment"].browse(active_ids)
             invoice_date = move.date
 
@@ -62,9 +62,9 @@ class WizardSelectReplacementPurpose(models.TransientModel):
         replacement.create_purpose_code = self.purpose_code_id.code
         replacement.create_purpose = self.reason
 
-        if self.res_model == 'account.move':
+        if self.res_model == "account.move":
             replacement.replaced_entry_id = move
-        elif self.res_model == 'account.payment':
+        elif self.res_model == "account.payment":
             replacement.replaced_receipt_id = move
 
         return {
