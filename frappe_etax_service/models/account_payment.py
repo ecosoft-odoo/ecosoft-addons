@@ -1,6 +1,6 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from odoo import _, api, models, fields
+from odoo import _, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -16,20 +16,23 @@ class AccountPayment(models.Model):
     def action_open_replacement_wizard(self):
         self.ensure_one()
         return {
-            'type': 'ir.actions.act_window',
-            'name': 'Create Replacement',
-            'res_model': 'wizard.select.replacement.purpose',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_res_model': self._name,
-            }
+            "type": "ir.actions.act_window",
+            "name": "Create Replacement",
+            "res_model": "wizard.select.replacement.purpose",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_res_model": self._name,
+            },
         }
 
     def action_draft(self):
-        if self.filtered(
-            lambda pay: pay.etax_status in ("success", "processing", "to_process")
-        ) and not self.has_create_replacement:
+        if (
+            self.filtered(
+                lambda pay: pay.etax_status in ("success", "processing", "to_process")
+            )
+            and not self.has_create_replacement
+        ):
             raise ValidationError(
                 _(
                     "Cannot reset to draft, eTax submission already started "
@@ -72,4 +75,3 @@ class AccountPayment(models.Model):
         self.action_cancel()
         self.name = old_number  # Ensure name.
         return payment
-

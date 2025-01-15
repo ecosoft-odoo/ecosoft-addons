@@ -45,10 +45,7 @@
                 />
             </xpath>
             <xpath expr="//page[@id='other_tab_entry']" position="after">
-                <page
-                    id="frappe_etax_service"
-                    string="e-Tax Info"
-                >
+                <page id="frappe_etax_service" string="e-Tax Info">
                     <group>
                         <group string="e-Tax">
                             <field
