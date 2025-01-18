@@ -2,8 +2,10 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import json
+from datetime import datetime
 
 from odoo import fields, models
+from odoo.tools.safe_eval import safe_eval
 
 
 class LINEComposer(models.TransientModel):
@@ -45,15 +47,41 @@ class LINEComposer(models.TransientModel):
     model = fields.Char(string="Related Document Model", index=True)
     res_id = fields.Integer(string="Related Document ID", index=True)
 
-    def _get_message_list(self):
+    def _set_global_dict(self, record):
+        today = fields.Date.context_today(self)
+        today_datetime = fields.Datetime.context_timestamp(
+            self.env.user, datetime.now()
+        )
+        globals_dict = {
+            "self": self,
+            "record": record,
+            "today": today,
+            "today_datetime": today_datetime,
+        }
+        return globals_dict
+
+    def _get_dynamic_type(self, template, record):
+        """Convert value text to python code"""
+        globals_dict = self._set_global_dict(record)
+        value = safe_eval(template.dynamic_data, globals_dict=globals_dict)
+        return value
+
+    def _get_json_data_template(self, template, record):
+        json_data = template.json_data
+        if template.template_type == "dynamic":
+            value = self._get_dynamic_type(template, record)
+            json_data = json_data % value
+        return json.loads(json_data)
+
+    def _get_message_list(self, original_record=False):
         message_list = []
         # TODO: Support flex message and else
         if self.template_id:
-            template_json = json.loads(self.template_id.template_json)
+            json_data = self._get_json_data_template(self.template_id, original_record)
             template_message = {
                 "type": "flex",
                 "altText": "test",  # TODO: no hardcode
-                "contents": template_json,
+                "contents": json_data,
             }
             message_list.append(template_message)
         elif self.message:
@@ -75,7 +103,7 @@ class LINEComposer(models.TransientModel):
     def send_message(self):
         if self.model and self.res_id:
             original_record = self.env[self.model].browse(self.res_id)
-            message_list = self._get_message_list()
+            message_list = self._get_message_list(original_record)
             original_record.message_post(
                 body=message_list,
                 message_type="line",

@@ -27,7 +27,11 @@
                         nolabel="1"
                         colspan="2"
                     />
-                    <field name="template_id" options="{'no_create': True}" />
+                    <field
+                        name="template_id"
+                        options="{'no_create': True}"
+                        domain="['|', ('template_model', '=', False), ('template_model', '=', model)]"
+                    />
                 </group>
                 <footer>
                     <button

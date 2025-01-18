@@ -5,6 +5,8 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name" />
+                <field name="template_model" />
+                <field name="template_type" />
             </tree>
         </field>
     </record>
@@ -24,13 +26,30 @@
                             /></h1>
                     </div>
                     <group>
-                        <group name="main_left" />
-                        <group name="main_right" />
+                        <group name="main_left">
+                            <field name="template_model" />
+                        </group>
+                        <group name="main_right">
+                            <field name="template_type" />
+                            <field
+                                name="dynamic_data"
+                                attrs="{
+                                    'invisible': [('template_type', '!=', 'dynamic')],
+                                    'required': [('template_type', '=', 'dynamic')]
+                                }"
+                                placeholder="i.e. {'number': record.name, 'partner': record.partner_id.name}"
+                            />
+                        </group>
                     </group>
                     <notebook>
                         <page string="Content" name="content">
+                            <button
+                                name="action_format_json"
+                                string="JSON Beautify"
+                                type="object"
+                            />
                             <group>
-                                <field name="template_json" />
+                                <field name="json_data" />
                             </group>
                         </page>
                         <page string="Additional" name="additional">
@@ -39,9 +58,11 @@
                         <page string="Help" name="help">
                             <div name="help">
                                 <p>
-                                    LINE Flex Message Simulator:
-                                    https://developers.line.biz/flex-simulator/
-
+                                    LINE Flex Message Simulator:<br />
+                                    <a
+                                        href="https://developers.line.biz/flex-simulator/"
+                                    >https://developers.line.biz/flex-simulator/</a>
+                                    <br /><br />
                                     This is a tool to help you visualize and test a Flex Message JSON object and preview it in real time.
                                 </p>
                             </div>

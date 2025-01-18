@@ -29,10 +29,18 @@ class Message(models.Model):
                 self.env["line.service"].message_line_push(
                     vals["body"], vals.get("line_partner_ids")
                 )
+
                 # Logs message with text only (attachment will use standard message)
-                message_text = [
-                    body["text"] for body in vals["body"] if body.get("type") == "text"
-                ]
+                message_text = []
+                for body in vals["body"]:
+                    if body.get("type") == "flex":
+                        # TODO: add template name
+                        message_text = ["Message send with template."]
+                        break
+
+                    if body.get("type") == "text":
+                        message_text.append(body["text"])
+
                 vals["body"] = "\n".join(message_text)
                 # TODO: May be add log here?
         return super().create(vals_list)

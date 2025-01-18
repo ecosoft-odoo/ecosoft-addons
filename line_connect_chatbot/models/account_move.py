@@ -10,14 +10,20 @@ class AccountMove(models.Model):
 
     # NOTE: This is a simple example, in real case, you may want to add more
     def action_post(self):
+        template = self.env["line.template"].browse(2)  # TODO: Fixed me
         for rec in self:
+            # Send with template
+            rec.message_line_template(
+                template=template, partner_ids=self.partner_id.ids
+            )
+
+            # Add log and send to line
             message_list = [
                 {
                     "type": "text",
                     "text": f"Invoice number {rec.name} has been posted",
                 }
             ]
-            # Add log and send to line
             rec.message_post(
                 body=message_list,
                 message_type="line",
