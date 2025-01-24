@@ -161,6 +161,11 @@ class LINEService(models.AbstractModel):
             message = event.message.text
         return partner, message
 
+    def _action_postback(self, event):
+        # print(event)
+        # print("------x--------")
+        return
+
     @api.model
     def handle_message_received_event(self, events, channel_access_token):
         """
@@ -195,6 +200,10 @@ class LINEService(models.AbstractModel):
         }
 
         for event in events:
+            if event.type == "postback":
+                self._action_postback(event)
+                continue
+
             if event.message.type == "text" and event.message.text.startswith(
                 "/register"
             ):
