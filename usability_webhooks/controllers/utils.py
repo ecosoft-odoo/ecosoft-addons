@@ -17,12 +17,15 @@ class WebhookUtils(models.AbstractModel):
 
     @tools.ormcache("model", "val", "args")
     def _call_name_search_cache(self, model, val, args):
+        # Convert args to list, ORM cache can't use in type list
         args = ast.literal_eval(args) or []
         return model.name_search(val, args=args, operator="=")
 
     @tools.ormcache("model", "val")
-    def _call_search_cache(self, model, val):
-        return model.search([("id", "=", val)])
+    def _call_search_cache(self, model, key_search, val):
+        # Convert val to list, ORM cache can't use in type list
+        val = ast.literal_eval(val) or []
+        return model.search([(key_search, "in", val)])
 
     def _get_o2m_line(self, line_data_dict, line_obj):
         rec_fields = []
@@ -264,7 +267,13 @@ class WebhookUtils(models.AbstractModel):
                     if isinstance(value, tuple):
                         value = [value[0]]
 
-                    sub_model = self._get_sub_model(key, model_obj)
+                    # For case reference type, convert to list
+                    if model_obj._fields[key].type == "reference":
+                        sub_model = value.split(",")[0]
+                        value = [value.split(",")[1]]
+                    else:
+                        sub_model = self._get_sub_model(key, model_obj)
+
                     # Recusive search for 2many fields
                     filtered_values = [x for x in field_2many if "{" in x]
                     sub_result = []
@@ -349,6 +358,112 @@ class WebhookUtils(models.AbstractModel):
 
         return result
 
+    def _get_search_args(
+        self, have_company, model, rec_dict, main_company, ignore_checkcompany_model
+    ):
+        if have_company and model not in ignore_checkcompany_model:
+            return str(
+                [("company_id", "=", rec_dict.get("company_id", main_company.id))]
+            )
+        return "[]"
+
+    def _auto_create_record(self, Model, val, key, auto_create, args):
+        new_recs = (
+            auto_create[key]
+            if isinstance(auto_create[key], list)
+            else [auto_create[key]]
+        )
+        for new_rec in new_recs:
+            self.friendly_create_data(Model._name, {"payload": new_rec})
+        return self._call_name_search_cache(Model, val, args)
+
+    def _process_many2_field(
+        self,
+        rec,
+        key,
+        rec_dict,
+        ftype,
+        auto_create,
+        ignore_checkcompany_model,
+        main_company,
+    ):
+        model = rec._fields[key].comodel_name
+        Model = self.env[model]
+        search_vals = [rec_dict[key]]
+        value = []  # for many2many, result will be tuple
+        have_company = hasattr(Model, "company_id")
+
+        for val in search_vals:
+            # Support multi company
+            # orm cache can't use in type list,
+            # so we need to convert to string
+            args = self._get_search_args(
+                have_company, model, rec_dict, main_company, ignore_checkcompany_model
+            )
+            if ftype == "many2many":
+                value = self._process_many2many_field(
+                    Model, val, args, key, auto_create
+                )
+            else:
+                value = self._process_many2one_field(Model, val, args, key, auto_create)
+
+        return value
+
+    def _process_many2one_field(self, Model, val, args, key, auto_create):
+        values = self._call_name_search_cache(Model, val, args)
+
+        # If failed, try again by ID
+        if len(values) != 1 and val and isinstance(val, int):
+            rec = self._call_search_cache(Model, "id", str([val]))
+            values = [(rec.id,)] if len(rec) == 1 else values
+
+        # Found > 1, can't continue
+        if len(values) > 1:
+            Model.clear_caches()
+            raise ValidationError(
+                _("'%(val)s' matched more than 1 record") % {"val": val}
+            )
+
+        # If not found, but auto_create it
+        if not values and auto_create.get(key):
+            values = self._auto_create_record(Model, val, key, auto_create, args)
+
+        if not values:
+            Model.clear_caches()
+            raise ValidationError(
+                _("'%(key)s': '%(val)s' found no match.") % {"key": key, "val": val}
+            )
+
+        return values[0][0]
+
+    def _process_many2many_field(self, Model, val, args, key, auto_create):
+        method_many2many = 4  # default is add new line
+        if val.get("replace", False):
+            method_many2many = 6  # change to replace all
+            del val["replace"]
+
+        key_search, val_search = next(iter(val.items()))
+
+        records = self._call_search_cache(Model, key_search, str(val_search))
+        if not records and auto_create.get(key):
+            new_recs = (
+                auto_create[key]
+                if isinstance(auto_create[key], list)
+                else [auto_create[key]]
+            )
+            for new_rec in new_recs:
+                self.friendly_create_data(Model._name, {"payload": new_rec})
+            records = self._call_search_cache(Model, key_search, str(val_search))
+        elif not records:
+            Model.clear_caches()
+            raise ValidationError(
+                _("'%(key)s': '%(val)s' found no match.") % {"key": key, "val": val}
+            )
+        if method_many2many == 6:
+            return [(6, 0, records.ids)]
+        else:
+            return [(4, rec.id) for rec in records]
+
     @api.model
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
         """For many2one, many2many, use name search to get id"""
@@ -363,72 +478,31 @@ class WebhookUtils(models.AbstractModel):
             ffield = rec._fields.get(key, False)
             if ffield:
                 ftype = ffield.type
+                # For performance, we only check if key in rec_dict and param is not ID
                 if self._is_many2_field_with_string(ftype, key, rec_dict):
-                    model = rec._fields[key].comodel_name
-                    Model = self.env[model]
-                    search_vals = (
-                        ftype == "many2one"
-                        and [rec_dict[key]]
-                        or rec_dict[key].split(",")
+                    value = self._process_many2_field(
+                        rec,
+                        key,
+                        rec_dict,
+                        ftype,
+                        auto_create,
+                        ignore_checkcompany_model,
+                        main_company,
                     )
-                    value = []  # for many2many, result will be tuple
-                    have_company = hasattr(Model, "company_id")
-                    for val in search_vals:
-                        # Support multi company
-                        # orm cache can't use in type list,
-                        # so we need to convert to string
-                        args = "[]"
-                        if have_company and model not in ignore_checkcompany_model:
-                            args = str(
-                                [
-                                    (
-                                        "company_id",
-                                        "=",
-                                        rec_dict.get("company_id", main_company.id),
-                                    )
-                                ]
-                            )
-                        values = self._call_name_search_cache(Model, val, args)
-                        # If failed, try again by ID
-                        if len(values) != 1 and val and isinstance(val, int):
-                            rec = self._call_search_cache(Model, val)
-                            values = len(rec) == 1 and [(rec.id,)] or values
-                        # Found > 1, can't continue
-                        if len(values) > 1:
-                            Model.clear_caches()
-                            raise ValidationError(
-                                _("'%(val)s' matched more than 1 record") % {"val": val}
-                            )
-                        # If not found, but auto_create it
-                        if len(values) != 1 and auto_create.get(key):
-                            new_recs = (
-                                auto_create[key]
-                                if isinstance(auto_create[key], list)
-                                else [auto_create[key]]
-                            )
-                            for new_rec in new_recs:
-                                self.friendly_create_data(model, {"payload": new_rec})
-                            values = self._call_name_search_cache(Model, val, args)
-                        elif not values:
-                            Model.clear_caches()
-                            raise ValidationError(
-                                _("'%(key)s': '%(val)s' found no match.")
-                                % {"key": key, "val": val}
-                            )
-                        if ftype == "many2one":
-                            value = values[0][0]
-                        elif ftype == "many2many":
-                            value.append((4, values[0][0]))
-            final_dict.update({key: value})
+            final_dict[key] = value
         return final_dict
 
     def _is_many2_field_with_string(self, ftype, key, rec_dict):
-        return (
+        if (
             key in rec_dict.keys()
             and ftype in ("many2one", "many2many")
-            and rec_dict[key]
-            and isinstance(rec_dict[key], str)
-        )
+            and rec_dict.get(key, False)
+        ):
+            if ftype == "many2many" and isinstance(rec_dict[key], dict):
+                return True
+            if ftype == "many2one" and isinstance(rec_dict[key], str):
+                return True
+        return False
 
     @api.model
     def create_data(self, model, vals):

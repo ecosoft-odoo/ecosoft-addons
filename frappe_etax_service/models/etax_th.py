@@ -23,7 +23,7 @@ class ETaxTH(models.AbstractModel):
 
     etax_doctype = fields.Selection(
         selection=[
-            # ("380", "ใบแจ้งหนี้"),
+            ("380", "ใบแจ้งหนี้"),
             ("388", "ใบกํากับภาษี"),
             ("T02", "ใบแจ้งหนี้/ใบกํากับภาษี"),
             ("T03", "ใบเสร็จรับเงิน/ใบกํากับภาษี"),
@@ -68,6 +68,13 @@ class ETaxTH(models.AbstractModel):
         readonly=True,
         copy=False,
         help="Currently this field only support invoice and not payment",
+    )
+    replaced_receipt_id = fields.Many2one(
+        comodel_name="account.payment",
+        string="Replaced Receipt Payment Document",
+        readonly=True,
+        copy=False,
+        help="This field support replacement payment",
     )
     is_send_frappe = fields.Boolean(
         copy=False,

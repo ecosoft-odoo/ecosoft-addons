@@ -30,27 +30,22 @@
                     type="object"
                     class="btn-info"
                     attrs="{
-                        'invisible': ['|', '|', '|',
+                        'invisible': ['|', '|',
                             ('move_type', 'not in', ['out_invoice','out_refund','out_invoice_debit']),
                             ('etax_status', 'in', ['success']),
                             ('state', 'not in', ('posted')),
-                            ('tax_invoice_ids', '=', [])
                         ]
                     }"
                 />
                 <button
-                    string='Create Replacement e-Tax'
-                    name="frappe_etax_service.action_select_replacement_purpose_view"
-                    type="action"
+                    name="action_open_replacement_wizard"
+                    string="Create Replacement e-Tax"
+                    type="object"
                     attrs="{'invisible': ['|', ('etax_status', '!=', 'success'), ('state', '!=', 'posted')]}"
                 />
             </xpath>
             <xpath expr="//page[@id='other_tab_entry']" position="after">
-                <page
-                    id="frappe_etax_service"
-                    string="e-Tax Info"
-                    attrs="{'invisible': [('tax_invoice_ids', '=', [])]}"
-                >
+                <page id="frappe_etax_service" string="e-Tax Info">
                     <group>
                         <group string="e-Tax">
                             <field

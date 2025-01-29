@@ -12,8 +12,7 @@
                     name="state"
                     widget="badge"
                     decoration-info="state == 'draft'"
-                    decoration-danger="state == 'cancel'"
-                    decoration-success="state == 'done'"
+                    decoration-success="state in ('submit', 'approve', 'done')"
                 />
             </tree>
         </field>
