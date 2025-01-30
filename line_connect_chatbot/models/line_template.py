@@ -3,7 +3,8 @@
 
 import logging
 
-from odoo import fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class LINETemplate(models.Model):
         comodel_name="ir.model",
         string="Model",
     )
+    template_default = fields.Boolean(copy=False)
     template_type = fields.Selection(
         selection=[
             ("static", "Static"),
@@ -33,6 +35,27 @@ class LINETemplate(models.Model):
         comodel_name="ir.attachment",
         string="Attachments",
     )
+
+    @api.constrains("template_model", "template_default")
+    def _check_template_model_default(self):
+        LineTemplate = self.env["line.template"]
+        for record in self:
+            if record.template_model and record.template_default:
+                existing_records = LineTemplate.search_count(
+                    [
+                        ("template_model", "=", record.template_model.id),
+                        ("template_default", "=", True),
+                        ("id", "!=", record.id),  # Exclude the current record
+                    ]
+                )
+                if existing_records:
+                    raise UserError(
+                        _(
+                            "Only one record can be set as default "
+                            "for the model '%(model)s'."
+                        )
+                        % {"model": record.template_model.name}
+                    )
 
     def action_format_json(self):
         pass

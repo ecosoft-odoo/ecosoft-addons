@@ -28,6 +28,7 @@
                     <group>
                         <group name="main_left">
                             <field name="template_model" />
+                            <field name="template_default" />
                         </group>
                         <group name="main_right">
                             <field name="template_type" />

@@ -162,8 +162,6 @@ class LINEService(models.AbstractModel):
         return partner, message
 
     def _action_postback(self, event):
-        # print(event)
-        # print("------x--------")
         return
 
     @api.model
@@ -392,6 +390,7 @@ class LINEService(models.AbstractModel):
                 response = res.json()
         except Exception as e:
             _logger.error(f"Error: {e}")
+            _logger.error(f"Message: {res.text}")
             error_message = str(e)
             response = False
 
@@ -420,18 +419,3 @@ class LINEService(models.AbstractModel):
             ]
         self.env["line.message"].sudo().create(message_log)
         return response
-
-    def message_line_template(self, template, partner_ids=None):
-        """Send message with template"""
-        self.ensure_one()
-        line_compose = self.env["line.compose.message"].create(
-            {
-                "template_id": template.id,
-                "attachment_ids": template.attachment_ids.ids,
-                "message_type": "text",
-                "partner_ids": partner_ids,
-                "model": self._table.replace("_", "."),
-                "res_id": self.id,
-            }
-        )
-        return line_compose.send_message()

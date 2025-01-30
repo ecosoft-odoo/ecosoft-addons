@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo noupdate="1">
-    <record id="line_template_approval" model="line.template">
-        <field name="name">Flex: Approval</field>
+    <record id="line_template_expense_approval" model="line.template">
+        <field name="name">Flex: Expense Approval</field>
+        <field name="template_model" ref="hr_expense.model_hr_expense_sheet" />
+        <field name="template_default" eval="1" />
         <field name="template_type">dynamic</field>
         <field name="dynamic_data">
             {
-                'number': record.name,
-                'partner_name': record.partner_id.name,
-                'amount_total': record.amount_total,
+                'number': record.number,
+                'sheet_name': record.name,
+                'employee_name': record.employee_id.name,
+                'today_datetime': today_datetime,
+                'total_amount': '%s %s' % ("{:,.2f}".format(record.total_amount), record.currency_id.symbol),
+                'model': record._name,
+                'res_id': record.id,
+                'method': '_process_approval',
+                'loop_line_detail': record.loop_line_detail()
             }
         </field>
         <field name="json_data">
@@ -37,18 +45,34 @@
                             "contents": [
                             {
                                 "type": "text",
-                                "text": "Partner",
-                                "color": "#aaaaaa",
-                                "size": "sm",
-                                "flex": 1
-                            },
-                            {
-                                "type": "text",
-                                "text": "%(partner_name)s",
+                                "text": "%(sheet_name)s",
                                 "wrap": true,
                                 "color": "#666666",
                                 "size": "sm",
-                                "flex": 5
+                                "flex": 4
+                            }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "baseline",
+                            "spacing": "sm",
+                            "contents": [
+                            {
+                                "type": "text",
+                                "text": "Employee",
+                                "color": "#aaaaaa",
+                                "size": "xs",
+                                "flex": 1,
+                                "margin": "none"
+                            },
+                            {
+                                "type": "text",
+                                "text": "%(employee_name)s",
+                                "wrap": true,
+                                "color": "#666666",
+                                "size": "sm",
+                                "flex": 4
                             }
                             ]
                         },
@@ -66,16 +90,80 @@
                             },
                             {
                                 "type": "text",
-                                "text": "10:00 - 23:00",
+                                "text": "%(today_datetime)s",
                                 "wrap": true,
                                 "color": "#666666",
                                 "size": "sm",
-                                "flex": 5
+                                "flex": 4
                             }
                             ]
                         }
                         ]
                     },
+                    {
+                        "type": "separator",
+                        "margin": "xxl"
+                    },
+                    {
+                        "type": "box",
+                        "layout": "horizontal",
+                        "margin": "md",
+                        "spacing": "sm",
+                        "contents": [
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "spacing": "xs",
+                            "contents": [
+                            {
+                                "type": "text",
+                                "text": "Product",
+                                "size": "xs",
+                                "flex": 1,
+                                "margin": "none",
+                                "contents": [],
+                                "color": "#aaaaaa"
+                            }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "spacing": "xs",
+                            "contents": [
+                            {
+                                "type": "text",
+                                "text": "Description",
+                                "size": "xs",
+                                "flex": 1,
+                                "margin": "none",
+                                "contents": [],
+                                "color": "#aaaaaa"
+                            }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "spacing": "sm",
+                            "contents": [
+                            {
+                                "type": "text",
+                                "text": "Subtotal",
+                                "size": "sm",
+                                "flex": 1,
+                                "align": "end",
+                                "color": "#aaaaaa"
+                            }
+                            ]
+                        }
+                        ]
+                    },
+                    {
+                        "type": "separator",
+                        "margin": "md"
+                    },
+                    %(loop_line_detail)s,
                     {
                         "type": "separator",
                         "margin": "xxl"
@@ -99,7 +187,7 @@
                             },
                             {
                                 "type": "text",
-                                "text": "%(amount_total)s",
+                                "text": "%(total_amount)s",
                                 "wrap": true,
                                 "size": "sm",
                                 "flex": 5,
@@ -123,8 +211,7 @@
                         "action": {
                         "type": "postback",
                         "label": "DETAIL",
-                        "data": "detail",
-                        "displayText": "detailsss"
+                        "data": "detail"
                         }
                     },
                     {
@@ -134,7 +221,7 @@
                         "action": {
                         "type": "postback",
                         "label": "APPROVE",
-                        "data": "approve"
+                        "data": "action=approve&amp;model=%(model)s&amp;res_id=%(res_id)s&amp;method=%(method)s"
                         },
                         "position": "relative"
                     },
@@ -145,7 +232,7 @@
                         "action": {
                         "type": "postback",
                         "label": "REJECT",
-                        "data": "reject"
+                        "data": "action=reject&amp;model=%(model)s&amp;res_id=%(res_id)s&amp;method=%(method)s"
                         },
                         "color": "#FAA0A0"
                     },
