@@ -73,6 +73,12 @@ class LINEComposer(models.TransientModel):
             json_data = json_data % value
         return json.loads(json_data)
 
+    def _get_attachment(self, message_list):
+        attachments = self.attachment_ids
+        if attachments:
+            message_list = self.message_line_attachment(attachments, message_list)
+        return message_list
+
     def _get_message_list(self, original_record=False):
         message_list = []
         # TODO: Support flex message and else
@@ -87,7 +93,12 @@ class LINEComposer(models.TransientModel):
             template_message = {
                 "type": "flex",
                 "altText": alt_text,
-                "contents": json_data,
+                "contents": {
+                    "type": "carousel",  # support with flex or carousel
+                    "contents": [json_data]
+                    if isinstance(json_data, dict)
+                    else json_data,
+                },
             }
             message_list.append(template_message)
         elif self.message:
@@ -97,9 +108,7 @@ class LINEComposer(models.TransientModel):
                     "text": self.message,
                 }
             )
-        attachments = self.attachment_ids
-        if attachments:
-            message_list = self.message_line_attachment(attachments, message_list)
+        message_list = self._get_attachment(message_list)
         return message_list
 
     def send_broadcast_message(self):

@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import base64
+import json
 import logging
 
 import requests
@@ -342,11 +343,16 @@ class LINEService(models.AbstractModel):
     def message_line_push(self, message_list, partner_ids=None, broadcast=False):
         partner_ids = partner_ids or []
         if broadcast:
-            _logger.info(f"Broadcast message to LINE with {message_list}")
+            _logger.info(
+                f"Broadcast message to LINE with {json.dumps(message_list, indent=2)}"
+            )
             message_push = "broadcast"
             payload = {"messages": message_list}
         else:
-            _logger.info(f"Send message to LINE with {message_list} to {partner_ids}")
+            _logger.info(
+                f"Send message to LINE with {json.dumps(message_list, indent=2)} "
+                f"to {partner_ids}"
+            )
             partners = self.env["res.partner"].browse(partner_ids)
             partner_line_access_token = partners.mapped("line_access_token")
 
