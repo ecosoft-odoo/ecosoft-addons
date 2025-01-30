@@ -28,19 +28,28 @@
                     <group>
                         <group name="main_left">
                             <field name="template_model" />
-                            <field name="template_default" />
                         </group>
                         <group name="main_right">
-                            <field name="template_type" />
-                            <field
-                                name="dynamic_data"
-                                attrs="{
-                                    'invisible': [('template_type', '!=', 'dynamic')],
-                                    'required': [('template_type', '=', 'dynamic')]
-                                }"
-                                placeholder="i.e. {'number': record.name, 'partner': record.partner_id.name}"
-                            />
+                            <field name="template_default" />
                         </group>
+                    </group>
+                    <group string="Template Type" name="template_type">
+                        <field name="template_type" />
+                        <field
+                            name="alt_text"
+                            attrs="{
+                                'invisible': [('template_type', '!=', 'dynamic')],
+                                'required': [('template_type', '=', 'dynamic')]
+                            }"
+                        />
+                        <field
+                            name="dynamic_data"
+                            attrs="{
+                                'invisible': [('template_type', '!=', 'dynamic')],
+                                'required': [('template_type', '=', 'dynamic')]
+                            }"
+                            placeholder="i.e. {'number': record.name, 'partner': record.partner_id.name}"
+                        />
                     </group>
                     <notebook>
                         <page string="Content" name="content">
@@ -64,7 +73,17 @@
                                         href="https://developers.line.biz/flex-simulator/"
                                     >https://developers.line.biz/flex-simulator/</a>
                                     <br /><br />
-                                    This is a tool to help you visualize and test a Flex Message JSON object and preview it in real time.
+                                    This is a tool to help you visualize and test a Flex Message JSON object and preview it in real time.<br
+                                    /><br />
+
+                                    Dynamic Data available variables:<br />
+                                        - self: Refers to the environment in which the message is being composed, specifically the Odoo environment for line.compose.message<br
+                                    />
+                                        - record: Refers to the record on which the action (trigger) is performed.<br
+                                    />
+                                        - today: The current date.<br />
+                                        - today_datetime: The current date and time (with more precision than today).<br
+                                    />
                                 </p>
                             </div>
                         </page>

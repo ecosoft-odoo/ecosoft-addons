@@ -5,6 +5,7 @@
         <field name="template_model" ref="hr_expense.model_hr_expense_sheet" />
         <field name="template_default" eval="1" />
         <field name="template_type">dynamic</field>
+        <field name="alt_text">%(number)s requires approval.</field>
         <field name="dynamic_data">
             {
                 'number': record.number,

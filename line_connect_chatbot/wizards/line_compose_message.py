@@ -60,16 +60,16 @@ class LINEComposer(models.TransientModel):
         }
         return globals_dict
 
-    def _get_dynamic_type(self, template, record):
+    def _get_dynamic_type(self, field_dynamic, record):
         """Convert value text to python code"""
         globals_dict = self._set_global_dict(record)
-        value = safe_eval(template.dynamic_data, globals_dict=globals_dict)
+        value = safe_eval(field_dynamic, globals_dict=globals_dict)
         return value
 
     def _get_json_data_template(self, template, record):
         json_data = template.json_data
         if template.template_type == "dynamic":
-            value = self._get_dynamic_type(template, record)
+            value = self._get_dynamic_type(template.dynamic_data, record)
             json_data = json_data % value
         return json.loads(json_data)
 
@@ -78,9 +78,15 @@ class LINEComposer(models.TransientModel):
         # TODO: Support flex message and else
         if self.template_id:
             json_data = self._get_json_data_template(self.template_id, original_record)
+            alt_text = self.template_id.alt_text
+            if self.template_id.template_type == "dynamic":
+                value = self._get_dynamic_type(
+                    self.template_id.dynamic_data, original_record
+                )
+                alt_text = alt_text % value
             template_message = {
                 "type": "flex",
-                "altText": "test",  # TODO: no hardcode
+                "altText": alt_text,
                 "contents": json_data,
             }
             message_list.append(template_message)

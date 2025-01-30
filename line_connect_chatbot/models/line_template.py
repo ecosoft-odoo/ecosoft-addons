@@ -31,6 +31,7 @@ class LINETemplate(models.Model):
     )
     dynamic_data = fields.Text()
     json_data = fields.Text()
+    alt_text = fields.Char()
     attachment_ids = fields.Many2many(
         comodel_name="ir.attachment",
         string="Attachments",
