@@ -28,6 +28,15 @@
                     <group>
                         <group name="main_left">
                             <field name="template_model" />
+                            <field
+                                name="parent_id"
+                                domain="[('template_model', 'in', [False, template_model])]"
+                            />
+                            <field
+                                name="child_ids"
+                                widget="many2many_tags"
+                                domain="[('template_model', 'in', [False, template_model])]"
+                            />
                         </group>
                         <group name="main_right">
                             <field name="template_default" />

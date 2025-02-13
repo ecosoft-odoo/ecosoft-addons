@@ -5,259 +5,221 @@
         <field name="template_model" ref="hr_expense.model_hr_expense_sheet" />
         <field name="template_default" eval="1" />
         <field name="template_type">dynamic</field>
-        <field name="alt_text">%(number)s requires approval.</field>
+        <field name="alt_text">You have a new approval request %(number)s.</field>
         <field name="dynamic_data">
             {
                 'number': record.number,
-                'sheet_name': record.name,
                 'employee_name': record.employee_id.name,
                 'today_datetime': today_datetime,
+                'sheet_name': record.name,
+                'loop_line_detail': record.loop_line_detail(),
+                'loop_attachment': record.loop_attachment(),
                 'total_amount': '%s %s' % ("{:,.2f}".format(record.total_amount), record.currency_id.symbol),
                 'model': record._name,
                 'res_id': record.id,
                 'method': '_process_approval',
-                'loop_line_detail': record.loop_line_detail()
             }
         </field>
         <field name="json_data">
-            {
-                "type": "bubble",
-                "size": "giga",
-                "body": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [
-                        {
-                            "type": "text",
-                            "text": "%(number)s",
-                            "weight": "bold",
-                            "size": "xl"
-                        },
-                        {
-                            "type": "box",
-                            "layout": "vertical",
-                            "margin": "lg",
-                            "spacing": "sm",
-                            "contents": [
-                                {
-                                    "type": "box",
-                                    "layout": "baseline",
-                                    "spacing": "sm",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "%(sheet_name)s",
-                                            "wrap": true,
-                                            "color": "#666666",
-                                            "size": "sm",
-                                            "flex": 4
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "box",
-                                    "layout": "baseline",
-                                    "spacing": "sm",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "Employee",
-                                            "color": "#aaaaaa",
-                                            "size": "xs",
-                                            "flex": 1,
-                                            "margin": "none"
-                                        },
-                                        {
-                                            "type": "text",
-                                            "text": "%(employee_name)s",
-                                            "wrap": true,
-                                            "color": "#666666",
-                                            "size": "sm",
-                                            "flex": 4
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "box",
-                                    "layout": "baseline",
-                                    "spacing": "sm",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "Time",
-                                            "color": "#aaaaaa",
-                                            "size": "sm",
-                                            "flex": 1
-                                        },
-                                        {
-                                            "type": "text",
-                                            "text": "%(today_datetime)s",
-                                            "wrap": true,
-                                            "color": "#666666",
-                                            "size": "sm",
-                                            "flex": 4
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "type": "separator",
-                            "margin": "xxl"
-                        },
-                        {
-                            "type": "box",
-                            "layout": "horizontal",
-                            "margin": "md",
-                            "spacing": "sm",
-                            "contents": [
+        {
+            "type": "bubble",
+            "size": "giga",
+            "header": {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                    {
+                        "type": "text",
+                        "text": "Approval Request",
+                        "weight": "bold",
+                        "size": "lg",
+                        "color": "#ffffff"
+                    }
+                ],
+                "backgroundColor": "#0367D3",
+                "paddingAll": "20px"
+            },
+            "body": {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "md",
+                "contents": [
+                    {
+                        "type": "box",
+                        "layout": "baseline",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": "Document:",
+                                "weight": "bold",
+                                "size": "sm",
+                                "color": "#555555",
+                                "flex": 1
+                            },
+                            {
+                                "type": "text",
+                                "text": "%(number)s",
+                                "size": "sm",
+                                "color": "#111111",
+                                "margin": "md",
+                                "flex": 2
+                            }
+                        ]
+                    },
+                    {
+                        "type": "box",
+                        "layout": "baseline",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": "Requester:",
+                                "weight": "bold",
+                                "size": "sm",
+                                "color": "#555555",
+                                "flex": 1
+                            },
+                            {
+                                "type": "text",
+                                "text": "%(employee_name)s",
+                                "size": "sm",
+                                "color": "#111111",
+                                "margin": "md",
+                                "flex": 2
+                            }
+                        ]
+                    },
+                    {
+                        "type": "box",
+                        "layout": "baseline",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": "Request Time:",
+                                "weight": "bold",
+                                "size": "sm",
+                                "color": "#555555",
+                                "flex": 2
+                            },
+                            {
+                                "type": "text",
+                                "text": "%(today_datetime)s",
+                                "size": "sm",
+                                "color": "#111111",
+                                "margin": "md",
+                                "flex": 3
+                            }
+                        ]
+                    },
+                    {
+                        "type": "separator"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Summary:",
+                        "weight": "bold",
+                        "size": "sm",
+                        "color": "#555555"
+                    },
+                    {
+                        "type": "text",
+                        "text": "%(sheet_name)s",
+                        "size": "sm",
+                        "color": "#111111",
+                        "wrap": true
+                    },
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "sm",
+                        "contents": [
                             {
                                 "type": "box",
-                                "layout": "horizontal",
-                                "spacing": "xs",
+                                "layout": "baseline",
                                 "contents": [
-                                {
-                                    "type": "text",
-                                    "text": "Product",
-                                    "size": "xs",
-                                    "flex": 1,
-                                    "margin": "none",
-                                    "contents": [],
-                                    "color": "#aaaaaa"
-                                }
+                                    {
+                                        "type": "text",
+                                        "text": "Line Items:",
+                                        "weight": "bold",
+                                        "size": "sm",
+                                        "color": "#555555"
+                                    }
                                 ]
+                            },
+                            %(loop_line_detail)s,
+                            {
+                                "type": "separator"
                             },
                             {
                                 "type": "box",
-                                "layout": "horizontal",
-                                "spacing": "xs",
+                                "layout": "baseline",
                                 "contents": [
-                                {
-                                    "type": "text",
-                                    "text": "Description",
-                                    "size": "xs",
-                                    "flex": 1,
-                                    "margin": "none",
-                                    "contents": [],
-                                    "color": "#aaaaaa"
-                                }
-                                ]
-                            },
-                            {
-                                "type": "box",
-                                "layout": "horizontal",
-                                "spacing": "sm",
-                                "contents": [
-                                {
-                                    "type": "text",
-                                    "text": "Subtotal",
-                                    "size": "sm",
-                                    "flex": 1,
-                                    "align": "end",
-                                    "color": "#aaaaaa"
-                                }
+                                    {
+                                        "type": "text",
+                                        "text": "Total Amount:",
+                                        "weight": "bold",
+                                        "size": "sm",
+                                        "color": "#555555"
+                                    },
+                                    {
+                                        "type": "text",
+                                        "text": "%(total_amount)s",
+                                        "size": "sm",
+                                        "color": "#111111",
+                                        "margin": "md",
+                                        "align": "end"
+                                    }
                                 ]
                             }
-                            ]
-                        },
-                        {
-                            "type": "separator",
-                            "margin": "md"
-                        },
-                        %(loop_line_detail)s,
-                        {
-                            "type": "separator",
-                            "margin": "xxl"
-                        },
-                        {
-                            "type": "box",
-                            "layout": "vertical",
-                            "margin": "lg",
-                            "spacing": "sm",
-                            "contents": [
-                                {
-                                    "type": "box",
-                                    "layout": "horizontal",
-                                    "spacing": "sm",
-                                    "contents": [
-                                        {
-                                            "type": "text",
-                                            "text": "Total",
-                                            "size": "sm",
-                                            "flex": 1
-                                        },
-                                        {
-                                            "type": "text",
-                                            "text": "%(total_amount)s",
-                                            "wrap": true,
-                                            "size": "sm",
-                                            "flex": 5,
-                                            "align": "end"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "footer": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "margin": "lg",
-                    "spacing": "sm",
-                    "contents": [
-                        {
-                            "type": "button",
-                            "action": {
-                                "type": "postback",
-                                "label": "DETAIL",
-                                "data": "action=detail&amp;model=%(model)s&amp;res_id=%(res_id)s&amp;method=%(method)s"
+                        ]
+                    },
+                    {
+                        "type": "separator"
+                    },
+                    {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "sm",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": "Attachment:",
+                                "weight": "bold",
+                                "size": "sm",
+                                "color": "#555555"
                             },
-                            "margin": "xxl",
-                            "flex": 6,
-                            "style": "secondary",
-                            "height": "sm"
-                        },
-                        {
-                            "type": "separator",
-                            "margin": "xxl"
-                        },
-                        {
-                            "type": "box",
-                            "layout": "horizontal",
-                            "spacing": "sm",
-                            "contents": [
-                                {
-                                    "type": "button",
-                                    "style": "primary",
-                                    "height": "sm",
-                                    "action": {
-                                        "type": "postback",
-                                        "label": "APPROVE",
-                                        "data": "action=approve&amp;model=%(model)s&amp;res_id=%(res_id)s&amp;method=%(method)s",
-                                        "displayText": "approve"
-                                    },
-                                    "flex": 6
-                                },
-                                {
-                                    "type": "button",
-                                    "style": "secondary",
-                                    "height": "sm",
-                                    "action": {
-                                        "type": "postback",
-                                        "label": "REJECT",
-                                        "data": "action=reject&amp;model=%(model)s&amp;res_id=%(res_id)s&amp;method=%(method)s",
-                                        "displayText": "reject"
-                                    },
-                                    "color": "#FAA0A0",
-                                    "flex": 6,
-                                    "margin": "xxl"
-                                }
-                            ]
+                            %(loop_attachment)s
+                        ]
+                    }
+                ]
+            },
+            "footer": {
+                "type": "box",
+                "layout": "horizontal",
+                "spacing": "sm",
+                "contents": [
+                    {
+                        "type": "button",
+                        "style": "primary",
+                        "color": "#28A745",
+                        "action": {
+                            "type": "postback",
+                            "label": "Approve",
+                            "data": "action=approve&amp;model=%(model)s&amp;res_id=%(res_id)s&amp;method=%(method)s"
                         }
-                    ]
-                }
+                    },
+                    {
+                        "type": "button",
+                        "style": "primary",
+                        "color": "#DC3545",
+                        "action": {
+                            "type": "postback",
+                            "label": "Reject",
+                            "data": "action=reject&amp;model=%(model)s&amp;res_id=%(res_id)s&amp;method=%(method)s"
+                        }
+                    }
+                ]
             }
+        }
         </field>
     </record>
 </odoo>

@@ -11,10 +11,22 @@ _logger = logging.getLogger(__name__)
 
 class LINETemplate(models.Model):
     _name = "line.template"
+    _parent_name = "parent_id"
+    _parent_store = True
+
     _description = "LINE Templates"
 
     name = fields.Char(
         required=True,
+    )
+    parent_id = fields.Many2one(
+        comodel_name="line.template", index=True, ondelete="cascade"
+    )
+    parent_path = fields.Char(index=True)
+    child_ids = fields.One2many(
+        comodel_name="line.template",
+        inverse_name="parent_id",
+        string="Child Template",
     )
     template_model = fields.Many2one(
         comodel_name="ir.model",

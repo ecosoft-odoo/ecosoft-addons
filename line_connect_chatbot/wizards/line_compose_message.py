@@ -66,12 +66,31 @@ class LINEComposer(models.TransientModel):
         value = safe_eval(field_dynamic, globals_dict=globals_dict)
         return value
 
+    def _get_child_template(self, template, record, list_data):
+        for child in template.child_ids:
+            if child.template_type == "dynamic":
+                value = self._get_dynamic_type(child.dynamic_data, record)
+                json_data = child.json_data % value
+            else:
+                json_data = child.json_data
+            json_data = json.loads(json_data.replace("'", '"'))
+            if isinstance(json_data, list):
+                list_data.extend(json_data)
+            else:
+                list_data.append(json_data)
+        return list_data
+
     def _get_json_data_template(self, template, record):
         json_data = template.json_data
         if template.template_type == "dynamic":
             value = self._get_dynamic_type(template.dynamic_data, record)
             json_data = json_data % value
-        return json.loads(json_data)
+        # Convert to list of dict
+        list_data = [json.loads(json_data)]
+
+        # Check child of template
+        list_data = self._get_child_template(template, record, list_data)
+        return list_data
 
     def _get_attachment(self, message_list):
         attachments = self.attachment_ids
@@ -81,9 +100,10 @@ class LINEComposer(models.TransientModel):
 
     def _get_message_list(self, original_record=False):
         message_list = []
-        # TODO: Support flex message and else
         if self.template_id:
-            json_data = self._get_json_data_template(self.template_id, original_record)
+            list_json_data = self._get_json_data_template(
+                self.template_id, original_record
+            )
             alt_text = self.template_id.alt_text
             if self.template_id.template_type == "dynamic":
                 value = self._get_dynamic_type(
@@ -95,9 +115,7 @@ class LINEComposer(models.TransientModel):
                 "altText": alt_text,
                 "contents": {
                     "type": "carousel",  # support with flex or carousel
-                    "contents": [json_data]
-                    if isinstance(json_data, dict)
-                    else json_data,
+                    "contents": list_json_data,
                 },
             }
             message_list.append(template_message)
@@ -113,7 +131,7 @@ class LINEComposer(models.TransientModel):
 
     def send_broadcast_message(self):
         message_list = self._get_message_list()
-        self.message_line_push(message_list, broadcast=True)
+        self.message_line_action(message_list, "broadcast")
 
     def send_message(self):
         if self.model and self.res_id:

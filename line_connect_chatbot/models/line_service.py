@@ -340,15 +340,18 @@ class LINEService(models.AbstractModel):
         return message_list
 
     @api.model
-    def message_line_push(self, message_list, partner_ids=None, broadcast=False):
+    def message_line_action(self, message_list, action, partner_ids=None):
         partner_ids = partner_ids or []
-        if broadcast:
+
+        # Broadcast and Reply don't have partners
+        partners = []
+        if action == "broadcast":
             _logger.info(
                 f"Broadcast message to LINE with {json.dumps(message_list, indent=2)}"
             )
-            message_push = "broadcast"
             payload = {"messages": message_list}
-        else:
+
+        if action == "push":
             _logger.info(
                 f"Send message to LINE with {json.dumps(message_list, indent=2)} "
                 f"to {partner_ids}"
@@ -359,13 +362,23 @@ class LINEService(models.AbstractModel):
             if not partner_line_access_token:
                 raise UserError(_("No LINE access token found for the partner."))
 
+            # Action push but send multi partner, change it to multicast
             if len(partner_line_access_token) > 1:
-                message_push = "multicast"  # 1:Many chat
+                action = "multicast"  # 1:Many chat
             else:
-                message_push = "push"  # 1:1 chat
                 partner_line_access_token = partner_line_access_token[0]
+
             payload = {
                 "to": partner_line_access_token,
+                "messages": message_list,
+            }
+
+        if action == "reply":
+            _logger.info(
+                f"Reply message to LINE with {json.dumps(message_list, indent=2)}"
+            )
+            payload = {
+                "replyToken": partner_ids,
                 "messages": message_list,
             }
 
@@ -381,7 +394,7 @@ class LINEService(models.AbstractModel):
         error_message = ""
         try:
             res = requests.post(
-                url=f"{server_url}/message/{message_push}",
+                url=f"{server_url}/message/{action}",
                 headers=headers,
                 json=payload,
                 timeout=20,
@@ -400,7 +413,7 @@ class LINEService(models.AbstractModel):
             error_message = str(e)
             response = False
 
-        if broadcast:
+        if action == "broadcast":
             message_log = {
                 "partner_id": False,
                 "log_type": "send",
