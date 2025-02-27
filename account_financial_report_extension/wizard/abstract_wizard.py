@@ -13,6 +13,6 @@ class AbstractWizard(models.AbstractModel):
     )
 
     def _prepare_report_data(self):
-        res = super()._prepare_report_aged_partner_balance()
+        res = super()._prepare_report_data()
         res.update({"map_type_id": self.map_type_id.id or False})
         return res
