@@ -137,5 +137,4 @@
         action="action_api_logs"
         sequence="10"
     />
-
 </odoo>
