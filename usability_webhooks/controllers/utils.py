@@ -5,7 +5,7 @@ import ast
 import logging
 import re
 
-from odoo import _, api, models, tools
+from odoo import api, models, tools
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -161,25 +161,26 @@ class WebhookUtils(models.AbstractModel):
         res = {
             "is_success": True,
             "result": {"id": obj.id},
-            "messages": _("Record created successfully"),
+            "messages": self.env._("Record created successfully"),
         }
         # Clear cache
-        rec.clear_caches()
+        self.env.registry.clear_cache()
         return res
 
     def _search_object(self, model, vals):
         search_key = vals.get("search_key", {})
+        # Prepare Header Dict (non o2m)
+        if not search_key:
+            raise ValidationError(
+                self.env._("Parameter 'search_key' in 'vals' not found!")
+            )
+
         search_domain = [
             (k, "in" if isinstance(v, list) else "=", v) for k, v in search_key.items()
         ]
 
-        # Prepare Header Dict (non o2m)
-        if not search_key:
-            raise ValidationError(_("Parameter 'search_key' in 'vals' not found!"))
-
         # search record to update
-        rec = self.env[model].search(search_domain)
-        return rec
+        return self.env[model].with_context(prefetch_fields=True).search(search_domain)
 
     @api.model
     def friendly_update_data(self, model, vals):
@@ -243,7 +244,7 @@ class WebhookUtils(models.AbstractModel):
         res = {
             "is_success": True,
             "result": {"id": rec.ids},
-            "messages": _("Record updated successfully"),
+            "messages": self.env._("Record updated successfully"),
         }
         return res
 
@@ -295,7 +296,7 @@ class WebhookUtils(models.AbstractModel):
                     model_list.append(sub_model)
         # Clear caches
         for model in model_list:
-            self.env[model].clear_caches()
+            self.env[model].env.registry.clear_cache()
         return result
 
     def _search_subfield(self, filtered_values):
@@ -419,9 +420,9 @@ class WebhookUtils(models.AbstractModel):
 
         # Found > 1, can't continue
         if len(values) > 1:
-            Model.clear_caches()
+            Model.env.registry.clear_cache()
             raise ValidationError(
-                _("'%(val)s' matched more than 1 record") % {"val": val}
+                self.env._("'%(val)s' matched more than 1 record") % {"val": val}
             )
 
         # If not found, but auto_create it
@@ -429,9 +430,10 @@ class WebhookUtils(models.AbstractModel):
             values = self._auto_create_record(Model, val, key, auto_create, args)
 
         if not values:
-            Model.clear_caches()
+            Model.env.registry.clear_cache()
             raise ValidationError(
-                _("'%(key)s': '%(val)s' found no match.") % {"key": key, "val": val}
+                self.env._("'%(key)s': '%(val)s' found no match.")
+                % {"key": key, "val": val}
             )
 
         return values[0][0]
@@ -455,9 +457,10 @@ class WebhookUtils(models.AbstractModel):
                 self.friendly_create_data(Model._name, {"payload": new_rec})
             records = self._call_search_cache(Model, key_search, str(val_search))
         elif not records:
-            Model.clear_caches()
+            Model.env.registry.clear_cache()
             raise ValidationError(
-                _("'%(key)s': '%(val)s' found no match.") % {"key": key, "val": val}
+                self.env._("'%(key)s': '%(val)s' found no match.")
+                % {"key": key, "val": val}
             )
         if method_many2many == 6:
             return [(6, 0, records.ids)]
@@ -613,7 +616,7 @@ class WebhookUtils(models.AbstractModel):
         res = {
             "is_success": True,
             "result": result,
-            "messages": _("Record search successfully"),
+            "messages": self.env._("Record search successfully"),
         }
         _logger.info(f"[{model}].search_data(), output: {res}")
         return res
