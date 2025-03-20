@@ -32,6 +32,7 @@ class AccountPayment(models.Model):
                 lambda pay: pay.etax_status in ("success", "processing", "to_process")
             )
             and not self.has_create_replacement
+            and not self._context.get("force_reset", False)
         ):
             raise ValidationError(
                 _(

@@ -15,17 +15,9 @@ def prepare_data_invoice(doc):
     )
     d["create_purpose_code"] = doc.create_purpose_code
     d["create_purpose"] = doc.create_purpose
-    d["ref_document_id"] = (
-        doc.debit_origin_id.name
-        or doc.reversed_entry_id.name
-        or doc.replaced_entry_id.name
-    )
+    d["ref_document_id"] = doc._get_ref_document_id()
     d["ref_document_issue_dtm"] = doc._get_origin_inv_date()
-    d["ref_document_type_code"] = (
-        doc.debit_origin_id.etax_doctype
-        or doc.reversed_entry_id.etax_doctype
-        or doc.replaced_entry_id.etax_doctype
-    )
+    d["ref_document_type_code"] = doc._get_ref_document_type_code()
     d["buyer_ref_document"] = doc.payment_reference
     d["seller_branch_id"] = doc._get_branch_id() or doc.company_id.branch
     d["source_system"] = (
@@ -60,21 +52,26 @@ def prepare_data_invoice(doc):
     for line in doc.invoice_line_ids.filtered(
         lambda inv_line: not inv_line.display_type and inv_line.price_unit > 0
     ):
-        doc_lines.append(
-            {
-                "product_code": line.product_id and line.product_id.default_code or "",
-                "product_name": line.product_id and line.product_id.name or line.name,
-                "product_price": line.price_unit,
-                "product_quantity": line.quantity,
-                "line_tax_type_code": line.tax_ids.name and "VAT" or "FRE",
-                "line_tax_rate": line.tax_ids and line.tax_ids[0].amount or 0.00,
-                "line_base_amount": line.tax_ids and line.price_subtotal or 0.00,
-                "line_tax_amount": line.tax_ids
-                and (line.price_total - line.price_subtotal)
-                or 0.0,
-                "line_total_amount": line.price_total,
-            }
-        )
+        if not line.not_send_to_etax:
+            doc_lines.append(
+                {
+                    "product_code": line.product_id
+                    and line.product_id.default_code
+                    or "",
+                    "product_name": line.product_id
+                    and line.product_id.name
+                    or line.name,
+                    "product_price": line.price_unit,
+                    "product_quantity": line.quantity,
+                    "line_tax_type_code": line.tax_ids.name and "VAT" or "FRE",
+                    "line_tax_rate": line.tax_ids and line.tax_ids[0].amount or 0.00,
+                    "line_base_amount": line.tax_ids and line.price_subtotal or 0.00,
+                    "line_tax_amount": line.tax_ids
+                    and (line.price_total - line.price_subtotal)
+                    or 0.0,
+                    "line_total_amount": line.price_total,
+                }
+            )
     d["line_item_information"] = doc_lines
     d["original_amount_untaxed"] = doc._get_additional_amount()[0]
     d["final_amount_untaxed"] = doc._get_additional_amount()[2]

@@ -1,12 +1,25 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
 class AccountMove(models.Model):
     _name = "account.move"
     _inherit = ["account.move", "etax.th"]
+
+    is_credit_payment_entry = fields.Boolean(
+        string="Use Credit Note on Payment",
+        default=False,
+        help="This is used to indicate this document \
+            will cancel etax payment on INET (Case Etax)",
+    )
+    etax_payment_id = fields.Many2one(
+        "account.payment",
+        string="Etax Payment",
+        help="If 'Use Credit Note on Payment' is selected, \
+            Select payment for retrieve original data.",
+    )
 
     # def button_etax_invoices(self):
     #     self.ensure_one()
@@ -17,6 +30,29 @@ class AccountMove(models.Model):
     #         "res_model": "wizard.select.etax.doctype",
     #         "target": "new",
     #     }
+
+    @api.onchange("is_credit_payment_entry", "create_purpose")
+    def _onchange_ref(self):
+        if self.is_credit_payment_entry:
+            self.ref = self.create_purpose
+
+    def _get_ref_document_id(self):
+        if self.is_credit_payment_entry:
+            return self.etax_payment_id.name
+        return (
+            self.debit_origin_id.name
+            or self.reversed_entry_id.name
+            or self.replaced_entry_id.name
+        )
+
+    def _get_ref_document_type_code(self):
+        if self.is_credit_payment_entry:
+            return self.etax_payment_id.etax_doctype
+        return (
+            self.debit_origin_id.etax_doctype
+            or self.reversed_entry_id.etax_doctype
+            or self.replaced_entry_id.etax_doctype
+        )
 
     def action_open_replacement_wizard(self):
         self.ensure_one()
@@ -45,6 +81,9 @@ class AccountMove(models.Model):
         In case of Credit note or Debit note, we need invoice date of origin invoice
         to fill in h08_additional_ref_issue_dtm
         """
+        if self.is_credit_payment_entry:
+            return self.etax_payment_id.date.strftime("%Y-%m-%dT%H:%M:%S")
+
         if self.debit_origin_id and self.debit_origin_id.invoice_date:
             return self.debit_origin_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -75,6 +114,19 @@ class AccountMove(models.Model):
             original_amount_untaxed = False
             diff_amount_untaxed = False
             corrected_amount_untaxed = self.amount_untaxed
+
+        # Special Case: If this is credit note for cancelled payment
+        # We need to recompute original_amount_untaxed, diff_amount_untaxed
+        # and corrected_amount_untaxed
+        if self.is_credit_payment_entry:
+            tax_base = self.tax_invoice_ids or False
+            if not tax_base:
+                raise ValidationError(_("Tax invoice not found!"))
+            if len(tax_base) != 1:
+                raise ValidationError(_("Not support multi tax invoice line"))
+            original_amount_untaxed = abs(tax_base[0].tax_base_amount)
+            diff_amount_untaxed = original_amount_untaxed
+            corrected_amount_untaxed = 0.00
         return (original_amount_untaxed, diff_amount_untaxed, corrected_amount_untaxed)
 
     @api.depends("restrict_mode_hash_table", "state")
@@ -109,3 +161,9 @@ class AccountMove(models.Model):
         self.button_cancel()
         self.name = old_number  # Ensure name.
         return move
+
+
+class AccountMoveLine(models.Model):
+    _inherit = "account.move.line"
+
+    not_send_to_etax = fields.Boolean(default=False)
