@@ -8,7 +8,7 @@
     "version": "18.0.1.0.0",
     "license": "AGPL-3",
     "author": "PESOL, Tecnativa, Odoo Community Association (OCA)",
-    "website": "https://github.com/OCA/account-analytic",
+    "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": ["account", "analytic", "account_analytic_tag"],
     "data": ["security/ir.model.access.csv", "views/analytic_view.xml"],
     "demo": ["demo/analytic_demo.xml"],
