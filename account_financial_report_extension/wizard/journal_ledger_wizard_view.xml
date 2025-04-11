@@ -5,8 +5,13 @@
         <field name="model">journal.ledger.report.wizard</field>
         <field name="inherit_id" ref="account_financial_report.journal_ledger_wizard" />
         <field name="arch" type="xml">
-            <xpath expr="//group[@name='options']/group[1]" position="inside">
-                <field name="map_type_id" domain="[('model', '=', 'journal_ledger')]" />
+            <xpath expr="//footer" position="before">
+                <group name="report_extension">
+                    <field
+                        name="map_type_id"
+                        domain="[('model', '=', 'journal_ledger')]"
+                    />
+                </group>
             </xpath>
         </field>
     </record>
