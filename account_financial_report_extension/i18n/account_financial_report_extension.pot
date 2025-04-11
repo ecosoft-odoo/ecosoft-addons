@@ -1,0 +1,101 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_financial_report_extension
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_financial_report_extension
+#: model:ir.model,name:account_financial_report_extension.model_account_financial_report_abstract_wizard
+msgid "Abstract Wizard"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields.selection,name:account_financial_report_extension.selection__data_map_type__model__aged_partner_balance
+msgid "Aged Partner Balance"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model,name:account_financial_report_extension.model_report_account_financial_report_aged_partner_balance
+msgid "Aged Partner Balance Report"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_data_map_type__model
+msgid "Apply On Model"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields.selection,name:account_financial_report_extension.selection__data_map_type__model__general_ledger
+msgid "General Ledger"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model,name:account_financial_report_extension.model_report_account_financial_report_general_ledger
+msgid "General Ledger Report"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields.selection,name:account_financial_report_extension.selection__data_map_type__model__journal_ledger
+msgid "Journal Ledger"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model,name:account_financial_report_extension.model_report_account_financial_report_journal_ledger
+msgid "Journal Ledger Report"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_account_financial_report_abstract_wizard__map_type_id
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_aged_partner_balance_report_wizard__map_type_id
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_general_ledger_report_wizard__map_type_id
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_journal_ledger_report_wizard__map_type_id
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_open_items_report_wizard__map_type_id
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_trial_balance_report_wizard__map_type_id
+#: model:ir.model.fields,field_description:account_financial_report_extension.field_vat_report_wizard__map_type_id
+msgid "Map Type"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields.selection,name:account_financial_report_extension.selection__data_map_type__model__open_items
+msgid "Open Items"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model,name:account_financial_report_extension.model_report_account_financial_report_open_items
+msgid "Open Items Report"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields.selection,name:account_financial_report_extension.selection__data_map_type__model__trial_balance
+msgid "Trial Balance"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model,name:account_financial_report_extension.model_report_account_financial_report_trial_balance
+msgid "Trial Balance Report"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model,name:account_financial_report_extension.model_data_map_type
+msgid "Type of data map, will be created for each model"
+msgstr ""
+
+#. module: account_financial_report_extension
+#: model:ir.model.fields,help:account_financial_report_extension.field_account_financial_report_abstract_wizard__map_type_id
+#: model:ir.model.fields,help:account_financial_report_extension.field_aged_partner_balance_report_wizard__map_type_id
+#: model:ir.model.fields,help:account_financial_report_extension.field_general_ledger_report_wizard__map_type_id
+#: model:ir.model.fields,help:account_financial_report_extension.field_journal_ledger_report_wizard__map_type_id
+#: model:ir.model.fields,help:account_financial_report_extension.field_open_items_report_wizard__map_type_id
+#: model:ir.model.fields,help:account_financial_report_extension.field_trial_balance_report_wizard__map_type_id
+#: model:ir.model.fields,help:account_financial_report_extension.field_vat_report_wizard__map_type_id
+msgid "Used to map data for report printing"
+msgstr ""
