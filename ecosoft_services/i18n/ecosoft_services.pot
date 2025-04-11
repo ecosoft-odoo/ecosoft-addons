@@ -1,0 +1,44 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ecosoft_services
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ecosoft_services
+#: model:ir.model,name:ecosoft_services.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: ecosoft_services
+#: model_terms:ir.ui.view,arch_db:ecosoft_services.res_config_settings_view_form
+msgid "Documentation"
+msgstr ""
+
+#. module: ecosoft_services
+#: model_terms:ir.ui.view,arch_db:ecosoft_services.res_config_settings_view_form
+msgid "Ecosoft e-Tax Services"
+msgstr ""
+
+#. module: ecosoft_services
+#: model_terms:ir.ui.view,arch_db:ecosoft_services.res_config_settings_view_form
+msgid "Short description here!"
+msgstr ""
+
+#. module: ecosoft_services
+#: model_terms:ir.ui.view,arch_db:ecosoft_services.res_config_settings_view_form
+msgid "e-Tax Invoice & e-Receipt"
+msgstr ""
+
+#. module: ecosoft_services
+#: model:ir.model.fields,field_description:ecosoft_services.field_res_config_settings__module_frappe_etax_service
+msgid "e-Tax invoice & e-Receipt"
+msgstr ""
