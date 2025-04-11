@@ -1,0 +1,184 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* base_report_extension
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__model
+msgid "Apply On Model"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__company_id
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__company_id
+msgid "Company"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__create_uid
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__create_date
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.ui.menu,name:base_report_extension.data_map_type_menu
+msgid "Data Map Type"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.actions.act_window,name:base_report_extension.action_data_map_type
+#: model_terms:ir.ui.view,arch_db:base_report_extension.view_data_map_type_form
+#: model_terms:ir.ui.view,arch_db:base_report_extension.view_data_map_type_search
+msgid "Data Map Types"
+msgstr ""
+
+#. module: base_report_extension
+#: model_terms:ir.ui.view,arch_db:base_report_extension.view_data_map_type_form
+msgid ""
+"Data Mapping is a generic stored of mapped values. It mostly used for import/export activity,\n"
+"                    where data field from outsider can be mapped before import/export into local system."
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__display_name
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__field_id
+msgid "Field"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model,name:base_report_extension.model_data_map
+msgid "Field mapping database"
+msgstr ""
+
+#. module: base_report_extension
+#: model_terms:ir.ui.view,arch_db:base_report_extension.view_data_map_type_search
+msgid "Group By"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__id
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__id
+msgid "ID"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.constraint,message:base_report_extension.constraint_data_map_in_value_uniq
+msgid "In value must be unique!"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__in_value
+msgid "Input Value"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map____last_update
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__write_uid
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__write_date
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__line_ids
+msgid "Map Details"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__map_type_id
+msgid "Map Type"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,help:base_report_extension.field_data_map__out_value
+msgid "Mapped output value"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__model_id
+#: model_terms:ir.ui.view,arch_db:base_report_extension.view_data_map_type_search
+msgid "Model"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__name
+msgid "Name"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.constraint,message:base_report_extension.constraint_data_map_type_name_company_uniq
+msgid "Name must be unique!"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,help:base_report_extension.field_data_map__in_value
+msgid "Odoo's value, searchable by name_search"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map__out_value
+msgid "Output Value"
+msgstr ""
+
+#. module: base_report_extension
+#: model_terms:ir.ui.view,arch_db:base_report_extension.view_data_map_type_form
+msgid "Remarks:"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.ui.menu,name:base_report_extension.report_extension
+msgid "Report Extension"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,field_description:base_report_extension.field_data_map_type__template_id
+msgid "Template"
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model.fields,help:base_report_extension.field_data_map_type__template_id
+msgid "Template used during import/export xlxs"
+msgstr ""
+
+#. module: base_report_extension
+#: model_terms:ir.ui.view,arch_db:base_report_extension.view_data_map_type_form
+msgid ""
+"This table is intended for system administrator to see overall data map, while implementation\n"
+"                    can be built as new menu/window for each appliation (each map type)."
+msgstr ""
+
+#. module: base_report_extension
+#: model:ir.model,name:base_report_extension.model_data_map_type
+msgid "Type of data map, will be created for each model"
+msgstr ""
