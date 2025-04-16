@@ -38,9 +38,11 @@ class WebhookUtils(models.AbstractModel):
         return [
             {
                 "name": attach["name"],
+                "type": attach.get("type", "binary"),
+                "url": attach.get("url", False),
                 "res_model": model,
                 "res_id": res_id,
-                "datas": attach["datas"].encode("ascii"),
+                "datas": attach.get("datas") and attach["datas"].encode("ascii") or False,
             }
             for attach in list_attachment
         ]
