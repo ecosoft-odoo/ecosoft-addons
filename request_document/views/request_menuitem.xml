@@ -16,5 +16,4 @@
         groups="base.group_system"
         sequence="90"
     />
-
 </odoo>
