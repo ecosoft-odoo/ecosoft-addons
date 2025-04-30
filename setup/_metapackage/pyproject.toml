@@ -1,0 +1,11 @@
+[project]
+name = "odoo-addons-ecosoft-odoo-ecosoft-addons"
+version = "18.0.20250430.0"
+dependencies = [
+    "odoo-addon-usability_webhooks==18.0.*",
+]
+classifiers=[
+    "Programming Language :: Python",
+    "Framework :: Odoo",
+    "Framework :: Odoo :: 18.0",
+]
