@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_request_order_list" model="ir.ui.view">
+        <field name="name">view.request.order.list</field>
+        <field name="model">request.order</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="create_uid" />
+                <field name="company_id" groups="base.group_multi_company" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-info="state == 'draft'"
+                    decoration-success="state in ('submit', 'approve', 'done')"
+                />
+            </list>
+        </field>
+    </record>
+    <record id="view_request_order_form" model="ir.ui.view">
+        <field name="name">view.request.order.form</field>
+        <field name="model">request.order</field>
+        <field name="arch" type="xml">
+            <form string="Request">
+                <header>
+                    <button
+                        name="action_submit"
+                        invisible="state != 'draft'"
+                        string="Submit"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button
+                        name="action_approve"
+                        invisible="state != 'submit'"
+                        string="Approve"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button
+                        name="action_create_document"
+                        invisible="state != 'approve'"
+                        string="Create Document"
+                        type="object"
+                        class="oe_highlight"
+                    />
+                    <button
+                        name="action_cancel"
+                        invisible="state not in ('draft', 'approve')"
+                        string="Cancel"
+                        type="object"
+                    />
+                    <button
+                        name="action_draft"
+                        invisible="state not in ('cancel', 'submit')"
+                        string="Reset to Draft"
+                        type="object"
+                    />
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="draft,submit,approve,done"
+                    />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box" />
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="request_left">
+                            <field name="create_uid" />
+                        </group>
+                        <group name="request_right">
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                            />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="request_document_line" string="Document">
+                            <field name="line_ids" readonly="state != 'draft'" />
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+    <record id="view_request_order_search" model="ir.ui.view">
+        <field name="name">view.request.order.search</field>
+        <field name="model">request.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="create_uid" />
+                <group string="Group By">
+                    <filter
+                        name="groupby_create_by"
+                        string="Created By"
+                        domain="[]"
+                        context="{'group_by': 'create_uid'}"
+                    />
+                    <filter
+                        name="groupby_state"
+                        string="State"
+                        domain="[]"
+                        context="{'group_by': 'state'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_request_order" model="ir.actions.act_window">
+        <field name="name">Request Order</field>
+        <field name="view_id" ref="view_request_order_list" />
+        <field name="res_model">request.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem
+        id="menu_request_order"
+        parent="request_document.request_order_menu"
+        action="action_request_order"
+        sequence="1"
+    />
+</odoo>

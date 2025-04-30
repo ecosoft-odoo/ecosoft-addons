@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Main menu -->
+    <menuitem id="request_menu" name="Request" sequence="300" />
+
+    <!-- Header menu -->
+    <menuitem
+        id="request_order_menu"
+        parent="request_menu"
+        name="Requests"
+        sequence="10"
+    />
+    <menuitem
+        id="request_config_menu"
+        parent="request_menu"
+        name="Configurations"
+        groups="base.group_system"
+        sequence="90"
+    />
+</odoo>

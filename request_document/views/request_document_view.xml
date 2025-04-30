@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_request_document_list" model="ir.ui.view">
+        <field name="name">view.request.document.line.list</field>
+        <field name="model">request.document</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="request_type" />
+            </list>
+        </field>
+    </record>
+    <record id="view_request_document_form" model="ir.ui.view">
+        <field name="name">view.request.document.form</field>
+        <field name="model">request.document</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="draft,submit,approve,done"
+                    />
+                </header>
+                <sheet>
+                    <group>
+                        <group name="document_left">
+                            <field name="name" invisible="not name" />
+                            <field name="request_type" />
+                        </group>
+                        <group name="document_right">
+                            <field
+                                name="company_id"
+                                groups="base.group_multi_company"
+                            />
+                            <field
+                                name="currency_id"
+                                groups="base.group_multi_currency"
+                            />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

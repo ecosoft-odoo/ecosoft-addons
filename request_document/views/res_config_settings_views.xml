@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_request_document" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.request</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="25" />
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app
+                    data-string="request_document"
+                    string="Request Document"
+                    name="request_document"
+                >
+                    <h2>Request Document</h2>
+                </app>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_request_configuration" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'request_document', 'bin_size': False}</field>
+    </record>
+    <menuitem
+        id="request_settings_menu"
+        name="Settings"
+        parent="request_document.request_config_menu"
+        sequence="0"
+        action="action_request_configuration"
+        groups="base.group_system"
+    />
+</odoo>
