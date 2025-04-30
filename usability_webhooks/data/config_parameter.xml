@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="webhook_rollback_state_false" model="ir.config_parameter">
+        <field name="key">webhook.rollback_state_failed</field>
+        <field name="value">1</field>
+    </record>
+    <record id="webhook_rollback_except" model="ir.config_parameter">
+        <field name="key">webhook.rollback_except</field>
+        <field name="value">1</field>
+    </record>
+    <record id="webhook_create_data_log" model="ir.config_parameter">
+        <field name="key">webhook.create_data_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_update_data_log" model="ir.config_parameter">
+        <field name="key">webhook.update_data_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_create_update_data_log" model="ir.config_parameter">
+        <field name="key">webhook.create_update_data_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_search_data_log" model="ir.config_parameter">
+        <field name="key">webhook.search_data_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_call_function_log" model="ir.config_parameter">
+        <field name="key">webhook.call_function_log</field>
+        <field name="value">True</field>
+    </record>
+    <record id="webhook_ignore_checkcompany_model" model="ir.config_parameter">
+        <field name="key">webhook.ignore_checkcompany_model</field>
+        <field name="value">[]</field>
+    </record>
+</odoo>
