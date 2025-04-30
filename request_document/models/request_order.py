@@ -4,10 +4,10 @@
 from odoo import api, fields, models
 
 
-class RequestRequest(models.Model):
-    _name = "request.request"
+class RequestOrder(models.Model):
+    _name = "request.order"
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _description = "Request Header"
+    _description = "Request Order"
     _check_company_auto = True
     _order = "name desc"
 
@@ -25,8 +25,6 @@ class RequestRequest(models.Model):
     line_ids = fields.One2many(
         comodel_name="request.document",
         inverse_name="request_id",
-        readonly=True,
-        states={"draft": [("readonly", False)]},
     )
     state = fields.Selection(
         selection=[
@@ -45,34 +43,28 @@ class RequestRequest(models.Model):
         for vals in vals_list:
             if vals.get("name", "/") == "/":
                 vals["name"] = (
-                    self.env["ir.sequence"].next_by_code("request.request") or "/"
+                    self.env["ir.sequence"].next_by_code("request.order") or "/"
                 )
         return super().create(vals_list)
 
     def action_submit(self):
-        self.write({"state": "submit"})
-        return True
+        return self.write({"state": "submit"})
 
     def action_approve(self):
-        self.write({"state": "approve"})
-        return True
+        return self.write({"state": "approve"})
 
     def action_done(self):
-        self.write({"state": "done"})
-        return True
+        return self.write({"state": "done"})
 
     def action_create_document(self):
         """Hook method to create document"""
         for rec in self:
             for line in rec.line_ids:
-                getattr(line, "_create_%s" % line.request_type)()
-        self.action_done()
-        return True
+                getattr(line, f"_create_{line.request_type}")()
+        return self.action_done()
 
     def action_cancel(self):
-        self.write({"state": "cancel"})
-        return True
+        return self.write({"state": "cancel"})
 
     def action_draft(self):
-        self.write({"state": "draft"})
-        return True
+        return self.write({"state": "draft"})

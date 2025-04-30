@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="view_request_document_tree" model="ir.ui.view">
-        <field name="name">view.request.document.line.tree</field>
+    <record id="view_request_document_list" model="ir.ui.view">
+        <field name="name">view.request.document.line.list</field>
         <field name="model">request.document</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name" />
                 <field name="request_type" />
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_request_document_form" model="ir.ui.view">
@@ -25,10 +25,7 @@
                 <sheet>
                     <group>
                         <group name="document_left">
-                            <field
-                                name="name"
-                                attrs="{'invisible': [('name', '=', False)]}"
-                            />
+                            <field name="name" invisible="not name" />
                             <field name="request_type" />
                         </group>
                         <group name="document_right">

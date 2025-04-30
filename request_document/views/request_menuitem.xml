@@ -2,11 +2,12 @@
 <odoo>
     <!-- Main menu -->
     <menuitem id="request_menu" name="Request" sequence="300" />
+
     <!-- Header menu -->
     <menuitem
-        id="request_request_menu"
+        id="request_order_menu"
         parent="request_menu"
-        name="Request"
+        name="Requests"
         sequence="10"
     />
     <menuitem

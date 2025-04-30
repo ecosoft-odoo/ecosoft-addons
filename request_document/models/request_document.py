@@ -9,7 +9,7 @@ class RequestDocument(models.Model):
     _description = "Request Document"
 
     request_id = fields.Many2one(
-        comodel_name="request.request",
+        comodel_name="request.order",
         index=True,
         required=True,
         ondelete="cascade",

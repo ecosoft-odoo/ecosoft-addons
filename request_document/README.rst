@@ -22,7 +22,9 @@ Request Document
 
 |badge1| |badge2| |badge3|
 
-# TODO
+Centralized request form for multiple document types (e.g., Expense Requests, Purchase Orders).
+Allows users to request expense, purchase, or other documents in one place.
+Acts as a base module and requires additional modules to generate actual documents.
 
 **Table of contents**
 
@@ -54,6 +56,14 @@ Contributors
 
 Maintainers
 ~~~~~~~~~~~
+
+.. |maintainer-Saran440| image:: https://github.com/Saran440.png?size=40px
+    :target: https://github.com/Saran440
+    :alt: Saran440
+
+Current maintainer:
+
+|maintainer-Saran440| 
 
 This module is part of the `ecosoft-odoo/ecosoft-addons <https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/request_document>`_ project on GitHub.
 

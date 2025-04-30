@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="view_request_request_tree" model="ir.ui.view">
-        <field name="name">view.request.request.tree</field>
-        <field name="model">request.request</field>
+    <record id="view_request_order_list" model="ir.ui.view">
+        <field name="name">view.request.order.list</field>
+        <field name="model">request.order</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name" />
                 <field name="create_uid" />
                 <field name="company_id" groups="base.group_multi_company" />
@@ -14,45 +14,45 @@
                     decoration-info="state == 'draft'"
                     decoration-success="state in ('submit', 'approve', 'done')"
                 />
-            </tree>
+            </list>
         </field>
     </record>
-    <record id="view_request_request_form" model="ir.ui.view">
-        <field name="name">view.request.request.form</field>
-        <field name="model">request.request</field>
+    <record id="view_request_order_form" model="ir.ui.view">
+        <field name="name">view.request.order.form</field>
+        <field name="model">request.order</field>
         <field name="arch" type="xml">
             <form string="Request">
                 <header>
                     <button
                         name="action_submit"
-                        states="draft"
+                        invisible="state != 'draft'"
                         string="Submit"
                         type="object"
                         class="oe_highlight"
                     />
                     <button
                         name="action_approve"
-                        states="submit"
+                        invisible="state != 'submit'"
                         string="Approve"
                         type="object"
                         class="oe_highlight"
                     />
                     <button
                         name="action_create_document"
-                        states="approve"
+                        invisible="state != 'approve'"
                         string="Create Document"
                         type="object"
                         class="oe_highlight"
                     />
                     <button
                         name="action_cancel"
-                        states="draft,approve"
+                        invisible="state not in ('draft', 'approve')"
                         string="Cancel"
                         type="object"
                     />
                     <button
                         name="action_draft"
-                        states="cancel,submit"
+                        invisible="state not in ('cancel', 'submit')"
                         string="Reset to Draft"
                         type="object"
                     />
@@ -82,21 +82,17 @@
                     </group>
                     <notebook>
                         <page name="request_document_line" string="Document">
-                            <field name="line_ids" />
+                            <field name="line_ids" readonly="state != 'draft'" />
                         </page>
                     </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids" widget="mail_followers" />
-                    <field name="activity_ids" widget="mail_activity" />
-                    <field name="message_ids" widget="mail_thread" />
-                </div>
+                <chatter />
             </form>
         </field>
     </record>
-    <record id="view_request_request_search" model="ir.ui.view">
-        <field name="name">view.request.request.search</field>
-        <field name="model">request.request</field>
+    <record id="view_request_order_search" model="ir.ui.view">
+        <field name="name">view.request.order.search</field>
+        <field name="model">request.order</field>
         <field name="arch" type="xml">
             <search>
                 <field name="name" />
@@ -119,16 +115,16 @@
         </field>
     </record>
 
-    <record id="action_request_request" model="ir.actions.act_window">
-        <field name="name">Requests</field>
-        <field name="view_id" ref="view_request_request_tree" />
-        <field name="res_model">request.request</field>
-        <field name="view_mode">tree,form</field>
+    <record id="action_request_order" model="ir.actions.act_window">
+        <field name="name">Request Order</field>
+        <field name="view_id" ref="view_request_order_list" />
+        <field name="res_model">request.order</field>
+        <field name="view_mode">list,form</field>
     </record>
     <menuitem
-        id="menu_request_request"
-        parent="request_document.request_request_menu"
-        action="action_request_request"
+        id="menu_request_order"
+        parent="request_document.request_order_menu"
+        action="action_request_order"
         sequence="1"
     />
 </odoo>
