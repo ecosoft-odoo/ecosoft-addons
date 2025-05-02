@@ -7,13 +7,13 @@ from odoo import fields, models
 class ExceptionRule(models.Model):
     _inherit = "exception.rule"
 
-    request_request_ids = fields.Many2many(
-        comodel_name="request.request", string="Requests"
+    request_order_ids = fields.Many2many(
+        comodel_name="request.order", string="Requests"
     )
     model = fields.Selection(
         selection_add=[
-            ("request.request", "Request Sheet"),
+            ("request.order", "Request Order"),
             ("request.document", "Request Document"),
         ],
-        ondelete={"request.request": "cascade", "request.document": "cascade"},
+        ondelete={"request.order": "cascade", "request.document": "cascade"},
     )

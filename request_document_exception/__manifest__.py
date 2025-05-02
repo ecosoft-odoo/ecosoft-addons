@@ -11,7 +11,7 @@
     "depends": ["request_document", "base_exception"],
     "data": [
         "security/ir.model.access.csv",
-        "views/request_request_view.xml",
+        "views/request_order_view.xml",
         "wizard/request_exception_confirm_view.xml",
     ],
     "installable": True,

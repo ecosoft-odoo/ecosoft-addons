@@ -14,7 +14,7 @@ class RequestDocument(models.Model):
 
     @api.model
     def _reverse_field(self):
-        return "request_request_ids"
+        return "request_order_ids"
 
     def _get_main_records(self):
         return self.mapped("request_id")
