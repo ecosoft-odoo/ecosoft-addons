@@ -4,9 +4,9 @@
 from odoo import models
 
 
-class RequestRequest(models.Model):
-    _name = "request.request"
-    _inherit = ["request.request", "tier.validation"]
+class RequestOrder(models.Model):
+    _name = "request.order"
+    _inherit = ["request.order", "tier.validation"]
     _state_from = ["submit"]
     _state_to = ["approve", "done"]
 
