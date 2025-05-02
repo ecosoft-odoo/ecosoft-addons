@@ -92,8 +92,9 @@ repos:
         types: [javascript]
         language: node
         additional_dependencies:
-          - "eslint@7.32.0"
+          - "eslint@v7.32.0"
           - "eslint-plugin-jsdoc@"
+          - "globals@"
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:
