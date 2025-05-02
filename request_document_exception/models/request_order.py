@@ -4,13 +4,13 @@
 from odoo import api, models
 
 
-class RequestRequest(models.Model):
-    _name = "request.request"
-    _inherit = ["request.request", "base.exception"]
+class RequestOrder(models.Model):
+    _name = "request.order"
+    _inherit = ["request.order", "base.exception"]
 
     @api.model
     def _reverse_field(self):
-        return "request_request_ids"
+        return "request_order_ids"
 
     def detect_exceptions(self):
         all_exceptions = super().detect_exceptions()

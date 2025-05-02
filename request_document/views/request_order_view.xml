@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="view_request_request_tree" model="ir.ui.view">
-        <field name="name">view.request.request.tree</field>
-        <field name="model">request.request</field>
+    <record id="view_request_order_tree" model="ir.ui.view">
+        <field name="name">view.request.order.tree</field>
+        <field name="model">request.order</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="name" />
@@ -17,9 +17,9 @@
             </tree>
         </field>
     </record>
-    <record id="view_request_request_form" model="ir.ui.view">
-        <field name="name">view.request.request.form</field>
-        <field name="model">request.request</field>
+    <record id="view_request_order_form" model="ir.ui.view">
+        <field name="name">view.request.order.form</field>
+        <field name="model">request.order</field>
         <field name="arch" type="xml">
             <form string="Request">
                 <header>
@@ -38,9 +38,9 @@
                         class="oe_highlight"
                     />
                     <button
-                        name="action_create_document"
+                        name="action_process_document"
                         states="approve"
-                        string="Create Document"
+                        string="Done"
                         type="object"
                         class="oe_highlight"
                     />
@@ -78,11 +78,22 @@
                                 name="company_id"
                                 groups="base.group_multi_company"
                             />
+                            <field
+                                name="currency_id"
+                                groups="base.group_multi_currency"
+                            />
                         </group>
                     </group>
                     <notebook>
-                        <page name="request_document_line" string="Document">
+                        <page name="request_document" string="Document">
                             <field name="line_ids" />
+                            <group
+                                name="total_amount"
+                                class="oe_subtotal_footer oe_right"
+                            >
+                                <field name="total_amount_document" />
+                                <field name="total_amount_request" />
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -94,9 +105,9 @@
             </form>
         </field>
     </record>
-    <record id="view_request_request_search" model="ir.ui.view">
-        <field name="name">view.request.request.search</field>
-        <field name="model">request.request</field>
+    <record id="view_request_order_search" model="ir.ui.view">
+        <field name="name">view.request.order.search</field>
+        <field name="model">request.order</field>
         <field name="arch" type="xml">
             <search>
                 <field name="name" />
@@ -119,16 +130,16 @@
         </field>
     </record>
 
-    <record id="action_request_request" model="ir.actions.act_window">
-        <field name="name">Requests</field>
-        <field name="view_id" ref="view_request_request_tree" />
-        <field name="res_model">request.request</field>
+    <record id="action_request_order" model="ir.actions.act_window">
+        <field name="name">Request Order</field>
+        <field name="view_id" ref="view_request_order_tree" />
+        <field name="res_model">request.order</field>
         <field name="view_mode">tree,form</field>
     </record>
     <menuitem
-        id="menu_request_request"
-        parent="request_document.request_request_menu"
-        action="action_request_request"
+        id="menu_request_order"
+        parent="request_document.request_order_menu"
+        action="action_request_order"
         sequence="1"
     />
 </odoo>

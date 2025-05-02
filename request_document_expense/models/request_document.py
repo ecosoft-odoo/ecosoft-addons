@@ -11,107 +11,64 @@ class RequestDocument(models.Model):
         selection_add=[("expense", "Expense")],
         ondelete={"expense": "cascade"},
     )
-    expense_name = fields.Char(
-        string="Expense Report Summary",
-    )
-    expense_line_ids = fields.One2many(
-        comodel_name="request.document.expense.line",
-        inverse_name="document_id",
-    )
-    expense_total_amount = fields.Monetary(
-        string="Total Amount",
-        currency_field="currency_id",
-        compute="_compute_amount",
-        store=True,
-    )
-    expense_employee_id = fields.Many2one(
-        comodel_name="hr.employee",
-        string="Employee",
-        default=lambda self: self.env.user.employee_id,
-        check_company=True,
-        domain=lambda self: self.env["hr.expense"]._get_employee_id_domain(),
-    )
     expense_sheet_ids = fields.One2many(
         comodel_name="hr.expense.sheet",
         inverse_name="request_document_id",
     )
 
-    @api.depends("expense_line_ids.total_amount_company")
-    def _compute_amount(self):
-        for sheet in self:
-            sheet.expense_total_amount = sum(
-                sheet.expense_line_ids.mapped("total_amount_company")
-            )
+    @api.depends("expense_sheet_ids")
+    def _compute_document(self):
+        res = super()._compute_document()
+        for rec in self:
+            sheet_id = rec.expense_sheet_ids
+            if sheet_id:
+                rec.name_document = sheet_id.name
+                rec.total_amount_document = sheet_id.total_amount
+        return res
 
-    def _get_exp_value(self, exp):
-        return {
-            "name": exp.name,
-            "product_id": exp.product_id.id,
-            "unit_amount": exp.unit_amount,
-            "quantity": exp.quantity,
-            "product_uom_id": exp.product_uom_id.id,
-            "total_amount": exp.total_amount,
-            "currency_id": exp.currency_id.id,
-            "analytic_account_id": exp.analytic_account_id.id,
-            "analytic_tag_ids": [(6, 0, exp.analytic_tag_ids.ids)],
-            "tax_ids": [(6, 0, exp.tax_ids.ids)],
-            "date": exp.date,
-            "employee_id": exp.employee_id.id,
-            "payment_mode": exp.payment_mode,
-        }
-
-    def _get_expense_values(self):
+    def _update_state_expense(self, sheets, state_config):
         self.ensure_one()
-        expense_list = [self._get_exp_value(exp) for exp in self.expense_line_ids]
-        return expense_list
-
-    def _get_sheet_values(self, expense_list):
-        self.ensure_one()
-        return {
-            "name": self.expense_name,
-            "employee_id": self.expense_employee_id.id,
-            "request_document_id": self.id,
-            "expense_line_ids": [(0, 0, exp) for exp in expense_list],
-        }
-
-    def _update_state_expense(self, sheets):
-        self.ensure_one()
-        state_config = self.company_id.request_document_ex_state
-        if state_config in ["submit", "approve", "post"]:
-            sheets.action_submit_sheet()
-            if state_config in ["approve", "post"]:
-                sheets.approve_expense_sheets()
-                if state_config == "post":
-                    sheets.action_sheet_move_create()
+        sheets.approve_expense_sheets()
+        if state_config == "post":
+            sheets.action_sheet_move_create()
 
     def _create_expense(self):
         self.ensure_one()
-        # Create Expense Sheet
-        expense_list = self._get_expense_values()
-        sheet_dict = self._get_sheet_values(expense_list)
-        sheets = self.env["hr.expense.sheet"].create(sheet_dict)
-        self._update_state_expense(sheets)
-        return sheets
+        sheet = self.expense_sheet_ids.with_context(allow_edit=1)
+        # Change to submit
+        sheet.action_submit_sheet()
+        # Check config
+        state_config = self.company_id.request_document_ex_state
+        if state_config != "submit":
+            self._update_state_expense(sheet, state_config)
+        return
 
+    def unlink(self):
+        # Delete draft sheet
+        self.expense_sheet_ids.unlink()
+        return super().unlink()
 
-class RequestDocumentExpenseLine(models.Model):
-    _name = "request.document.expense.line"
-    _inherit = "hr.expense"
-    _description = "Request Document Expense Line"
+    def open_request_document(self):
+        res = super().open_request_document()
+        if self.request_type == "expense":
+            ctx = self.env.context.copy()
+            ctx.update(
+                {
+                    "default_request_document_id": self.id,
+                    "invisible_header": 1,
+                    "create": 0,  # Not allow create
+                }
+            )
+            if self.state == "draft":
+                ctx["allow_edit"] = 1
 
-    document_id = fields.Many2one(
-        comodel_name="request.document",
-        required=True,
-        ondelete="cascade",
-    )
-    tax_ids = fields.Many2many(
-        comodel_name="account.tax",
-        relation="request_expense_tax",
-        column1="document_expense_id",
-        column2="tax_id",
-        compute="_compute_from_product_id_company_id",
-        store=True,
-        readonly=False,
-        domain="[('company_id', '=', company_id), ('type_tax_use', '=', 'purchase')]",
-        string="Taxes",
-    )
+            return {
+                "type": "ir.actions.act_window",
+                "views": [(False, "form")],
+                "view_mode": "form",
+                "res_model": "hr.expense.sheet",
+                "res_id": self.expense_sheet_ids.id,  # should be 1 only
+                "context": ctx,
+                "target": "new",
+            }
+        return res

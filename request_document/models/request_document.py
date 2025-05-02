@@ -9,7 +9,7 @@ class RequestDocument(models.Model):
     _description = "Request Document"
 
     request_id = fields.Many2one(
-        comodel_name="request.request",
+        comodel_name="request.order",
         index=True,
         required=True,
         ondelete="cascade",
@@ -18,6 +18,16 @@ class RequestDocument(models.Model):
         compute="_compute_name_document",
         store=True,
         string="Reference",
+    )
+    name_document = fields.Char(
+        string="Document",
+        compute="_compute_document",
+        store=True,
+    )
+    total_amount_request = fields.Monetary()
+    total_amount_document = fields.Monetary(
+        compute="_compute_document",
+        store=True,
     )
     request_type = fields.Selection(
         selection=[],
@@ -48,3 +58,11 @@ class RequestDocument(models.Model):
         for rec in self:
             if rec.id:
                 rec.name = f"{rec.request_id.name} - {rec.id}"
+
+    def open_request_document(self):
+        return
+
+    def _compute_document(self):
+        for rec in self:
+            rec.name_document = ""
+            rec.total_amount_document = 0.0

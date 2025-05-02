@@ -3,5 +3,5 @@
 from . import res_company
 from . import res_config_settings
 from . import request_document
-from . import request_request
+from . import request_order
 from . import purchase_request

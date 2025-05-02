@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="view_request_request_tree" model="ir.ui.view">
-        <field name="name">view.request.request.tree</field>
-        <field name="model">request.request</field>
-        <field name="inherit_id" ref="request_document.view_request_request_tree" />
+    <record id="view_request_order_tree" model="ir.ui.view">
+        <field name="name">view.request.order.tree</field>
+        <field name="model">request.order</field>
+        <field name="inherit_id" ref="request_document.view_request_order_tree" />
         <field name="arch" type="xml">
             <xpath expr="//tree/field[@name='state']" position="before">
                 <field name="exception_ids" widget="many2many_tags" />
             </xpath>
         </field>
     </record>
-    <record id="view_request_request_form" model="ir.ui.view">
-        <field name="name">view.request.request.form</field>
-        <field name="model">request.request</field>
-        <field name="inherit_id" ref="request_document.view_request_request_form" />
+    <record id="view_request_order_form" model="ir.ui.view">
+        <field name="name">view.request.order.form</field>
+        <field name="model">request.order</field>
+        <field name="inherit_id" ref="request_document.view_request_order_form" />
         <field name="arch" type="xml">
             <xpath expr="//group[@name='request_left']" position="inside">
                 <field
@@ -60,10 +60,10 @@
         <field name="view_id" ref="base_exception.view_exception_rule_tree" />
         <field
             name="domain"
-        >[('model', 'in', ['request.request', 'request.document'])]</field>
+        >[('model', 'in', ['request.order', 'request.document'])]</field>
         <field
             name="context"
-        >{'active_test': False, 'default_model' : 'request.request'}</field>
+        >{'active_test': False, 'default_model' : 'request.order'}</field>
     </record>
     <menuitem
         action="action_request_exception_tree"

@@ -5,8 +5,13 @@
         <field name="model">hr.expense.sheet</field>
         <field name="inherit_id" ref="hr_expense.view_hr_expense_sheet_form" />
         <field name="arch" type="xml">
+            <xpath expr="//header" position="attributes">
+                <attribute
+                    name="invisible"
+                >context.get('invisible_header', False)</attribute>
+            </xpath>
             <xpath expr="//field[@name='accounting_date']" position="after">
-                <field name="request_document_id" />
+                <field name="request_document_id" readonly="1" force_save="1" />
             </xpath>
         </field>
     </record>

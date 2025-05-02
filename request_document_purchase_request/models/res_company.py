@@ -12,7 +12,7 @@ class ResCompany(models.Model):
     request_document_pr_state = fields.Selection(
         selection=_STATES,
         string="Purchase Request State",
-        default="draft",
+        default="to_approve",
         required=True,
         help="Default state for Purchase Request",
     )
