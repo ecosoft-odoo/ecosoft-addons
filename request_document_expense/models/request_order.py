@@ -4,8 +4,8 @@
 from odoo import api, fields, models
 
 
-class RequestRequest(models.Model):
-    _inherit = "request.request"
+class RequestOrder(models.Model):
+    _inherit = "request.order"
 
     expense_sheet_counts = fields.Integer(
         string="Expense Sheet Count",
