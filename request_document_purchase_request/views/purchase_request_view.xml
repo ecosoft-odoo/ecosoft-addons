@@ -5,8 +5,13 @@
         <field name="model">purchase.request</field>
         <field name="inherit_id" ref="purchase_request.view_purchase_request_form" />
         <field name="arch" type="xml">
+            <xpath expr="//header" position="attributes">
+                <attribute
+                    name="invisible"
+                >context.get('invisible_header', False)</attribute>
+            </xpath>
             <xpath expr="//group[3]" position="inside">
-                <field name="request_document_id" />
+                <field name="request_document_id" readonly="1" />
             </xpath>
         </field>
     </record>
