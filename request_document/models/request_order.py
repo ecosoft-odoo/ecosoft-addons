@@ -22,6 +22,9 @@ class RequestOrder(models.Model):
         required=True,
         default=lambda self: self.env.company,
     )
+    currency_id = fields.Many2one(
+        comodel_name="res.currency", related="company_id.currency_id"
+    )
     line_ids = fields.One2many(
         comodel_name="request.document",
         inverse_name="request_id",
@@ -37,6 +40,19 @@ class RequestOrder(models.Model):
         default="draft",
         tracking=True,
     )
+    total_amount_document = fields.Monetary(compute="_compute_total_amount")
+    total_amount_request = fields.Monetary(compute="_compute_total_amount")
+
+    @api.depends("line_ids.total_amount_document", "line_ids.total_amount_request")
+    def _compute_total_amount(self):
+        for rec in self:
+            request_document = rec.line_ids
+            rec.total_amount_document = sum(
+                request_document.mapped("total_amount_document")
+            )
+            rec.total_amount_request = sum(
+                request_document.mapped("total_amount_request")
+            )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -48,6 +64,9 @@ class RequestOrder(models.Model):
         return super().create(vals_list)
 
     def action_submit(self):
+        for rec in self:
+            for line in rec.line_ids:
+                line.total_amount_request = line.total_amount_document
         return self.write({"state": "submit"})
 
     def action_approve(self):
@@ -56,8 +75,8 @@ class RequestOrder(models.Model):
     def action_done(self):
         return self.write({"state": "done"})
 
-    def action_create_document(self):
-        """Hook method to create document"""
+    def action_process_document(self):
+        """Hook method to process document"""
         for rec in self:
             for line in rec.line_ids:
                 getattr(line, f"_create_{line.request_type}")()

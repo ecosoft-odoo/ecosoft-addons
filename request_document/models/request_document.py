@@ -19,6 +19,16 @@ class RequestDocument(models.Model):
         store=True,
         string="Reference",
     )
+    name_document = fields.Char(
+        string="Document",
+        compute="_compute_document",
+        store=True,
+    )
+    total_amount_request = fields.Monetary()
+    total_amount_document = fields.Monetary(
+        compute="_compute_document",
+        store=True,
+    )
     request_type = fields.Selection(
         selection=[],
         required=True,
@@ -48,3 +58,11 @@ class RequestDocument(models.Model):
         for rec in self:
             if rec.id:
                 rec.name = f"{rec.request_id.name} - {rec.id}"
+
+    def open_request_document(self):
+        return
+
+    def _compute_document(self):
+        for rec in self:
+            rec.name_document = ""
+            rec.total_amount_document = 0.0

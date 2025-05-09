@@ -12,7 +12,9 @@
                     string="Request Document"
                     name="request_document"
                 >
-                    <h2>Request Document</h2>
+                    <block title="Request Document" name="request_docs">
+                        <setting string="Request Document Configuration" />
+                    </block>
                 </app>
             </xpath>
         </field>

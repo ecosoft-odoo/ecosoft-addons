@@ -54,7 +54,7 @@ class TestRequestDocument(TransactionCase):
         self.assertEqual(request.state, "submit")
         request.action_approve()
         self.assertEqual(request.state, "approve")
-        request.action_create_document()
+        request.action_process_document()
         self.assertEqual(request.state, "done")
         request.action_cancel()
         self.assertEqual(request.state, "cancel")
