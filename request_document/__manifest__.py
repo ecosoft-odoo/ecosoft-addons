@@ -11,8 +11,8 @@
     "depends": ["base", "mail"],
     "data": [
         "security/ir.model.access.csv",
-        "security/request_request_security.xml",
-        "data/request_request_data.xml",
+        "security/request_order_security.xml",
+        "data/request_order_data.xml",
         "views/request_menuitem.xml",
         "views/res_config_settings_views.xml",
         "views/request_order_view.xml",

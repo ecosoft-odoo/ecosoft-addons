@@ -38,9 +38,9 @@
                         class="oe_highlight"
                     />
                     <button
-                        name="action_create_document"
+                        name="action_process_document"
                         invisible="state != 'approve'"
-                        string="Create Document"
+                        string="Done"
                         type="object"
                         class="oe_highlight"
                     />
@@ -78,11 +78,22 @@
                                 name="company_id"
                                 groups="base.group_multi_company"
                             />
+                            <field
+                                name="currency_id"
+                                groups="base.group_multi_currency"
+                            />
                         </group>
                     </group>
                     <notebook>
-                        <page name="request_document_line" string="Document">
+                        <page name="request_document" string="Document">
                             <field name="line_ids" readonly="state != 'draft'" />
+                            <group
+                                name="total_amount"
+                                class="oe_subtotal_footer oe_right"
+                            >
+                                <field name="total_amount_document" />
+                                <field name="total_amount_request" />
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
