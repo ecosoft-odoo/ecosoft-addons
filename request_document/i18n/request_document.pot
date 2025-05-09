@@ -75,11 +75,6 @@ msgid "Configurations"
 msgstr ""
 
 #. module: request_document
-#: model_terms:ir.ui.view,arch_db:request_document.view_request_order_form
-msgid "Create Document"
-msgstr ""
-
-#. module: request_document
 #: model_terms:ir.ui.view,arch_db:request_document.view_request_order_search
 msgid "Created By"
 msgstr ""
@@ -98,6 +93,7 @@ msgstr ""
 
 #. module: request_document
 #: model:ir.model.fields,field_description:request_document.field_request_document__currency_id
+#: model:ir.model.fields,field_description:request_document.field_request_order__currency_id
 msgid "Currency"
 msgstr ""
 
@@ -108,12 +104,14 @@ msgid "Display Name"
 msgstr ""
 
 #. module: request_document
+#: model:ir.model.fields,field_description:request_document.field_request_document__name_document
 #: model_terms:ir.ui.view,arch_db:request_document.view_request_order_form
 msgid "Document"
 msgstr ""
 
 #. module: request_document
 #: model:ir.model.fields.selection,name:request_document.selection__request_order__state__done
+#: model_terms:ir.ui.view,arch_db:request_document.view_request_order_form
 msgid "Done"
 msgstr ""
 
@@ -252,6 +250,11 @@ msgid "Number of messages with delivery error"
 msgstr ""
 
 #. module: request_document
+#: model_terms:ir.ui.view,arch_db:request_document.view_request_document_list
+msgid "Open Details"
+msgstr ""
+
+#. module: request_document
 #: model:ir.model.fields,field_description:request_document.field_request_document__name
 msgid "Reference"
 msgstr ""
@@ -267,6 +270,11 @@ msgstr ""
 #: model:ir.model,name:request_document.model_request_document
 #: model_terms:ir.ui.view,arch_db:request_document.res_config_settings_view_form_request_document
 msgid "Request Document"
+msgstr ""
+
+#. module: request_document
+#: model_terms:ir.ui.view,arch_db:request_document.res_config_settings_view_form_request_document
+msgid "Request Document Configuration"
 msgstr ""
 
 #. module: request_document
@@ -334,6 +342,28 @@ msgid "Submitted"
 msgstr ""
 
 #. module: request_document
+#: model:ir.model.fields,field_description:request_document.field_request_document__total_amount_document
+#: model:ir.model.fields,field_description:request_document.field_request_order__total_amount_document
+msgid "Total Amount Document"
+msgstr ""
+
+#. module: request_document
+#: model:ir.model.fields,field_description:request_document.field_request_document__total_amount_request
+#: model:ir.model.fields,field_description:request_document.field_request_order__total_amount_request
+msgid "Total Amount Request"
+msgstr ""
+
+#. module: request_document
 #: model:ir.model.fields,help:request_document.field_request_order__activity_exception_decoration
 msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: request_document
+#: model_terms:ir.ui.view,arch_db:request_document.view_request_document_list
+msgid "total_document"
+msgstr ""
+
+#. module: request_document
+#: model_terms:ir.ui.view,arch_db:request_document.view_request_document_list
+msgid "total_request"
 msgstr ""
