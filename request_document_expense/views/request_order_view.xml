@@ -11,7 +11,7 @@
                     name="action_open_expense_sheet"
                     class="oe_stat_button"
                     icon="fa-file-text-o"
-                    attrs="{'invisible': [('state', '!=', 'done')]}"
+                    invisible="state != 'done'"
                 >
                     <div class="o_field_widget o_stat_info">
                         <span class="o_stat_value">

@@ -28,9 +28,9 @@ class RequestDocument(models.Model):
 
     def _update_state_expense(self, sheets, state_config):
         self.ensure_one()
-        sheets.approve_expense_sheets()
+        sheets.action_approve_expense_sheets()
         if state_config == "post":
-            sheets.action_sheet_move_create()
+            sheets.action_sheet_move_post()
 
     def _create_expense(self):
         self.ensure_one()
