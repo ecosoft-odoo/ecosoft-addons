@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 import base64
 import json
+import logging
 
 import requests
 
@@ -9,6 +10,8 @@ from odoo import _, fields, models
 from odoo.exceptions import ValidationError
 
 from ..inet import inet_data_template as data_template
+
+_logger = logging.getLogger(__name__)
 
 # TODO:
 # - If processing or success, do not allow sent again.
@@ -99,21 +102,30 @@ class ETaxTH(models.AbstractModel):
         self.ensure_one()
         if self.etax_status != "processing":
             return
+
         auth_token, server_url = self._get_connection()
-        field_api = self._get_field_api()
+        field_api = json.dumps(self._get_field_api())
         url = (
             f"{server_url}/api/resource/INET ETax Document?filters="
             f'[["transaction_code","=","{self.etax_transaction_code}"]]'
             f"&fields={field_api}"
         )
 
-        res = requests.get(
+        response = requests.get(
             url,
             headers={"Authorization": "token %s" % auth_token},
             timeout=20,
-        ).json()
+        )
+
+        # Handle known error response
+        if not response.ok:
+            return _logger.error(f"API Error: {response.status_code} - {response.text}")
+
+        res = response.json()
+
         if not res.get("data"):
-            return
+            return _logger.error("No data return")
+
         response = res.get("data")[0]
         # Update status
         self.etax_status = response.get("status").lower()
@@ -151,8 +163,8 @@ class ETaxTH(models.AbstractModel):
             try:
                 record.update_processing_document()
                 self._cr.commit()  # pylint: disable=invalid-commit
-            except Exception:
-                continue
+            except Exception as e:
+                _logger.error("API Error: run_update_processing_document(), %s", e)
 
     def sign_etax(self):
         self.ensure_one()
