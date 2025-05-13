@@ -21,6 +21,30 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
+[account_asset_disable_create](account_asset_disable_create/) | 15.0.1.0.0 |  | Account Asset disable create
+[account_asset_product](account_asset_product/) | 15.0.1.0.0 |  | Account Asset Product
+[account_financial_report_extension](account_financial_report_extension/) | 15.0.1.0.0 |  | Account Financial Report Extension
+[account_move_reconcile_no_cancel](account_move_reconcile_no_cancel/) | 15.0.1.0.0 |  | Account Move Reconcile No Cancel
+[account_reconciliation_widget_extension](account_reconciliation_widget_extension/) | 15.0.1.0.0 | [![ps-tubtim](https://github.com/ps-tubtim.png?size=30px)](https://github.com/ps-tubtim) [![Saran440](https://github.com/Saran440.png?size=30px)](https://github.com/Saran440) | Account Reconciliation Widget Extension
+[base_hide_delete_view](base_hide_delete_view/) | 15.0.1.0.0 | [![Saran440](https://github.com/Saran440.png?size=30px)](https://github.com/Saran440) | Base Hide Delete View
+[base_new_line_default](base_new_line_default/) | 15.0.1.0.0 | [![kittiu](https://github.com/kittiu.png?size=30px)](https://github.com/kittiu) | New one2many line defaults from previous line
+[base_report_extension](base_report_extension/) | 15.0.1.0.0 |  | Base Report Extension
+[ecosoft_services](ecosoft_services/) | 15.0.1.0.0 |  | Ecosoft Services
+[frappe_etax_service](frappe_etax_service/) | 15.0.1.0.1 |  | Connector to Frappe eTax service
+[hr_expense_cash_basis](hr_expense_cash_basis/) | 15.0.1.0.0 |  | HR Expense - Cash Basis
+[l10n_th_account_wht_cert_form_sequence](l10n_th_account_wht_cert_form_sequence/) | 15.0.1.0.0 | [![ps-tubtim](https://github.com/ps-tubtim.png?size=30px)](https://github.com/ps-tubtim) | Define sequence for WHT Cert.
+[l10n_th_hr_expense_cash_basis](l10n_th_hr_expense_cash_basis/) | 15.0.1.0.0 |  | Thailand HR Expense - Cash Basis
+[mrp_price_difference](mrp_price_difference/) | 15.0.1.0.0 |  | MRP Price Difference
+[mrp_stock_analytic](mrp_stock_analytic/) | 15.0.1.0.0 |  | Analytic for manufacturing and stock
+[product_readonly](product_readonly/) | 15.0.1.0.0 |  | Product Template - Readonly
+[request_document](request_document/) | 15.0.1.1.0 |  | Request Document
+[request_document_exception](request_document_exception/) | 15.0.1.0.0 |  | Request Document - Exception
+[request_document_expense](request_document_expense/) | 15.0.1.0.0 |  | Request Document - Expense
+[request_document_purchase_request](request_document_purchase_request/) | 15.0.1.0.0 |  | Request Document - Purchase Request
+[request_document_tier_validation](request_document_tier_validation/) | 15.0.1.0.0 |  | Request Document - Tier Validation
+[stock_account_visible_valuation](stock_account_visible_valuation/) | 15.0.1.0.0 |  | Stock Account - Visible Valuation
+[usability_webhooks](usability_webhooks/) | 15.0.1.0.0 |  | REST API for Webhook
+[usability_webhooks_queue_job](usability_webhooks_queue_job/) | 15.0.1.0.0 |  | REST API - Job Queue
 
 [//]: # (end addons)
 
