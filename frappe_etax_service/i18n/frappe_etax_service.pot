@@ -591,6 +591,16 @@ msgid "Run Background"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_wizard_select_etax_doctype
+msgid "Select etax document on wizard"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_wizard_select_replacement_purpose
+msgid "Select etax replacement document on wizard"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,help:frappe_etax_service.field_doc_type__doc_source_template
 msgid "Select source template between Odoo and Frappe"
 msgstr ""
@@ -781,16 +791,6 @@ msgstr ""
 #. module: frappe_etax_service
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__doc_type__doc_source_template__odoo
 msgid "odoo"
-msgstr ""
-
-#. module: frappe_etax_service
-#: model:ir.model,name:frappe_etax_service.model_wizard_select_etax_doctype
-msgid "wizard.select.etax.doctype"
-msgstr ""
-
-#. module: frappe_etax_service
-#: model:ir.model,name:frappe_etax_service.model_wizard_select_replacement_purpose
-msgid "wizard.select.replacement.purpose"
 msgstr ""
 
 #. module: frappe_etax_service
