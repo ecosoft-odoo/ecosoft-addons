@@ -9,6 +9,7 @@ from odoo.exceptions import ValidationError
 
 class WizardSelectReplacementPurpose(models.TransientModel):
     _name = "wizard.select.replacement.purpose"
+    _description = "Select etax replacement document on wizard"
 
     purpose_code_id = fields.Many2one(
         comodel_name="purpose.code",

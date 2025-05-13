@@ -7,6 +7,7 @@ from odoo.exceptions import ValidationError
 
 class WizardSelectEtaxDoctype(models.TransientModel):
     _name = "wizard.select.etax.doctype"
+    _description = "Select etax document on wizard"
 
     frappe_server_url = fields.Char(
         string="ETax Server",
