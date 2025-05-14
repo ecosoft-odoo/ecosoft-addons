@@ -10,6 +10,7 @@ class PurchaseRequest(models.Model):
 
     request_document_id = fields.Many2one(
         comodel_name="request.document",
+        ondelete="cascade",
     )
 
     def write(self, vals):
