@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="request_excep_no_line" model="exception.rule">
+        <field name="name">No lines</field>
+        <field name="sequence">50</field>
+        <field name="model">request.order</field>
+        <field name="code">if not self.line_ids:
+            failed=True</field>
+        <field name="active" eval="False" />
+    </record>
+</odoo>
