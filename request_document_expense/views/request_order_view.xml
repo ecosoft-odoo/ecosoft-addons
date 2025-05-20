@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_request_order_form" model="ir.ui.view">
+        <field name="name">view.request.order.form</field>
+        <field name="model">request.order</field>
+        <field name="inherit_id" ref="request_document.view_request_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[@name='button_box']" position="inside">
+                <button
+                    type="object"
+                    name="action_open_expense_sheet"
+                    class="oe_stat_button"
+                    icon="fa-file-text-o"
+                    invisible="state != 'done'"
+                >
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="expense_sheet_counts" />
+                        </span>
+                        <span class="o_stat_text"> Expense(s)</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

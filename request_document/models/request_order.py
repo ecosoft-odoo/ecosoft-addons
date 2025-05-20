@@ -40,8 +40,16 @@ class RequestOrder(models.Model):
         default="draft",
         tracking=True,
     )
-    total_amount_document = fields.Monetary(compute="_compute_total_amount")
-    total_amount_request = fields.Monetary(compute="_compute_total_amount")
+    total_amount_document = fields.Monetary(
+        compute="_compute_total_amount",
+        store=True,
+        tracking=True,
+    )
+    total_amount_request = fields.Monetary(
+        compute="_compute_total_amount",
+        store=True,
+        tracking=True,
+    )
 
     @api.depends("line_ids.total_amount_document", "line_ids.total_amount_request")
     def _compute_total_amount(self):
