@@ -359,6 +359,16 @@ msgid "Type of the exception activity on record."
 msgstr ""
 
 #. module: request_document
+#: model:ir.model.fields,field_description:request_document.field_request_order__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: request_document
+#: model:ir.model.fields,help:request_document.field_request_order__website_message_ids
+msgid "Website communication history"
+msgstr ""
+
+#. module: request_document
 #: model_terms:ir.ui.view,arch_db:request_document.view_request_document_list
 msgid "total_document"
 msgstr ""
