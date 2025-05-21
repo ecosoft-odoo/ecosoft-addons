@@ -16,17 +16,28 @@ class RequestDocument(models.Model):
         inverse_name="request_document_id",
     )
 
+    def _get_state_progression_paths(self):
+        return {
+            "to_approve": ["button_to_approve"],
+            "approved": ["button_to_approve", "button_approved"],
+            "in_progress": [
+                "button_to_approve",
+                "button_approved",
+                "button_in_progress",
+            ],
+            "done": ["button_to_approve", "button_approved", "button_done"],
+            "rejected": ["button_rejected"],
+        }
+
     def _update_state_purchase_request(self, purchase_request):
         self.ensure_one()
+        purchase_request = purchase_request.with_context(allow_edit=1)
         state_config = self.company_id.request_document_pr_state
-        if state_config in ["to_approve", "approved", "done"]:
-            purchase_request.button_to_approve()
-            if state_config in ["approved", "done"]:
-                purchase_request.button_approved()
-                if state_config == "done":
-                    purchase_request.button_done()
-        if state_config == "rejected":
-            purchase_request.button_rejected()
+        state_progression_paths = self._get_state_progression_paths()
+        for method_name in state_progression_paths.get(state_config, []):
+            method_process = getattr(purchase_request, method_name, None)
+            if method_process:
+                method_process()
 
     def _create_purchase_request(self):
         self.ensure_one()

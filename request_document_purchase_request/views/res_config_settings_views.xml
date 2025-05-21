@@ -8,20 +8,13 @@
             ref="request_document.res_config_settings_view_form_request_document"
         />
         <field name="arch" type="xml">
-            <xpath
-                expr="//div[@name='request_document_setting_container']"
-                position="inside"
-            >
-                <div class="col-12 col-lg-6 o_setting_box" id="purchase_request_state">
-                    <div class="o_setting_left_pane" />
-                    <div class="o_setting_right_pane">
-                        <label for="request_document_pr_state" />
-                        <div class="text-muted">
-                            Update purchase request state
-                        </div>
-                        <field name="request_document_pr_state" />
-                    </div>
-                </div>
+            <xpath expr="//block[@name='request_docs']" position="inside">
+                <setting
+                    string="Purchase Request State"
+                    help="The default state of a Purchase Request created from a Request Document is set when the Request Document reaches the 'Done' state."
+                >
+                    <field name="request_document_pr_state" />
+                </setting>
             </xpath>
         </field>
     </record>

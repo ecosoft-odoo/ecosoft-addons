@@ -1,7 +1,7 @@
 # Copyright 2024 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import _, fields, models
+from odoo import fields, models
 from odoo.exceptions import UserError
 
 
@@ -21,7 +21,7 @@ class PurchaseRequest(models.Model):
         for rec in self:
             if rec.request_document_id and rec.request_document_id.state != "done":
                 raise UserError(
-                    _(
+                    self.env._(
                         "You cannot modify this record because the related "
                         "Request Document is not in 'Done' state."
                     )
