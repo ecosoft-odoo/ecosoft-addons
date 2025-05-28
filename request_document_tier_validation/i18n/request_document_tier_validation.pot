@@ -14,42 +14,42 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__can_review
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__can_review
 msgid "Can Review"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__has_comment
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__has_comment
 msgid "Has Comment"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__need_validation
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__need_validation
 msgid "Need Validation"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__next_review
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__next_review
 msgid "Next Review"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__rejected
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__rejected
 msgid "Rejected"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__rejected_message
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__rejected_message
 msgid "Rejected Message"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model,name:request_document_tier_validation.model_request_request
-msgid "Request Header"
+#: model:ir.model,name:request_document_tier_validation.model_request_order
+msgid "Request Order"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__reviewer_ids
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__reviewer_ids
 msgid "Reviewers"
 msgstr ""
 
@@ -59,26 +59,26 @@ msgid "Tier Definition"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__to_validate_message
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__to_validate_message
 msgid "To Validate Message"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__validated
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__validated
 msgid "Validated"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__validated_message
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__validated_message
 msgid "Validated Message"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__validation_status
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__validation_status
 msgid "Validation Status"
 msgstr ""
 
 #. module: request_document_tier_validation
-#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_request__review_ids
+#: model:ir.model.fields,field_description:request_document_tier_validation.field_request_order__review_ids
 msgid "Validations"
 msgstr ""
