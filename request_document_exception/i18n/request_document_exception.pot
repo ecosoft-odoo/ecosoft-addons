@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: request_document_exception
-#: model_terms:ir.ui.view,arch_db:request_document_exception.view_request_request_form
+#: model_terms:ir.ui.view,arch_db:request_document_exception.view_request_order_form
 msgid "<strong>There are exceptions blocking this Requests:</strong>"
 msgstr ""
 
@@ -24,7 +24,7 @@ msgid "Apply on"
 msgstr ""
 
 #. module: request_document_exception
-#: model_terms:ir.ui.view,arch_db:request_document_exception.view_request_request_form
+#: model_terms:ir.ui.view,arch_db:request_document_exception.view_request_order_form
 msgid ""
 "Click here to be able to confirm this Agreement regardless of the "
 "exceptions."
@@ -51,12 +51,12 @@ msgid "Exception Rule"
 msgstr ""
 
 #. module: request_document_exception
-#: model:ir.model.fields,field_description:request_document_exception.field_request_request__exception_ids
+#: model:ir.model.fields,field_description:request_document_exception.field_request_order__exception_ids
 msgid "Exceptions"
 msgstr ""
 
 #. module: request_document_exception
-#: model:ir.model.fields,field_description:request_document_exception.field_request_request__exceptions_summary
+#: model:ir.model.fields,field_description:request_document_exception.field_request_order__exceptions_summary
 msgid "Exceptions Summary"
 msgstr ""
 
@@ -73,8 +73,8 @@ msgstr ""
 #. module: request_document_exception
 #: model:ir.model.fields,field_description:request_document_exception.field_request_document__ignore_exception
 #: model:ir.model.fields,field_description:request_document_exception.field_request_exception_confirm__ignore
-#: model:ir.model.fields,field_description:request_document_exception.field_request_request__ignore_exception
-#: model_terms:ir.ui.view,arch_db:request_document_exception.view_request_request_form
+#: model:ir.model.fields,field_description:request_document_exception.field_request_order__ignore_exception
+#: model_terms:ir.ui.view,arch_db:request_document_exception.view_request_order_form
 msgid "Ignore Exceptions"
 msgstr ""
 
@@ -94,7 +94,7 @@ msgid "Last Updated on"
 msgstr ""
 
 #. module: request_document_exception
-#: model:ir.model.fields,field_description:request_document_exception.field_request_request__main_exception_id
+#: model:ir.model.fields,field_description:request_document_exception.field_request_order__main_exception_id
 msgid "Main Exception"
 msgstr ""
 
@@ -121,13 +121,9 @@ msgid "Request Exception Rules"
 msgstr ""
 
 #. module: request_document_exception
-#: model:ir.model,name:request_document_exception.model_request_request
-msgid "Request Header"
-msgstr ""
-
-#. module: request_document_exception
-#: model:ir.model.fields.selection,name:request_document_exception.selection__exception_rule__model__request_request
-msgid "Request Sheet"
+#: model:ir.model,name:request_document_exception.model_request_order
+#: model:ir.model.fields.selection,name:request_document_exception.selection__exception_rule__model__request_order
+msgid "Request Order"
 msgstr ""
 
 #. module: request_document_exception
@@ -136,6 +132,6 @@ msgid "Request exception wizard"
 msgstr ""
 
 #. module: request_document_exception
-#: model:ir.model.fields,field_description:request_document_exception.field_exception_rule__request_request_ids
+#: model:ir.model.fields,field_description:request_document_exception.field_exception_rule__request_order_ids
 msgid "Requests"
 msgstr ""
