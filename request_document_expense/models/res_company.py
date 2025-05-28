@@ -9,13 +9,12 @@ class ResCompany(models.Model):
 
     request_document_ex_state = fields.Selection(
         selection=[
-            ("draft", "Draft"),
             ("submit", "Submitted"),
             ("approve", "Approved"),
             ("post", "Posted"),
         ],
         string="Expense State",
-        default="draft",
+        default="submit",
         required=True,
         help="Default state for Expense",
     )

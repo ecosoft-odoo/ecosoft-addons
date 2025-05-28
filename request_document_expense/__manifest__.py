@@ -10,11 +10,9 @@
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": ["request_document", "hr_expense"],
     "data": [
-        "security/ir.model.access.csv",
         "views/res_config_settings_views.xml",
         "views/hr_expense_views.xml",
-        "views/request_document_view.xml",
-        "views/request_request_view.xml",
+        "views/request_order_view.xml",
     ],
     "installable": True,
 }

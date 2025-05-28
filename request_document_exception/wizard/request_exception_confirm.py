@@ -9,7 +9,7 @@ class RequestExceptionConfirm(models.TransientModel):
     _description = "Request exception wizard"
     _inherit = ["exception.rule.confirm"]
 
-    related_model_id = fields.Many2one(comodel_name="request.request", string="Request")
+    related_model_id = fields.Many2one(comodel_name="request.order", string="Request")
 
     def action_confirm(self):
         self.ensure_one()

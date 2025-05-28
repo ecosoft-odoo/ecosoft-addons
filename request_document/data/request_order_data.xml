@@ -2,7 +2,7 @@
 <odoo noupdate="1">
     <record id="seq_request" model="ir.sequence">
         <field name="name">Request Sequence</field>
-        <field name="code">request.request</field>
+        <field name="code">request.order</field>
         <field name="padding" eval="5" />
         <field name="prefix">RQ</field>
     </record>
