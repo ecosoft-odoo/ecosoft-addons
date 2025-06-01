@@ -40,6 +40,7 @@ msgid "Default state for Expense"
 msgstr ""
 
 #. module: request_document_expense
+#: model:ir.model,name:request_document_expense.model_hr_expense
 #: model:ir.model.fields.selection,name:request_document_expense.selection__request_document__request_type__expense
 msgid "Expense"
 msgstr ""
@@ -97,6 +98,7 @@ msgid "Update expense state"
 msgstr ""
 
 #. module: request_document_expense
+#: code:addons/request_document_expense/models/hr_expense.py:0
 #: code:addons/request_document_expense/models/hr_expense.py:0
 #, python-format
 msgid ""
