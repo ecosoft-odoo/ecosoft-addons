@@ -27,3 +27,34 @@ class HRExpenseSheet(models.Model):
                     )
                 )
         return super().write(vals)
+
+
+class HRExpense(models.Model):
+    _inherit = "hr.expense"
+
+    def _fields_exception(self):
+        return {"date_commit", "amount_commit"}
+
+    def write(self, vals):
+        """Don't allow change value if request document is not done"""
+        allowed_fields = self._fields_exception()
+        if self.env.context.get("allow_edit") or all(
+            field in allowed_fields for field in vals.keys()
+        ):
+            return super().write(vals)
+
+        for rec in self:
+            if not rec.sheet_id:
+                continue
+
+            if (
+                rec.sheet_id.request_document_id
+                and rec.sheet_id.request_document_id.state != "done"
+            ):
+                raise UserError(
+                    self.env._(
+                        "You cannot modify this record because the related "
+                        "Request Document is not in 'Done' state."
+                    )
+                )
+        return super().write(vals)
