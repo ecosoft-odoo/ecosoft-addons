@@ -16,7 +16,7 @@ class RequestDocument(models.Model):
         inverse_name="request_document_id",
     )
 
-    @api.depends("expense_sheet_ids")
+    @api.depends("expense_sheet_ids", "expense_sheet_ids.total_amount")
     def _compute_document(self):
         res = super()._compute_document()
         for rec in self:
