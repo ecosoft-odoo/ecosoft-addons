@@ -8,12 +8,13 @@
             ref="request_document.res_config_settings_view_form_request_document"
         />
         <field name="arch" type="xml">
-            <xpath expr="//app[@name='request_document']" position="inside">
-                <block title="Request Document Expense" name="request_expense">
-                    <setting string="Update expense state">
-                        <field name="request_document_ex_state" />
-                    </setting>
-                </block>
+            <xpath expr="//block[@name='request_docs']" position="inside">
+                <setting
+                    string="Expense State"
+                    help="The default state of a Expense created from a Request Document is set when the Request Document reaches the 'Done' state."
+                >
+                    <field name="request_document_ex_state" />
+                </setting>
             </xpath>
         </field>
     </record>
