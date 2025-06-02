@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_request_document" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.request</field>
+        <field name="model">res.config.settings</field>
+        <field
+            name="inherit_id"
+            ref="request_document.res_config_settings_view_form_request_document"
+        />
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='request_docs']" position="inside">
+                <setting
+                    string="Purchase Request State"
+                    help="The default state of a Purchase Request created from a Request Document is set when the Request Document reaches the 'Done' state."
+                >
+                    <field name="request_document_pr_state" />
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
