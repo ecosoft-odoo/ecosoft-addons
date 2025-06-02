@@ -273,11 +273,6 @@ msgid "Request Document"
 msgstr ""
 
 #. module: request_document
-#: model_terms:ir.ui.view,arch_db:request_document.res_config_settings_view_form_request_document
-msgid "Request Document Configuration"
-msgstr ""
-
-#. module: request_document
 #: model:ir.actions.act_window,name:request_document.action_request_order
 #: model:ir.model,name:request_document.model_request_order
 #: model:ir.ui.menu,name:request_document.menu_request_order
