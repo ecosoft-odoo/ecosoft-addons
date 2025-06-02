@@ -63,6 +63,7 @@ msgstr ""
 #. module: request_document_expense
 #: model:ir.model.fields,field_description:request_document_expense.field_res_company__request_document_ex_state
 #: model:ir.model.fields,field_description:request_document_expense.field_res_config_settings__request_document_ex_state
+#: model_terms:ir.ui.view,arch_db:request_document_expense.res_config_settings_view_form_request_document
 msgid "Expense State"
 msgstr ""
 
@@ -75,11 +76,6 @@ msgstr ""
 #: model:ir.model,name:request_document_expense.model_request_document
 #: model:ir.model.fields,field_description:request_document_expense.field_hr_expense_sheet__request_document_id
 msgid "Request Document"
-msgstr ""
-
-#. module: request_document_expense
-#: model_terms:ir.ui.view,arch_db:request_document_expense.res_config_settings_view_form_request_document
-msgid "Request Document Expense"
 msgstr ""
 
 #. module: request_document_expense
@@ -99,7 +95,9 @@ msgstr ""
 
 #. module: request_document_expense
 #: model_terms:ir.ui.view,arch_db:request_document_expense.res_config_settings_view_form_request_document
-msgid "Update expense state"
+msgid ""
+"The default state of a Expense created from a Request Document is set when "
+"the Request Document reaches the 'Done' state."
 msgstr ""
 
 #. module: request_document_expense
