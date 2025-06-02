@@ -21,9 +21,9 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
-[request_document](request_document/) | 18.0.2.0.0 | [![Saran440](https://github.com/Saran440.png?size=30px)](https://github.com/Saran440) | Request Document
+[request_document](request_document/) | 18.0.2.0.1 | [![Saran440](https://github.com/Saran440.png?size=30px)](https://github.com/Saran440) | Request Document
 [request_document_exception](request_document_exception/) | 18.0.1.0.0 |  | Request Document - Exception
-[request_document_expense](request_document_expense/) | 18.0.1.0.1 |  | Request Document - Expense
+[request_document_expense](request_document_expense/) | 18.0.1.0.2 |  | Request Document - Expense
 [request_document_tier_validation](request_document_tier_validation/) | 18.0.1.0.0 |  | Request Document - Tier Validation
 [usability_webhooks](usability_webhooks/) | 18.0.1.0.0 |  | REST API for Webhook
 
