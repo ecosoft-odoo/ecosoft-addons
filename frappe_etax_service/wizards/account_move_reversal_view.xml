@@ -6,13 +6,17 @@
         <field name="inherit_id" ref="account.view_account_move_reversal" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reason']" position="attributes">
-                <attribute
-                    name="attrs"
-                >{'invisible': [('purpose_code', '!=', 'CDNG99')], 'required': [('purpose_code', '==', 'CDNG99')]}</attribute>
+                <attribute name="invisible">purpose_code != 'CDNG99'</attribute>
+                <attribute name="required">purpose_code == 'CDNG99'</attribute>
             </xpath>
             <xpath expr="//field[@name='reason']" position="before">
                 <field name="purpose_code" invisible="1" />
-                <field name="purpose_code_id" required="1" options="{'no_open':True}" />
+                <field
+                    name="purpose_code_id"
+                    required="1"
+                    options="{'no_open':True}"
+                    domain="[('is_credit_note', '=', True)]"
+                />
             </xpath>
         </field>
     </record>

@@ -3,7 +3,7 @@
 
 import datetime
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -14,8 +14,6 @@ class WizardSelectReplacementPurpose(models.TransientModel):
     purpose_code_id = fields.Many2one(
         comodel_name="purpose.code",
         string="Purpose",
-        domain="[('is_replacement', '=', True)]",
-        required=True,
     )
     reason = fields.Char(
         required=True,
@@ -89,5 +87,6 @@ class WizardSelectReplacementPurpose(models.TransientModel):
         )
         if datetime.date.today() > dt:
             raise ValidationError(
-                _("Create Replace e-Tax not allowed after %s") % dt.strftime("%d/%m/%Y")
+                self.env._("Create Replace e-Tax not allowed after %s")
+                % dt.strftime("%d/%m/%Y")
             )

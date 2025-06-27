@@ -18,6 +18,8 @@
                         <field
                             name="purpose_code_id"
                             options="{'no_create_edit':True,'no_open': True,}"
+                            domain="[('is_replacement', '=', True)]"
+                            required="1"
                         />
                     </group>
                     <group>

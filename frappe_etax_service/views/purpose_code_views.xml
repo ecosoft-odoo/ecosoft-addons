@@ -24,11 +24,11 @@
             </form>
         </field>
     </record>
-    <record id="view_purpose_code_tree" model="ir.ui.view">
-        <field name="name">view.purpose.code.tree</field>
+    <record id="view_purpose_code_list" model="ir.ui.view">
+        <field name="name">view.purpose.code.list</field>
         <field name="model">purpose.code</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name" />
                 <field name="code" />
                 <field name="reason" />
@@ -37,13 +37,13 @@
                 <field name="is_debit_note" optional="show" />
                 <field name="is_receipt" optional="show" />
                 <field name="is_replacement" optional="show" />
-            </tree>
+            </list>
         </field>
     </record>
     <record id="purpose_code_action" model="ir.actions.act_window">
         <field name="name">Purpose Code</field>
         <field name="res_model">purpose.code</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem

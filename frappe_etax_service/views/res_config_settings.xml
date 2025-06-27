@@ -7,55 +7,39 @@
         <field name="inherit_id" ref="account.res_config_settings_view_form" />
         <field name="arch" type="xml">
             <xpath
-                expr="//div[@name='default_taxes_setting_container']"
+                expr="//block[@name='default_taxes_setting_container']"
                 position="after"
             >
-                <h2>Ecosoft e-Tax Services</h2>
-                <div class="row mt16 o_settings_container">
-                    <div class="col-12 col-lg-6 o_setting_box" id="frappe_server_url">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Frappe Server URL</span>
-                            <span class="text-muted">
-                                <field name="frappe_server_url" />
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-12 col-lg-6 o_setting_box" id="frappe_auth_token">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Frappe Auth Token</span>
-                            <span class="text-muted">
-                                <field name="frappe_auth_token" />
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <div class="o_setting_left_pane">
-                            <field name="is_send_etax_email" />
-                        </div>
-                        <div class="o_setting_right_pane">
-                            <label for="is_send_etax_email" string="Send Email" />
-                            <div class="text-muted">
-                                Allow to send an email to partner after sign etax.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <div class="o_setting_left_pane" />
-                        <div class="o_setting_right_pane">
-                            <span class="o_form_label">Replacement Lock Date</span>
-                            <span class="text-muted">
-                                <field name="replacement_lock_date" />
-                            </span>
-                            <div class="text-muted">
-                                e-Tax Replacement not allowed after this date of next invoice month<br
-                            />
-                                For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000.
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <block title="Ecosoft e-Tax Services" id="ecosoft_etax_services">
+                    <setting id="frappe_server_url" string="Frappe Server URL">
+                        <field
+                            name="frappe_server_url"
+                            placeholder="Paste your frappe server URL"
+                        />
+                    </setting>
+                    <setting
+                        id="frappe_auth_token"
+                        string="Frappe Auth Token"
+                        help="Frappe token in the format &lt;api_key&gt;:&lt;api_secret&gt;"
+                    >
+                        <field
+                            name="frappe_auth_token"
+                            placeholder="Paste your token."
+                        />
+                    </setting>
+                    <setting
+                        id="frappe_send_email"
+                        help="Allow to send an email to partner after sign etax."
+                    >
+                        <field name="is_send_etax_email" />
+                    </setting>
+                    <setting
+                        id="frappe_replacement_lock_date"
+                        help="e-Tax Replacement not allowed after this date of next invoice month. For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000."
+                    >
+                        <field name="replacement_lock_date" />
+                    </setting>
+                </block>
             </xpath>
         </field>
     </record>

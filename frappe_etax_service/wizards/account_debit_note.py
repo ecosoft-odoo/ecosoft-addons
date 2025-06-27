@@ -7,7 +7,8 @@ class AccountDebitNote(models.TransientModel):
     _inherit = "account.debit.note"
 
     purpose_code_id = fields.Many2one(
-        "purpose.code", string="Refund Reason", domain="[('is_debit_note', '=', True)]"
+        comodel_name="purpose.code",
+        string="Refund Reason",
     )
     purpose_code = fields.Char()
 

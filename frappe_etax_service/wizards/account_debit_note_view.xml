@@ -6,13 +6,17 @@
         <field name="inherit_id" ref="account_debit_note.view_account_debit_note" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reason']" position="attributes">
-                <attribute
-                    name="attrs"
-                >{'invisible': [('purpose_code', '!=', 'DBNG99')], 'required': [('purpose_code', '==', 'DBNG99')]}</attribute>
+                <attribute name="invisible">purpose_code != 'DBNG99'</attribute>
+                <attribute name="required">purpose_code == 'DBNG99'</attribute>
             </xpath>
             <xpath expr="//field[@name='reason']" position="before">
                 <field name="purpose_code" invisible="1" />
-                <field name="purpose_code_id" required="1" options="{'no_open':True}" />
+                <field
+                    name="purpose_code_id"
+                    required="1"
+                    options="{'no_open':True}"
+                    domain="[('is_debit_note', '=', True)]"
+                />
             </xpath>
         </field>
     </record>

@@ -9,8 +9,8 @@
                 <field
                     name="etax_status"
                     widget="badge"
-                    decoration-success="etax_status=='success'"
-                    decoration-danger="etax_status=='error'"
+                    decoration-success="etax_status == 'success'"
+                    decoration-danger="etax_status == 'error'"
                     decoration-warning="etax_status in ['processing', 'to_process']"
                     optional="show"
                 />
@@ -29,7 +29,7 @@
                     groups="account.group_account_invoice,account.group_account_readonly"
                     class="text-right alert alert-success"
                     role="alert"
-                    attrs="{'invisible': [('etax_status', 'not in', ('success'))]}"
+                    invisible="etax_status != 'success'"
                 >
                     Digitally signed eTax invoice
                 </div>
@@ -40,18 +40,13 @@
                     name="button_etax_invoices"
                     type="object"
                     class="btn-info"
-                    attrs="{
-                        'invisible': ['|',
-                            ('etax_status', 'in', ['success']),
-                            ('state', 'not in', ('posted')),
-                        ]
-                    }"
+                    invisible="etax_status != 'success' or state != 'posted'"
                 />
                 <button
                     name="action_open_replacement_wizard"
                     string="Create Replacement Receipt e-Tax"
                     type="object"
-                    attrs="{'invisible': ['|', ('etax_status', '!=', 'success'), ('state', '!=', 'posted')]}"
+                    invisible="etax_status != 'success' or state != 'posted'"
                 />
             </xpath>
             <xpath expr="//sheet/group" position="inside">
@@ -66,8 +61,8 @@
                         name="etax_status"
                         string="Status"
                         widget="badge"
-                        decoration-success="etax_status=='success'"
-                        decoration-danger="etax_status=='error'"
+                        decoration-success="etax_status == 'success'"
+                        decoration-danger="etax_status == 'error'"
                         decoration-warning="etax_status in ['processing', 'to_process']"
                         readonly="1"
                         force_save="1"
@@ -94,16 +89,10 @@
                 <group string="Additional Information">
                     <field
                         name="replaced_receipt_id"
-                        attrs="{'invisible': [('replaced_receipt_id', '=', False)]}"
+                        invisible="not replaced_receipt_id"
                     />
-                    <field
-                        name="create_purpose_code"
-                        attrs="{'required': [('replaced_receipt_id', '!=', False)]}"
-                    />
-                    <field
-                        name="create_purpose"
-                        attrs="{'required': [('replaced_receipt_id', '!=', False)]}"
-                    />
+                    <field name="create_purpose_code" required="replaced_receipt_id" />
+                    <field name="create_purpose" required="replaced_receipt_id" />
                 </group>
             </xpath>
         </field>
