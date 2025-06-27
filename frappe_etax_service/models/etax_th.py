@@ -113,7 +113,7 @@ class ETaxTH(models.AbstractModel):
 
         response = requests.get(
             url,
-            headers={"Authorization": "token %s" % auth_token},
+            headers={"Authorization": "token {auth_token}"},
             timeout=20,
         )
 
@@ -136,8 +136,10 @@ class ETaxTH(models.AbstractModel):
             if pdf_url:
                 self.env["ir.attachment"].create(
                     {
-                        "name": "%s_signed.pdf" % self.name,
-                        "datas": base64.b64encode(requests.get(pdf_url).content),
+                        "name": f"{self.name}_signed.pdf",
+                        "datas": base64.b64encode(
+                            requests.get(pdf_url, timeout=20).content
+                        ),
                         "type": "binary",
                         "res_model": self._name,
                         "res_id": self.id,
@@ -146,8 +148,10 @@ class ETaxTH(models.AbstractModel):
             if xml_url:
                 self.env["ir.attachment"].create(
                     {
-                        "name": "%s_signed.xml" % self.name,
-                        "datas": base64.b64encode(requests.get(xml_url).content),
+                        "name": f"{self.name}_signed.xml",
+                        "datas": base64.b64encode(
+                            requests.get(xml_url, timeout=20).content
+                        ),
                         "type": "binary",
                         "res_model": self._name,
                         "res_id": self.id,
@@ -164,7 +168,7 @@ class ETaxTH(models.AbstractModel):
                 record.update_processing_document()
                 self._cr.commit()  # pylint: disable=invalid-commit
             except Exception as e:
-                _logger.error("API Error: run_update_processing_document(), %s", e)
+                _logger.error(f"API Error: run_update_processing_document(), {e}")
 
     def sign_etax(self):
         self.ensure_one()
@@ -194,7 +198,7 @@ class ETaxTH(models.AbstractModel):
             raise ValidationError(_("Form Type not in ['odoo', 'frappe']"))
         if form_type and not form_name:
             raise ValidationError(
-                _("form_name is not specified for form_type=%s") % form_type
+                self.env._(f"form_name is not specified for form_type={form_type}")
             )
 
     def _get_connection(self):
@@ -210,7 +214,7 @@ class ETaxTH(models.AbstractModel):
         )
         if not auth_token or not server_url:
             raise ValidationError(
-                _(
+                self.env._(
                     "Cannot connect to Frappe Server.\n"
                     "Frappe Server URL or Frappe Auth Token are not defined."
                 )
@@ -222,8 +226,10 @@ class ETaxTH(models.AbstractModel):
             report = self.env["ir.actions.report"].search([("name", "=", form_name)])
             if len(report) != 1:
                 raise ValidationError(
-                    _("Cannot find form - %s\nOr > 1 form with the same name)")
-                    % form_name
+                    self.env._(
+                        f"Cannot find form - {form_name}\n"
+                        "Or > 1 form with the same name)"
+                    )
                 )
             content, content_type = report._render_qweb_pdf(self.id)
             return base64.b64encode(content).decode()
@@ -233,9 +239,7 @@ class ETaxTH(models.AbstractModel):
         auth_token, server_url = self._get_connection()
         try:
             res = requests.post(
-                url="{}/api/method/{}".format(
-                    server_url, "etax_inet.api.etax.sign_etax_document"
-                ),
+                url=f"{server_url}/api/method/etax_inet.api.etax.sign_etax_document",
                 headers={"Authorization": f"token {auth_token}"},
                 data={
                     "doc_data": json.dumps(doc_data),
@@ -264,8 +268,10 @@ class ETaxTH(models.AbstractModel):
                 if pdf_url:
                     self.env["ir.attachment"].create(
                         {
-                            "name": "%s_signed.pdf" % self.name,
-                            "datas": base64.b64encode(requests.get(pdf_url).content),
+                            "name": f"{self.name}_signed.pdf",
+                            "datas": base64.b64encode(
+                                requests.get(pdf_url, timeout=20).content
+                            ),
                             "type": "binary",
                             "res_model": self._name,
                             "res_id": self.id,
@@ -274,8 +280,10 @@ class ETaxTH(models.AbstractModel):
                 if xml_url:
                     self.env["ir.attachment"].create(
                         {
-                            "name": "%s_signed.xml" % self.name,
-                            "datas": base64.b64encode(requests.get(xml_url).content),
+                            "name": f"{self.name}_signed.xml",
+                            "datas": base64.b64encode(
+                                requests.get(xml_url, timeout=20).content
+                            ),
                             "type": "binary",
                             "res_model": self._name,
                             "res_id": self.id,
@@ -288,7 +296,7 @@ class ETaxTH(models.AbstractModel):
     def button_etax_invoices(self):
         self.ensure_one()
         return {
-            "name": _("Sign e-Tax Invoice"),
+            "name": self.env._("Sign e-Tax Invoice"),
             "type": "ir.actions.act_window",
             "view_mode": "form",
             "res_model": "wizard.select.etax.doctype",

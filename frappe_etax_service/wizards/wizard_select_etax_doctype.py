@@ -11,15 +11,13 @@ class WizardSelectEtaxDoctype(models.TransientModel):
 
     frappe_server_url = fields.Char(
         string="ETax Server",
-        readonly=True,
     )
     doc_name_template = fields.Many2one(
-        string="Invoice template",
         comodel_name="doc.type",
-        required=True,
+        string="Invoice template",
     )
     move_type = fields.Selection(
-        [
+        selection=[
             ("out_invoice", "Customer Invoice"),
             ("out_refund", "Customer Credit Note"),
             ("out_invoice_debit", "Customer Debit Note"),
@@ -87,22 +85,25 @@ class WizardSelectEtaxDoctype(models.TransientModel):
             lambda inv: inv.etax_status in ["success", "processing"]
         )
         if invalid:
+            invalid_name = ", ".join(invalid.mapped("name"))
             raise ValidationError(
-                _("%s, eTax status is in Processing/Success")
-                % ", ".join(invalid.mapped("name"))
+                self.env._(f"{invalid_name}, eTax status is in Processing/Success")
             )
         # Not in valid customer invoice type
         invalid = invoices.filtered(
             lambda inv: inv.move_type in ["inv_invoice", "inv_refund"]
         )
         if invalid:
+            invalid_name = ", ".join(invalid.mapped("name"))
             raise ValidationError(
-                _("%s move_type not valid\nOnly customer invoices can sign eTax")
-                % ", ".join(invalid.mapped("name"))
+                self.env._(
+                    f"{invalid_name} move_type not valid\n"
+                    "Only customer invoices can sign eTax"
+                )
             )
         # Not posted
         invalid = invoices.filtered(lambda inv: inv.state != "posted")
         if invalid:
             raise ValidationError(
-                _("Some invoices are not posted and cannot sign eTax")
+                self.env._("Some invoices are not posted and cannot sign eTax")
             )

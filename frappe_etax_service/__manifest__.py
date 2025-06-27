@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 {
     "name": "Connector to Frappe eTax service",
-    "version": "15.0.1.0.1",
+    "version": "18.0.1.0.0",
     "author": "Kitti U., Ecosoft",
     "license": "AGPL-3",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
@@ -10,6 +10,7 @@
         "account",
         "account_debit_note",
         "l10n_th_account_tax",
+        "l10n_th_partner",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -27,4 +28,5 @@
         "views/doctype_views.xml",
     ],
     "installable": True,
+    "maintainers": ["Saran440"],
 }

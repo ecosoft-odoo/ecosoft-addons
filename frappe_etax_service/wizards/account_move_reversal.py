@@ -7,7 +7,8 @@ class AccountMoveReversal(models.TransientModel):
     _inherit = "account.move.reversal"
 
     purpose_code_id = fields.Many2one(
-        "purpose.code", string="Refund Reason", domain="[('is_credit_note', '=', True)]"
+        comodel_name="purpose.code",
+        string="Refund Reason",
     )
     purpose_code = fields.Char()
 

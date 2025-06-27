@@ -20,21 +20,21 @@
             </form>
         </field>
     </record>
-    <record id="view_doctype_code_tree" model="ir.ui.view">
-        <field name="name">view.doctype.code.tree</field>
+    <record id="view_doctype_code_list" model="ir.ui.view">
+        <field name="name">view.doctype.code.list</field>
         <field name="model">doc.type</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="name" />
                 <field name="doc_source_template" />
                 <field name="doctype_code" />
-            </tree>
+            </list>
         </field>
     </record>
     <record id="doctype_code_action" model="ir.actions.act_window">
         <field name="name">Doctype Code</field>
         <field name="res_model">doc.type</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem
