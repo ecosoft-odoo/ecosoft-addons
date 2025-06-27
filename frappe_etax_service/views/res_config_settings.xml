@@ -50,7 +50,7 @@
                             </span>
                             <div class="text-muted">
                                 e-Tax Replacement not allowed after this date of next invoice month<br
-                                />
+                            />
                                 For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000.
                             </div>
                         </div>
