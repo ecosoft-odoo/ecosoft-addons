@@ -7,10 +7,10 @@
             <form string="Replacement">
                 <p>
                     This action will cancel this document, and create a replacement document.<br
-                    />
+                />
                     <b
-                    >After correction, please submit and sign eTax as soon as possible to keep things in sync.</b><br
-                    />
+                >After correction, please submit and sign eTax as soon as possible to keep things in sync.</b><br
+                />
                     Are you sure to continue?
                 </p>
                 <group>
