@@ -1,4 +1,4 @@
-# Copyright 2023 Ecosoft., co.th
+# Copyright 2023 Ecosoft Co., Ltd (http://ecosoft.co.th/)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 from odoo import api, fields, models
@@ -8,17 +8,21 @@ class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
     frappe_server_url = fields.Char(
-        config_parameter="frappe_etax_service.frappe_server_url",
+        related="company_id.frappe_server_url",
+        readonly=False,
     )
     frappe_auth_token = fields.Char(
-        config_parameter="frappe_etax_service.frappe_auth_token",
+        related="company_id.frappe_auth_token",
+        readonly=False,
     )
     is_send_etax_email = fields.Boolean(
         string="Send Email",
-        config_parameter="frappe_etax_service.is_send_etax_email",
+        related="company_id.is_send_etax_email",
+        readonly=False,
     )
     replacement_lock_date = fields.Integer(
-        config_parameter="frappe_etax_service.replacement_lock_date",
+        related="company_id.replacement_lock_date",
+        readonly=False,
     )
 
     @api.onchange("replacement_lock_date")

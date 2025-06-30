@@ -1,5 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_select_etax_doctype,access_select_etax_doctype,model_wizard_select_etax_doctype,base.group_user,1,1,1,1
-access_purpose_code,access_purpose_code,model_purpose_code,base.group_user,1,1,1,1
-access_doctype,access_doctype,model_doc_type,base.group_user,1,1,1,1
-access_select_replacement_purpose,access_select_replacement_purpose,model_wizard_select_replacement_purpose,base.group_user,1,1,1,1
+access_etax_doctype_code,access_etax_doctype_code,model_etax_doctype_code,base.group_user,1,0,0,0
+access_etax_purpose_code,access_etax_purpose_code,model_etax_purpose_code,base.group_user,1,1,1,1
+access_etax_doctype,access_etax_doctype,model_etax_doctype,base.group_user,1,1,1,1
+access_etax_doctype_wizard,access_etax_doctype_wizard,model_etax_doctype_wizard,base.group_user,1,1,1,1
+access_etax_replacement_wizard,access_etax_replacement_wizard,model_etax_replacement_wizard,base.group_user,1,1,1,1

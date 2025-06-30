@@ -1,12 +1,15 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+
+from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class AccountMove(models.Model):
     _name = "account.move"
-    _inherit = ["account.move", "etax.th"]
+    _inherit = ["account.move", "etax.service.mixin"]
+
+    _etax_sign_api_code = "FRAPPE_ETAX_SIGN"
 
     is_credit_payment_entry = fields.Boolean(
         string="Use Credit Note on Payment",
@@ -15,83 +18,23 @@ class AccountMove(models.Model):
             will cancel etax payment on INET (Case Etax)",
     )
     etax_payment_id = fields.Many2one(
-        "account.payment",
+        comodel_name="account.payment",
         string="Etax Payment",
         help="If 'Use Credit Note on Payment' is selected, \
             Select payment for retrieve original data.",
     )
-
-    # def button_etax_invoices(self):
-    #     self.ensure_one()
-    #     return {
-    #         "name": _("Sign e-Tax Invoice"),
-    #         "type": "ir.actions.act_window",
-    #         "view_mode": "form",
-    #         "res_model": "wizard.select.etax.doctype",
-    #         "target": "new",
-    #     }
+    replaced_entry_id = fields.Many2one(
+        comodel_name="account.move",
+        string="Replaced Document",
+        readonly=True,
+        copy=False,
+        help="Currently this field only support invoice and not payment",
+    )
 
     @api.onchange("is_credit_payment_entry", "create_purpose")
     def _onchange_ref(self):
         if self.is_credit_payment_entry:
             self.ref = self.create_purpose
-
-    def _get_ref_document_id(self):
-        if self.is_credit_payment_entry:
-            return self.etax_payment_id.name
-        return (
-            self.debit_origin_id.name
-            or self.reversed_entry_id.name
-            or self.replaced_entry_id.name
-        )
-
-    def _get_ref_document_type_code(self):
-        if self.is_credit_payment_entry:
-            return self.etax_payment_id.etax_doctype
-        return (
-            self.debit_origin_id.etax_doctype
-            or self.reversed_entry_id.etax_doctype
-            or self.replaced_entry_id.etax_doctype
-        )
-
-    def action_open_replacement_wizard(self):
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Create Replacement",
-            "res_model": "wizard.select.replacement.purpose",
-            "view_mode": "form",
-            "target": "new",
-            "context": {
-                "default_res_model": self._name,
-            },
-        }
-
-    def _get_branch_id(self):
-        """
-        By default, core odoo do not provide branch_id field in
-        account.move and account.payment.
-        This method will check if branch_id is exist in model and return branch_id
-        """
-        if "branch_id" in self.env["account.move"]._fields:
-            return self.branch_id.name
-
-    def _get_origin_inv_date(self):
-        """
-        In case of Credit note or Debit note, we need invoice date of origin invoice
-        to fill in h08_additional_ref_issue_dtm
-        """
-        if self.is_credit_payment_entry:
-            return self.etax_payment_id.date.strftime("%Y-%m-%dT%H:%M:%S")
-
-        if self.debit_origin_id and self.debit_origin_id.invoice_date:
-            return self.debit_origin_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
-
-        if self.reversed_entry_id and self.reversed_entry_id.invoice_date:
-            return self.reversed_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
-
-        if self.replaced_entry_id:
-            return self.replaced_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
 
     def _get_additional_amount(self):
         """
@@ -114,19 +57,6 @@ class AccountMove(models.Model):
             original_amount_untaxed = False
             diff_amount_untaxed = False
             corrected_amount_untaxed = self.amount_untaxed
-
-        # Special Case: If this is credit note for cancelled payment
-        # We need to recompute original_amount_untaxed, diff_amount_untaxed
-        # and corrected_amount_untaxed
-        if self.is_credit_payment_entry:
-            tax_base = self.tax_invoice_ids or False
-            if not tax_base:
-                raise ValidationError(_("Tax invoice not found!"))
-            if len(tax_base) != 1:
-                raise ValidationError(_("Not support multi tax invoice line"))
-            original_amount_untaxed = abs(tax_base[0].tax_base_amount)
-            diff_amount_untaxed = original_amount_untaxed
-            corrected_amount_untaxed = 0.00
         return (original_amount_untaxed, diff_amount_untaxed, corrected_amount_untaxed)
 
     @api.depends("restrict_mode_hash_table", "state")
@@ -138,32 +68,88 @@ class AccountMove(models.Model):
             move.show_reset_to_draft_button = False
         return res
 
+    def action_open_replacement_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Create Replacement"),
+            "res_model": "etax.replacement.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_etax_doctype_code": self.etax_doctype_code,
+                "default_origin_ref": f"{self._name},{self.id}",
+            },
+        }
+
     def create_replacement_etax(self):
         """Create replacement document and cancel the old one"""
         self.ensure_one()
         if not (self.state == "posted" and self.etax_status == "success"):
-            raise ValidationError(_("Only posted etax invoice can have a substitution"))
-        res = self.with_context(include_business_fields=True).copy_data()
-        res = self.with_context(
-            **{
-                "include_business_fields": True,
-                "force_copy_stock_moves": True,
+            raise ValidationError(
+                self.env._("Only posted etax invoice can have a substitution")
+            )
+
+        ctx = {
+            "include_business_fields": True,
+            "force_copy_stock_moves": True,
+        }
+        res = self.with_context(**ctx).copy_data()[0]
+
+        # Preserve important fields manually
+        res.update(
+            {
+                "posted_before": self.posted_before,
+                "payment_reference": self.payment_reference,
+                "invoice_date": self.invoice_date,
+                "invoice_date_due": self.invoice_date_due,
+                "etax_doctype_id": self.etax_doctype_id.id,
+                "replaced_entry_id": self.id,
             }
-        ).copy_data()
-        old_number = self.name
-        res[0]["posted_before"] = self.posted_before
-        res[0]["payment_reference"] = self.payment_reference
-        res[0]["invoice_date"] = self.invoice_date
-        res[0]["invoice_date_due"] = self.invoice_date_due
-        res[0]["doc_name_template"] = self.doc_name_template.id
-        move = self.create(res[0])
+        )
+
+        move = self.create(res)
         self.button_draft()
         self.button_cancel()
-        self.name = old_number  # Ensure name.
         return move
+
+    def _hook_update_data(self, code_api, result):
+        res = super()._hook_update_data(code_api, result)
+        if code_api == self._etax_sign_api_code and self.etax_status == "success":
+            if self.replaced_entry_id:
+                self.replaced_entry_id.etax_status = "replace"
+        return res
+
+    def _prepare_context_for_wizard(self, **kwargs):
+        move_type = list(set(self.mapped("move_type")))
+        if len(move_type) > 1:
+            raise UserError(self.env._("Please select only one type"))
+        has_debit = self.filtered("debit_origin_id")
+        if has_debit and has_debit != self:
+            raise UserError(self.env._("Please select only one type"))
+        effective_move_type = "out_invoice_debit" if has_debit else move_type[0]
+        kwargs.update(
+            {
+                "default_move_type": effective_move_type,
+                # NOTE: Ensure active_ids is current id,
+                # because when click e-Tax Invoice from Invoice > Invoice (replacement),
+                # active_ids will be original invoice id
+                "active_model": "account.move",
+                "active_ids": self.ids,
+                "active_id": self.id,
+            }
+        )
+        if self.replaced_entry_id and self.etax_doctype_id:
+            kwargs.update(
+                {
+                    "default_etax_doctype_id": self.etax_doctype_id.id,
+                    "default_etax_doctype_locked": True,
+                }
+            )
+        return super()._prepare_context_for_wizard(**kwargs)
 
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
-    not_send_to_etax = fields.Boolean(default=False)
+    skip_etax = fields.Boolean(default=False)

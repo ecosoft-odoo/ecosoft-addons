@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_etax_doctype_form" model="ir.ui.view">
+        <field name="name">view.etax.doctype.form</field>
+        <field name="model">etax.doctype</field>
+        <field name="arch" type="xml">
+            <form string="Doctype">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" />
+                            <field name="move_type" required="1" />
+                            <field name="doctype_code_id" required="1" />
+                        </group>
+                        <group>
+                            <field name="doc_source_template" required="1" />
+                            <field
+                                name="report_id"
+                                required="doc_source_template == 'odoo'"
+                                invisible="doc_source_template != 'odoo'"
+                            />
+                        </group>
+                    </group>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+    <record id="view_etax_doctype_list" model="ir.ui.view">
+        <field name="name">view.etax.doctype.list</field>
+        <field name="model">etax.doctype</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="doc_source_template" />
+                <field name="doctype_code_id" />
+            </list>
+        </field>
+    </record>
+    <record id="action_etax_doctype" model="ir.actions.act_window">
+        <field name="name">Doctype Code</field>
+        <field name="res_model">etax.doctype</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="doctype_code_menu"
+        parent="frappe_etax_service.etax_service_menu"
+        action="action_etax_doctype"
+        sequence="20"
+    />
+</odoo>

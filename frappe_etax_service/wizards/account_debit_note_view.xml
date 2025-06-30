@@ -5,17 +5,19 @@
         <field name="model">account.debit.note</field>
         <field name="inherit_id" ref="account_debit_note.view_account_debit_note" />
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='reason']" position="attributes">
-                <attribute name="invisible">purpose_code != 'DBNG99'</attribute>
-                <attribute name="required">purpose_code == 'DBNG99'</attribute>
-            </xpath>
             <xpath expr="//field[@name='reason']" position="before">
-                <field name="purpose_code" invisible="1" />
+                <field name="etax_status" invisible="1" />
+                <field
+                    name="debit_note_doctype_code_ids"
+                    widget="many2many_tags"
+                    readonly="1"
+                />
                 <field
                     name="purpose_code_id"
-                    required="1"
+                    domain="[('etax_doctype_code_ids', 'in', debit_note_doctype_code_ids)]"
+                    invisible="etax_status != 'success'"
+                    required="etax_status == 'success'"
                     options="{'no_open':True}"
-                    domain="[('is_debit_note', '=', True)]"
                 />
             </xpath>
         </field>

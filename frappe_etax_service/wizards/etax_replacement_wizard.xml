@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <record model="ir.ui.view" id="select_replacement_purpose_view">
-        <field name="name">wizard.select.replacement.purpose.view</field>
-        <field name="model">wizard.select.replacement.purpose</field>
+    <record id="etax_replacement_wizard_view" model="ir.ui.view">
+        <field name="name">etax.replacement.wizard.view</field>
+        <field name="model">etax.replacement.wizard</field>
         <field name="arch" type="xml">
             <form string="Replacement">
                 <p>
@@ -17,13 +17,14 @@
                     <group>
                         <field
                             name="purpose_code_id"
-                            options="{'no_create_edit':True,'no_open': True,}"
-                            domain="[('is_replacement', '=', True)]"
+                            options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"
+                            domain="[('etax_doctype_code_ids.code', '=', etax_doctype_code)]"
                             required="1"
                         />
                     </group>
                     <group>
                         <field name="reason" />
+                        <field name="etax_doctype_code" readonly="1" />
                     </group>
                 </group>
                 <footer>
@@ -39,9 +40,9 @@
         </field>
     </record>
 
-    <record model="ir.actions.act_window" id="action_select_replacement_purpose_view">
+    <record id="action_etax_replacement_wizard" model="ir.actions.act_window">
         <field name="name">Create Replacement</field>
-        <field name="res_model">wizard.select.replacement.purpose</field>
+        <field name="res_model">etax.replacement.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
