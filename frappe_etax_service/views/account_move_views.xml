@@ -6,28 +6,27 @@
         <field name="inherit_id" ref="account.view_move_form" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_line_ids']/list" position="inside">
-                <field name="not_send_to_etax" optional="hide" />
+                <field name="skip_etax" optional="hide" />
             </xpath>
             <xpath
                 expr="//field[@name='invoice_line_ids']/form/sheet/group"
                 position="inside"
             >
-                <field name="not_send_to_etax" optional="hide" />
+                <field name="skip_etax" optional="hide" />
             </xpath>
             <xpath
                 expr="//page/field[@name='line_ids']/list/field[@name='tax_ids']"
                 position="after"
             >
-                <field name="not_send_to_etax" optional="hide" />
+                <field name="skip_etax" optional="hide" />
             </xpath>
             <xpath
                 expr="//page/field[@name='line_ids']/form//field[@name='tax_ids']"
                 position="after"
             >
-                <field name="not_send_to_etax" optional="hide" />
+                <field name="skip_etax" optional="hide" />
             </xpath>
             <xpath expr="//header" position="after">
-                <field name="etax_status" invisible="1" />
                 <div
                     groups="account.group_account_invoice,account.group_account_readonly"
                     class="text-right alert alert-success"
@@ -36,6 +35,33 @@
                 >
                     Digitally signed eTax invoice
                 </div>
+                <div
+                    groups="account.group_account_invoice,account.group_account_readonly"
+                    class="text-right alert alert-warning"
+                    role="alert"
+                    invisible="etax_status != 'processing'"
+                >
+                    eTax invoice is processing
+                </div>
+                <div
+                    groups="account.group_account_invoice,account.group_account_readonly"
+                    class="text-right alert alert-info"
+                    role="alert"
+                    invisible="etax_status != 'replace'"
+                >
+                    This eTax document has been replaced
+                </div>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    class="oe_stat_button"
+                    icon="fa-list-alt"
+                    type="object"
+                    name="action_view_api_logs"
+                    invisible="api_log_count == 0"
+                >
+                    <field name="api_log_count" widget="statinfo" string="API Logs" />
+                </button>
             </xpath>
             <xpath expr="//button[@name='button_draft']" position="after">
                 <button
@@ -43,13 +69,13 @@
                     name="button_etax_invoices"
                     type="object"
                     class="btn-info"
-                    invisible="move_type not in ('out_invoice','out_refund','out_invoice_debit') or etax_status == 'success' or state != 'posted'"
+                    invisible="move_type not in ('out_invoice','out_refund','out_invoice_debit') or etax_status in ['success', 'processing'] or state != 'posted'"
                 />
                 <button
                     name="action_open_replacement_wizard"
                     string="Create Replacement e-Tax"
                     type="object"
-                    invisible="etax_status != 'success' or state != 'posted'"
+                    invisible="etax_doctype_code == '380' or etax_status != 'success' or state != 'posted'"
                 />
             </xpath>
             <xpath expr="//page[@id='other_tab_entry']" position="after">
@@ -57,38 +83,34 @@
                     <group>
                         <group string="e-Tax">
                             <field
-                                name="etax_doctype"
+                                name="etax_doctype_id"
                                 string="Doctype"
                                 readonly="1"
-                                force_save="1"
                             />
+                            <field name="etax_doctype_code" string="Doctype Code" />
                             <field
                                 name="etax_status"
                                 string="Status"
                                 widget="badge"
                                 decoration-success="etax_status == 'success'"
+                                decoration-info="etax_status == 'replace'"
                                 decoration-danger="etax_status == 'error'"
-                                decoration-warning="etax_status in ['processing', 'to_process']"
-                                readonly="1"
-                                force_save="1"
+                                decoration-warning="etax_status == 'processing'"
                             />
                             <field
                                 name="etax_transaction_code"
                                 string="Transaction code"
                                 readonly="1"
-                                force_save="1"
                             />
                             <field
                                 name="etax_error_code"
                                 string="Error code"
                                 readonly="1"
-                                force_save="1"
                             />
                             <field
                                 name="etax_error_message"
                                 string="Error message"
                                 readonly="1"
-                                force_save="1"
                             />
                         </group>
                         <group string="Additional Information">
@@ -96,22 +118,10 @@
                                 name="replaced_entry_id"
                                 invisible="not replaced_entry_id"
                             />
-                            <field
-                                name="create_purpose_code"
-                                invisible="replaced_entry_id"
-                            />
-                            <field
-                                name="create_purpose"
-                                invisible="replaced_entry_id"
-                            />
-                            <!-- User may get mixed up with this. -->
-                            <!-- <field
-                                name="doc_name_template"
-                                options="{'no_open': True}"
-                                attrs="{'invisible': [('doc_name_template', '=', False)]}"
-                            /> -->
+                            <field name="create_purpose_code" readonly="1" />
+                            <field name="create_purpose" readonly="1" />
                         </group>
-                        <group string="Special Case">
+                        <!-- <group string="Special Case">
                             <field
                                 name="is_credit_payment_entry"
                                 readonly="state != 'draft'"
@@ -121,7 +131,7 @@
                                 invisible="not is_credit_payment_entry"
                                 required="is_credit_payment_entry"
                             />
-                        </group>
+                        </group> -->
                     </group>
                 </page>
             </xpath>
@@ -137,8 +147,9 @@
                     name="etax_status"
                     widget="badge"
                     decoration-success="etax_status == 'success'"
+                    decoration-info="etax_status == 'replace'"
                     decoration-danger="etax_status == 'error'"
-                    decoration-warning="etax_status in ['processing', 'to_process']"
+                    decoration-warning="etax_status == 'processing'"
                     optional="show"
                 />
             </xpath>
@@ -154,8 +165,9 @@
                     name="etax_status"
                     widget="badge"
                     decoration-success="etax_status == 'success'"
+                    decoration-info="etax_status == 'replace'"
                     decoration-danger="etax_status == 'error'"
-                    decoration-warning="etax_status in ['processing', 'to_process']"
+                    decoration-warning="etax_status == 'processing'"
                     optional="show"
                 />
             </xpath>

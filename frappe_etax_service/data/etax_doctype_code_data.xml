@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="etax_doctype_code_380" model="etax.doctype.code">
+        <field name="code">380</field>
+        <field name="name">ใบแจ้งหนี้</field>
+    </record>
+    <record id="etax_doctype_code_388" model="etax.doctype.code">
+        <field name="code">388</field>
+        <field name="name">ใบกำกับภาษี</field>
+    </record>
+    <record id="etax_doctype_code_T01" model="etax.doctype.code">
+        <field name="code">T01</field>
+        <field name="name">ใบรับ (ใบเสร็จรับเงิน)</field>
+    </record>
+    <record id="etax_doctype_code_T02" model="etax.doctype.code">
+        <field name="code">T02</field>
+        <field name="name">ใบแจ้งหนี้/ใบกำกับภาษี</field>
+    </record>
+    <record id="etax_doctype_code_T03" model="etax.doctype.code">
+        <field name="code">T03</field>
+        <field name="name">ใบเสร็จรับเงิน/ใบกำกับภาษี</field>
+    </record>
+    <record id="etax_doctype_code_T04" model="etax.doctype.code">
+        <field name="code">T04</field>
+        <field name="name">ใบส่งของ/ใบกำกับภาษี</field>
+    </record>
+    <record id="etax_doctype_code_T05" model="etax.doctype.code">
+        <field name="code">T05</field>
+        <field name="name">ใบกำกับภาษีอย่างย่อ</field>
+    </record>
+    <record id="etax_doctype_code_80" model="etax.doctype.code">
+        <field name="code">80</field>
+        <field name="name">ใบเพิ่มหนี้</field>
+    </record>
+    <record id="etax_doctype_code_81" model="etax.doctype.code">
+        <field name="code">81</field>
+        <field name="name">ใบลดหนี้</field>
+    </record>
+</odoo>

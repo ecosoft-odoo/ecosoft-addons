@@ -11,7 +11,10 @@
                 position="after"
             >
                 <block title="Ecosoft e-Tax Services" id="ecosoft_etax_services">
-                    <setting id="frappe_server_url" string="Frappe Server URL">
+                    <setting
+                        id="frappe_server_url"
+                        help="URL of the Frappe e-Tax Service."
+                    >
                         <field
                             name="frappe_server_url"
                             placeholder="Paste your frappe server URL"
@@ -19,12 +22,12 @@
                     </setting>
                     <setting
                         id="frappe_auth_token"
-                        string="Frappe Auth Token"
-                        help="Frappe token in the format &lt;api_key&gt;:&lt;api_secret&gt;"
+                        help="Authentication token for Frappe e-Tax Service. Format: [api_key]:[api_secret]"
                     >
                         <field
                             name="frappe_auth_token"
-                            placeholder="Paste your token."
+                            password="True"
+                            placeholder="Paste your frappe token"
                         />
                     </setting>
                     <setting

@@ -1,0 +1,8 @@
+<odoo>
+    <menuitem
+        id="etax_service_menu"
+        name="e-Tax service"
+        parent="account.menu_finance_configuration"
+        sequence="7"
+    />
+</odoo>

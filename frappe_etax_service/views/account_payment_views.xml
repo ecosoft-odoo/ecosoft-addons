@@ -10,8 +10,9 @@
                     name="etax_status"
                     widget="badge"
                     decoration-success="etax_status == 'success'"
+                    decoration-info="etax_status == 'replace'"
                     decoration-danger="etax_status == 'error'"
-                    decoration-warning="etax_status in ['processing', 'to_process']"
+                    decoration-warning="etax_status == 'processing'"
                     optional="show"
                 />
             </xpath>
@@ -33,6 +34,14 @@
                 >
                     Digitally signed eTax invoice
                 </div>
+                <div
+                    groups="account.group_account_invoice,account.group_account_readonly"
+                    class="text-right alert alert-info"
+                    role="alert"
+                    invisible="etax_status != 'replace'"
+                >
+                    This eTax document has been replaced
+                </div>
             </xpath>
             <xpath expr="//button[@name='mark_as_sent']" position="after">
                 <button
@@ -40,59 +49,78 @@
                     name="button_etax_invoices"
                     type="object"
                     class="btn-info"
-                    invisible="etax_status != 'success' or state != 'posted'"
+                    invisible="etax_status in ['success', 'processing'] or state != 'paid'"
                 />
                 <button
                     name="action_open_replacement_wizard"
                     string="Create Replacement Receipt e-Tax"
                     type="object"
-                    invisible="etax_status != 'success' or state != 'posted'"
+                    invisible="etax_status != 'success' or state != 'paid'"
                 />
             </xpath>
-            <xpath expr="//sheet/group" position="inside">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    class="oe_stat_button"
+                    icon="fa-list-alt"
+                    type="object"
+                    name="action_view_api_logs"
+                    invisible="api_log_count == 0"
+                >
+                    <field name="api_log_count" widget="statinfo" string="API Logs" />
+                </button>
+            </xpath>
+            <xpath expr="//group[@name='main_group']" position="after">
                 <group name="etax_info" string="e-Tax">
-                    <field
-                        name="etax_doctype"
-                        string="Doctype"
-                        readonly="1"
-                        force_save="1"
-                    />
-                    <field
-                        name="etax_status"
-                        string="Status"
-                        widget="badge"
-                        decoration-success="etax_status == 'success'"
-                        decoration-danger="etax_status == 'error'"
-                        decoration-warning="etax_status in ['processing', 'to_process']"
-                        readonly="1"
-                        force_save="1"
-                    />
-                    <field
-                        name="etax_transaction_code"
-                        string="Transaction code"
-                        readonly="1"
-                        force_save="1"
-                    />
-                    <field
-                        name="etax_error_code"
-                        string="Error code"
-                        readonly="1"
-                        force_save="1"
-                    />
-                    <field
-                        name="etax_error_message"
-                        string="Error message"
-                        readonly="1"
-                        force_save="1"
-                    />
+                    <group>
+                        <field name="etax_doctype_id" string="Doctype" readonly="1" />
+                        <field
+                            name="etax_status"
+                            string="Status"
+                            widget="badge"
+                            decoration-success="etax_status == 'success'"
+                            decoration-info="etax_status == 'replace'"
+                            decoration-danger="etax_status == 'error'"
+                            decoration-warning="etax_status == 'processing'"
+                        />
+                        <field
+                            name="etax_error_code"
+                            string="Error Code"
+                            readonly="1"
+                        />
+                    </group>
+                    <group>
+                        <field name="etax_doctype_code" string="Doctype Code" />
+                        <field
+                            name="etax_transaction_code"
+                            string="Transaction Code"
+                            readonly="1"
+                        />
+                        <field
+                            name="etax_error_message"
+                            string="Error Message"
+                            readonly="1"
+                        />
+                    </group>
                 </group>
                 <group string="Additional Information">
-                    <field
-                        name="replaced_receipt_id"
-                        invisible="not replaced_receipt_id"
-                    />
-                    <field name="create_purpose_code" required="replaced_receipt_id" />
-                    <field name="create_purpose" required="replaced_receipt_id" />
+                    <group>
+                        <field
+                            name="replaced_receipt_id"
+                            invisible="not replaced_receipt_id"
+                        />
+                        <field
+                            name="create_purpose_code"
+                            readonly="1"
+                            required="replaced_receipt_id"
+                        />
+                    </group>
+                    <group>
+                        <field
+                            name="create_purpose"
+                            readonly="1"
+                            required="replaced_receipt_id"
+                        />
+                    </group>
                 </group>
             </xpath>
         </field>

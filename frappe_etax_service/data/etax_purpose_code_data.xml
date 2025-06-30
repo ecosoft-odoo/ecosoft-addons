@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!-- TIVC: Tax Invoice replacement - applicable to TIV group (388, T02, T03, T04, T05) -->
+    <record id="etax_purpose_code_01" model="etax.purpose.code">
+        <field name="name">ชื่อผิด</field>
+        <field name="code">TIVC01</field>
+        <field name="reason">ชื่อผิด</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_388'),
+            ref('frappe_etax_service.etax_doctype_code_T02'),
+            ref('frappe_etax_service.etax_doctype_code_T03'),
+            ref('frappe_etax_service.etax_doctype_code_T04'),
+            ref('frappe_etax_service.etax_doctype_code_T05'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_02" model="etax.purpose.code">
+        <field name="name">ที่อยู่ผิด</field>
+        <field name="code">TIVC02</field>
+        <field name="reason">ที่อยู่ผิด</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_388'),
+            ref('frappe_etax_service.etax_doctype_code_T02'),
+            ref('frappe_etax_service.etax_doctype_code_T03'),
+            ref('frappe_etax_service.etax_doctype_code_T04'),
+            ref('frappe_etax_service.etax_doctype_code_T05'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_03" model="etax.purpose.code">
+        <field name="name">อื่นๆ ระบุ</field>
+        <field name="code">TIVC99</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_388'),
+            ref('frappe_etax_service.etax_doctype_code_T02'),
+            ref('frappe_etax_service.etax_doctype_code_T03'),
+            ref('frappe_etax_service.etax_doctype_code_T04'),
+            ref('frappe_etax_service.etax_doctype_code_T05'),
+        ])]"
+        />
+    </record>
+    <!-- DBNG: Debit Note - Goods - applicable to 80 -->
+    <record id="etax_purpose_code_04" model="etax.purpose.code">
+        <field name="name">มีการเพิ่มราคาสินค้า (สินค้าเกินกว่าจำนวนที่ตกลงกัน)</field>
+        <field name="code">DBNG01</field>
+        <field
+            name="reason"
+        >มีการเพิ่มราคาสินค้า (สินค้าเกินกว่าจำนวนที่ตกลงกัน)</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_80'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_05" model="etax.purpose.code">
+        <field name="name">คำนวณราคาสินค้า ผิดพลาดต่ำกว่าที่เป็นจริง</field>
+        <field name="code">DBNG02</field>
+        <field name="reason">คำนวณราคาสินค้า ผิดพลาดต่ำกว่าที่เป็นจริง</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_80'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_06" model="etax.purpose.code">
+        <field name="name">เหตุอื่น (ระบุสาเหตุ)</field>
+        <field name="code">DBNG99</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_80'),
+        ])]"
+        />
+    </record>
+    <!-- DBNS: Debit Note - Services - applicable to 80 -->
+    <record id="etax_purpose_code_dbns01" model="etax.purpose.code">
+        <field
+            name="name"
+        >การเพิ่มราคาค่าบริการ (บริการเกินกว่าข้อกำหนดที่ตกลงกัน)</field>
+        <field name="code">DBNS01</field>
+        <field
+            name="reason"
+        >การเพิ่มราคาค่าบริการ (บริการเกินกว่าข้อกำหนดที่ตกลงกัน)</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_80'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_dbns02" model="etax.purpose.code">
+        <field name="name">คำนวณราคาค่าบริการ ผิดพลาดต่ำกว่าที่เป็นจริง</field>
+        <field name="code">DBNS02</field>
+        <field name="reason">คำนวณราคาค่าบริการ ผิดพลาดต่ำกว่าที่เป็นจริง</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_80'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_dbns99" model="etax.purpose.code">
+        <field name="name">เหตุอื่น (ระบุสาเหตุ)</field>
+        <field name="code">DBNS99</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_80'),
+        ])]"
+        />
+    </record>
+    <!-- CDNG: Credit Note - Goods - applicable to 81 -->
+    <record id="etax_purpose_code_07" model="etax.purpose.code">
+        <field name="name">ลดราคาสินค้าที่ขาย (สินค้าผิดข้อกำหนดที่ตกลงกัน)</field>
+        <field name="code">CDNG01</field>
+        <field name="reason">ลดราคาสินค้าที่ขาย (สินค้าผิดข้อกำหนดที่ตกลงกัน)</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_08" model="etax.purpose.code">
+        <field name="name">สินค้าชำรุดเสียหาย</field>
+        <field name="code">CDNG02</field>
+        <field name="reason">สินค้าชำรุดเสียหาย</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_09" model="etax.purpose.code">
+        <field name="name">สินค้าขาดจำนวนตามที่ตกลงซื้อขาย</field>
+        <field name="code">CDNG03</field>
+        <field name="reason">สินค้าขาดจำนวนตามที่ตกลงซื้อขาย</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_10" model="etax.purpose.code">
+        <field name="name">คำนวณราคาสินค้าผิดพลาดสูงกว่าที่เป็นจริง</field>
+        <field name="code">CDNG04</field>
+        <field name="reason">คำนวณราคาสินค้าผิดพลาดสูงกว่าที่เป็นจริง</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_11" model="etax.purpose.code">
+        <field name="name">รับคืนสินค้า (ไม่ตรงตามคำพรรณนา)</field>
+        <field name="code">CDNG05</field>
+        <field name="reason">รับคืนสินค้า (ไม่ตรงตามคำพรรณนา)</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_12" model="etax.purpose.code">
+        <field name="name">เหตุอื่น (ระบุสาเหตุ)</field>
+        <field name="code">CDNG99</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <!-- CDNS: Credit Note - Services - applicable to 81 -->
+    <record id="etax_purpose_code_cdns01" model="etax.purpose.code">
+        <field name="name">ลดราคาค่าบริการ (บริการผิดข้อกำหนดที่ตกลงกัน)</field>
+        <field name="code">CDNS01</field>
+        <field name="reason">ลดราคาค่าบริการ (บริการผิดข้อกำหนดที่ตกลงกัน)</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_cdns02" model="etax.purpose.code">
+        <field name="name">ค่าบริการขาดจำนวน</field>
+        <field name="code">CDNS02</field>
+        <field name="reason">ค่าบริการขาดจำนวน</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_cdns03" model="etax.purpose.code">
+        <field name="name">คำนวณราคาค่าบริการผิดพลาดสูงกว่าที่เป็นจริง</field>
+        <field name="code">CDNS03</field>
+        <field name="reason">คำนวณราคาค่าบริการผิดพลาดสูงกว่าที่เป็นจริง</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_cdns04" model="etax.purpose.code">
+        <field name="name">บอกเลิกสัญญาบริการ</field>
+        <field name="code">CDNS04</field>
+        <field name="reason">บอกเลิกสัญญาบริการ</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_cdns99" model="etax.purpose.code">
+        <field name="name">เหตุอื่น (ระบุสาเหตุ)</field>
+        <field name="code">CDNS99</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_81'),
+        ])]"
+        />
+    </record>
+    <!-- RCTC: Receipt replacement - applicable to T01 -->
+    <record id="etax_purpose_code_13" model="etax.purpose.code">
+        <field name="name">ชื่อผิด</field>
+        <field name="code">RCTC01</field>
+        <field name="reason">ชื่อผิด</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_T01'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_14" model="etax.purpose.code">
+        <field name="name">ที่อยู่ผิด</field>
+        <field name="code">RCTC02</field>
+        <field name="reason">ที่อยู่ผิด</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_T01'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_15" model="etax.purpose.code">
+        <field
+            name="name"
+        >รับคืนสินค้า / ยกเลิกบริการ ทั้งจำนวน (ระบุจำนวนเงิน) บาท</field>
+        <field name="code">RCTC03</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_T01'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_16" model="etax.purpose.code">
+        <field
+            name="name"
+        >รับคืนสินค้า / ยกเลิกบริการ บางจำนวน (ระบุจำนวนเงิน) บาท</field>
+        <field name="code">RCTC04</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_T01'),
+        ])]"
+        />
+    </record>
+    <record id="etax_purpose_code_17" model="etax.purpose.code">
+        <field name="name">เหตุอื่นๆ (ระบุสาเหตุ)</field>
+        <field name="code">RCTC99</field>
+        <field
+            name="etax_doctype_code_ids"
+            eval="[Command.set([
+            ref('frappe_etax_service.etax_doctype_code_T01'),
+        ])]"
+        />
+    </record>
+</odoo>
