@@ -168,7 +168,6 @@ msgstr ""
 
 #. module: request_document
 #: model:ir.model.fields,help:request_document.field_request_order__message_has_error
-#: model:ir.model.fields,help:request_document.field_request_order__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
 msgstr ""
 
@@ -297,11 +296,6 @@ msgstr ""
 #. module: request_document
 #: model:ir.model.fields,field_description:request_document.field_request_order__activity_user_id
 msgid "Responsible User"
-msgstr ""
-
-#. module: request_document
-#: model:ir.model.fields,field_description:request_document.field_request_order__message_has_sms_error
-msgid "SMS Delivery error"
 msgstr ""
 
 #. module: request_document
