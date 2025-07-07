@@ -15,7 +15,8 @@ class TestRequestDocumentExpense(TestExpenseCommon):
         super().setUpClass()
         cls.expense_sheet_model = cls.env["hr.expense.sheet"]
         cls.request_model = cls.env["request.order"]
-        cls.expense = cls.create_expense(cls)
+        # Create expense without taxes
+        cls.expense = cls.create_expense(cls, values={"tax_ids": False})
 
     def test_01_process_request_expense(self):
         # Create request order and line
