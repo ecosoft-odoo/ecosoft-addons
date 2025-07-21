@@ -1,7 +1,8 @@
 # Copyright 2024 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class RequestDocument(models.Model):
@@ -41,7 +42,6 @@ class RequestDocument(models.Model):
                 {
                     "default_request_document_id": self.id,
                     "invisible_header": 1,
-                    "create": 0,  # Not allow create
                 }
             )
             if self.state == "draft":
@@ -54,7 +54,6 @@ class RequestDocument(models.Model):
                 "res_model": "purchase.request",
                 "res_id": self.purchase_request_ids.id,  # should be 1 only
                 "context": ctx,
-                "target": "new",
             }
         return res
 
@@ -63,6 +62,11 @@ class RequestDocument(models.Model):
         res = super()._compute_document()
         for rec in self:
             pr_id = rec.purchase_request_ids
+            if len(pr_id) > 1:
+                raise UserError(
+                    _("Only one Expense Sheet can be created " "per Request Document.")
+                )
+
             if pr_id:
                 rec.name_document = pr_id.name
                 rec.total_amount_document = pr_id.estimated_cost
