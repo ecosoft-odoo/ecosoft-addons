@@ -67,6 +67,12 @@ msgid "Expense State"
 msgstr ""
 
 #. module: request_document_expense
+#: code:addons/request_document_expense/models/request_document.py:0
+#, python-format
+msgid "Only one Expense Sheet can be created per Request Document."
+msgstr ""
+
+#. module: request_document_expense
 #: model:ir.model.fields.selection,name:request_document_expense.selection__res_company__request_document_ex_state__post
 msgid "Posted"
 msgstr ""
