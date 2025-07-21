@@ -3,7 +3,7 @@
 
 {
     "name": "Request Document - Expense",
-    "version": "15.0.2.0.2",
+    "version": "15.0.2.0.3",
     "license": "AGPL-3",
     "category": "Accounting & Finance",
     "author": "Ecosoft, Odoo Community Association (OCA)",
