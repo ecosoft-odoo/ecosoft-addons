@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- need more implementation, this is just an example -->
+        <record id="ir_cron_auto_zort_order_import" model="ir.cron">
+            <field name="name">Auto Zort Order Import</field>
+            <field name="model_id" ref="model_sale_order"/>
+            <field name="state">code</field>
+            <field name="code">model.create_sales_order_from_zort()</field>
+            <field name="interval_number">10</field>
+            <field name="interval_type">minutes</field>
+        </record>
+    </data>
+</odoo>

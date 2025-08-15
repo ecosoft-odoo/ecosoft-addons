@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_zort_connector_zort_connector,zort_connector.zort_connector,model_zort_connector_zort_connector,base.group_user,1,1,1,1

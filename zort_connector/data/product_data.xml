@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="product_shipping_fee" model="product.template">
+            <field name="name">Shipping Fee</field>
+            <field name="type">service</field>
+            <field name="purchase_ok" eval="False"/>
+            <field name="taxes_id" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="standard_price">0.0</field>
+            <field name="default_code">shipping_fee</field>
+        </record>
+        <record id="product_discount" model="product.template">
+            <field name="name">Discount</field>
+            <field name="type">service</field>
+            <field name="purchase_ok" eval="False"/>
+            <field name="taxes_id" eval="False"/>
+            <field name="list_price">0.0</field>
+            <field name="standard_price">0.0</field>
+            <field name="default_code">zort_discount</field>
+        </record>
+    </data>
+</odoo>

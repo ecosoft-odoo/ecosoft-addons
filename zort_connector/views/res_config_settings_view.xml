@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.account</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='connectors_setting_container']" position="inside">
+                <setting></setting>
+                <setting id="zort_connector" documentation="https://developers.zortout.com/" help="Import Zort orders and sync deliveries">
+                    <field name="zort_connector_enabled"/>
+                </setting>
+                <setting id="zort_endpoint_url" help="" invisible="not zort_connector_enabled">
+                    <label for="zort_endpoint_url" string="Zort Endpoint URL" class="col-lg-4"/>
+                    <field name="zort_endpoint_url" widget="url"/>
+                    <label for="zort_store_name" string="Zort Store Name" class="col-lg-4"/>
+                    <field name="zort_store_name"/>
+                    <label for="zort_api_key" string="Zort API Key" class="col-lg-4"/>
+                    <field name="zort_api_key" widget="password"/>
+                    <label for="zort_api_secret" string="Zort API Secret" class="col-lg-4"/>
+                    <field name="zort_api_secret" widget="password"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
