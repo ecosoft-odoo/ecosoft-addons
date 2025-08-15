@@ -16,7 +16,6 @@ class ProductTemplate(models.Model):
     def action_update_create_product_on_zort(self):
         """Update or create product in Zort based on the current product template."""
         self.ensure_one()
-        # print(f"Updating/Creating product in Zort for {self.name}")
 
         if not self.sync_with_zort:
             return

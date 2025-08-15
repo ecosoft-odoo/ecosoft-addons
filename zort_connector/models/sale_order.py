@@ -32,6 +32,12 @@ class SaleOrder(models.Model):
         copy=False,
         # readonly=True,
     )
+    zort_payment_status = fields.Char(
+        string='Zort Payment Status',
+        help='The payment status of the order in Zort.',
+        copy=False,
+        # readonly=True,
+    )
 
     @api.model
     def create_sales_order_from_zort(self, status="0", orderidlist="", numberlist=""):
@@ -68,6 +74,34 @@ class SaleOrder(models.Model):
                     'error': str(e)
                 }, func='create_sales_order_from_zort', level='error', path='zort_connector/models/sale_order.py', line=37)
 
+    @api.model
+    def update_sale_order_status(self):
+        """
+        Update the status or relate field of a sale order if it is a Zort order.
+        Use cron job to periodically check and update the status of Zort orders.
+        :return: None
+        """
+        zort_orders = self.search([
+            ('is_zort_order', '=', True),
+            ('state', 'in', ['draft', 'sent'])
+        ])
+        zort_order_ids = [order.zort_order_id for order in zort_orders if order.zort_order_id]
+        zort_order_ids_str = ",".join(zort_order_ids)
+
+        try:
+            response = self._get_list_order(status="", orderidlist=zort_order_ids_str)
+            print(response)
+        except Exception as e:
+            _logger.error("Error fetching Zort orders for status update: %s", e)
+            return
+
+        orders = response.get("list", [])
+        for order in orders:
+            try:
+                self._create_or_update_sale_order(order)
+            except Exception as e:
+                _logger.error("Error processing Zort order %s: %s", order.get('id'), e)
+
     def _create_or_update_sale_order(self, order):
         """
         Create or update a sale order based on the Zort order data.
@@ -80,8 +114,13 @@ class SaleOrder(models.Model):
             existing_order.write({
                 'zort_order_number': order.get('number'),
                 'zort_order_status': order.get('status'),
+                'zort_payment_status': order.get('paymentstatus'),
             })
             _logger.info("Updated Sale Order: %s", existing_order.name)
+
+            # If zort order status is 'success', confirm the order
+            if existing_order.zort_order_status == 'Success':
+                existing_order.action_confirm()
             return
 
         else:
@@ -95,6 +134,7 @@ class SaleOrder(models.Model):
                 'zort_order_id': order.get('id'),
                 'zort_order_number': order.get('number'),
                 'zort_order_status': order.get('status'),
+                'zort_payment_status': order.get('paymentstatus'),
             }
 
             # Create the sale order

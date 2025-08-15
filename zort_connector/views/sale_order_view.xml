@@ -13,6 +13,7 @@
                         <field name="zort_order_id" string="Order ID"/>
                         <field name="zort_order_number" string="Order Number"/>
                         <field name="zort_order_status" string="Order Status"/>
+                        <field name="zort_payment_status" string="Payment Status"/>
                     </group>
                 </page>
             </xpath>
