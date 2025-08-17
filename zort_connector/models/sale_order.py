@@ -95,7 +95,7 @@ class SaleOrder(models.Model):
         :return: None
         """
         zort_orders = self.search(
-            [("is_zort_order", "=", True), ("state", "in", ["draft", "sent"])]
+            [("is_zort_order", "=", True), ("state", "in", ["draft", "sent", "sale"])]
         )
         zort_order_ids = [
             order.zort_order_id for order in zort_orders if order.zort_order_id
@@ -133,9 +133,40 @@ class SaleOrder(models.Model):
             )
             _logger.info("Updated Sale Order: %s", existing_order.name)
 
-            # If zort order status is 'success', confirm the order
-            if existing_order.zort_order_status == "Success":
+            # If zort order status is 'waiting', confirm the order
+            # If Zort order status is 'success',
+            # mark delivery order as done and create draft invoice
+            if existing_order.zort_order_status == "Waiting":
                 existing_order.action_confirm()
+            if existing_order.zort_order_status == "Success":
+                for picking in existing_order.picking_ids:
+                    if picking.state not in ["done", "cancel"]:
+                        picking.button_validate()
+                _logger.info(
+                    "Delivery order done for Sale Order: %s", existing_order.name
+                )
+
+                # Force recomputation of delivered quantities
+                existing_order.order_line.invalidate_recordset(["qty_delivered"])
+                existing_order.order_line._compute_qty_delivered()
+
+                # Create draft invoice programmatically
+                # This following code base on invoice policy.
+                invoice_wizard = (
+                    self.env["sale.advance.payment.inv"]
+                    .with_context(
+                        active_ids=existing_order.ids, active_id=existing_order.id
+                    )
+                    .create(
+                        {
+                            "advance_payment_method": "delivered",
+                        }
+                    )
+                )
+                invoice_wizard.create_invoices()
+                _logger.info(
+                    "Draft invoice created for Sale Order: %s", existing_order.name
+                )
             return
 
         else:

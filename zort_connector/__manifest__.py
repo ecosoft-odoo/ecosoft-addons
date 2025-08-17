@@ -11,7 +11,6 @@
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": ["sale_management"],
     "data": [
-        # 'security/ir.model.access.csv',
         "data/ir_cron_data.xml",
         "data/partner_data.xml",
         "data/product_data.xml",
