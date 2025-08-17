@@ -35,6 +35,11 @@ class SaleOrder(models.Model):
         copy=False,
         # readonly=True,
     )
+    zort_order_data = fields.Json(
+        help="The raw order data fetched from Zort.",
+        copy=False,
+        # readonly=True,
+    )
 
     @api.model
     def create_sales_order_from_zort(self, status="0", orderidlist="", numberlist=""):
@@ -129,6 +134,7 @@ class SaleOrder(models.Model):
                     "zort_order_number": order.get("number"),
                     "zort_order_status": order.get("status"),
                     "zort_payment_status": order.get("paymentstatus"),
+                    "zort_order_data": order,
                 }
             )
             _logger.info("Updated Sale Order: %s", existing_order.name)
@@ -175,14 +181,13 @@ class SaleOrder(models.Model):
 
             # Prepare the data for the sale order
             order_data = {
-                "partner_id": self.env.ref(
-                    "zort_connector.marketplace_customer"
-                ).id,  # a default customer
+                "partner_id": self._get_marketplace_customer(order),
                 "is_zort_order": True,
                 "zort_order_id": order.get("id"),
                 "zort_order_number": order.get("number"),
                 "zort_order_status": order.get("status"),
                 "zort_payment_status": order.get("paymentstatus"),
+                "zort_order_data": order,
             }
 
             # Create the sale order
@@ -254,3 +259,65 @@ class SaleOrder(models.Model):
             _logger.info("Created Sale Order: %s", sale_order.name)
 
         return sale_order
+
+    def _get_marketplace_customer(self, order: dict) -> int:
+        """
+        Determine the appropriate customer for the Zort order.
+        1. For Magento orders, match or create a customer by phone number.
+        2. For other platforms, use the marketplace customer.
+        :return: res.partner id
+        """
+        default_customer = self.env.ref("zort_connector.marketplace_customer_1")
+        integration_name = (order.get("integrationName") or "").lower()
+        customer_phone = order.get("customerphone", "")
+        customer_name = order.get("customername", "")
+        customer_email = order.get("customeremail", "")
+
+        if integration_name == "magento" and customer_phone:
+            customer = self.env["res.partner"].search(
+                [("phone", "=", customer_phone)], limit=1
+            )
+            if customer:
+                return customer.id
+            if not customer_name:
+                return default_customer.id
+
+            try:
+                customer = self.env["res.partner"].create({
+                    "name": customer_name,
+                    "phone": customer_phone,
+                    "email": customer_email,
+                    "is_company": False,
+                    "customer_type": "person",
+                    "customer_platform_code": "magento",
+                })
+                self.env.cr.commit()
+                return customer.id
+            except Exception as e:
+                _logger.error(
+                    "Error creating customer from Magento order: %s", e
+                )
+                return default_customer.id
+
+        if integration_name:
+            customer = self.env["res.partner"].search(
+                [("customer_platform_code", "=", integration_name)], limit=1
+            )
+            if customer:
+                return customer.id
+
+        return default_customer.id
+
+    def _auto_create_customer_from_magento(self, customer_data):
+        pass
+
+    def action_view_zort_order_json(self):
+        """
+        Action to view the raw Zort order data in JSON format.
+        :return: dict - Action dictionary to open a new window with JSON data.
+        """
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/zort_connector/view_zort_order_json/{self.id}",
+            "target": "new",
+        }

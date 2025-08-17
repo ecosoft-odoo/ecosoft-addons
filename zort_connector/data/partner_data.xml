@@ -2,14 +2,26 @@
 <odoo noupdate="1">
     <record id="marketplace_customer_1" model="res.partner">
         <field name="name">Marketplace Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+        <field name="customer_platform_code" eval="'marketplace'" />
     </record>
     <record id="marketplace_customer_2" model="res.partner">
         <field name="name">Shoppee Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+        <field name="customer_platform_code" eval="'shopee'" />
     </record>
     <record id="marketplace_customer_3" model="res.partner">
         <field name="name">Lazada Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+        <field name="customer_platform_code" eval="'lazada'" />
     </record>
     <record id="marketplace_customer_4" model="res.partner">
         <field name="name">Tiktok Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+        <field name="customer_platform_code" eval="'tiktok'" />
     </record>
 </odoo>
