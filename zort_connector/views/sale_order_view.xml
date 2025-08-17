@@ -19,11 +19,13 @@
                         <field name="zort_payment_status" string="Payment Status" />
                     </group>
                     <group>
-                            <button name="action_view_zort_order_json"
-                                    string="Explore API Response in JSON"
-                                    type="object"
-                                    class="oe_highlight"
-                                    icon="fa-external-link"/>
+                        <button
+                            name="action_view_zort_order_json"
+                            string="Explore API Response in JSON"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-external-link"
+                        />
                     </group>
                 </page>
             </xpath>

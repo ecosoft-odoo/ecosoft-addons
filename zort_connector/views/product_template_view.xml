@@ -8,22 +8,26 @@
             <xpath expr="//header" position="inside">
                 <field name="sync_with_zort" invisible="1" />
                 <button
-                    name="action_update_create_product_on_zort"
+                    name="action_create_product_on_zort"
                     type="object"
-                    string="Update/Create product to Zort"
+                    string="Create to Zort"
                     class="oe_highlight"
-                    invisible="not sync_with_zort"
+                    invisible="not sync_with_zort or is_created_on_zort"
+                />
+                <button
+                    name="action_update_product_to_zort"
+                    type="object"
+                    string="Update to Zort"
+                    class="btn-info fa fa-refresh"
+                    invisible="not is_created_on_zort"
                 />
             </xpath>
             <xpath
                 expr="//page[@name='general_information']/group/group[@name='group_standard_price']"
                 position="inside"
             >
-                <field
-                    name="sync_with_zort"
-                    string="Sync with Zort"
-                    help="Enable synchronization of this product with Zort"
-                />
+                <field name="sync_with_zort" readonly="is_created_on_zort" />
+                <field name="zort_product_id" readonly="1" />
             </xpath>
         </field>
     </record>

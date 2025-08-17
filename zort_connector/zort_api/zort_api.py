@@ -125,7 +125,7 @@ class ZortApi(models.AbstractModel):
                 error_msg, func="_get_list_order", level="error", line=52
             )
             _logger.error("Failed to retrieve orders from Zort API: %s", str(e))
-            return {}
+            return {"error": str(e)}
 
     @api.model
     def _update_product_available_stock_list(self, warehouse: str, data: dict) -> dict:
@@ -173,8 +173,44 @@ class ZortApi(models.AbstractModel):
                 error_msg, func="_add_product", level="error", line=118
             )
             _logger.error("Failed to add product to Zort: %s", str(e))
-            return {}
+            return {"error": str(e)}
 
     @api.model
-    def _update_product(self) -> dict:
-        pass
+    def _update_product(self, zort_product_id: int, data: dict) -> dict:
+        """
+        Update an existing product in Zort.
+        :param zort_product_id: int - The ID of the product in Zort to update.
+        :param data: dict - JSON data containing updated product details.
+        :note: Data structure should be like:
+        {
+            "name": "Wit Day - Vitamin B",
+            "sellprice": "20.00",
+            "purchaseprice": "10.00",
+            "unittext": "Piece",
+            "weight": "500",
+            "sell_vat_status": 2,
+            "purchase_vat_status": 2
+        }
+        :return: dict - JSON response from the Zort API after updating the product.
+        """
+        url = self._get_api_url("Product/UpdateProduct")
+        HEADER = self._get_header()
+        headers = HEADER.copy()
+        PARAMS = {
+            "id": zort_product_id,
+        }
+        try:
+            response = requests.post(
+                url, headers=headers, params=PARAMS, data=json.dumps(data), timeout=10
+            )
+            response.raise_for_status()
+            response_json = response.json()
+            self._log_api_response(response_json, func="_update_product", line=178)
+            return response_json
+        except requests.RequestException as e:
+            error_msg = {"error": str(e)}
+            self._log_api_response(
+                error_msg, func="_update_product", level="error", line=178
+            )
+            _logger.error("Failed to update product in Zort: %s", str(e))
+            return {"error": str(e)}

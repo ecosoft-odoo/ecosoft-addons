@@ -55,10 +55,8 @@ class SaleOrder(models.Model):
         :return: dict
             JSON response containing the list of orders.
         """
-        try:
-            response = self._get_list_order(status, orderidlist, numberlist)
-        except Exception as e:
-            _logger.error("Error fetching Zort orders: %s", e)
+
+        response = self._get_list_order(status, orderidlist, numberlist)
 
         if response.get("count") == 0:
             _logger.warning("No orders fetched from Zort for the given criteria.")
@@ -68,29 +66,8 @@ class SaleOrder(models.Model):
         for order in orders:
             try:
                 self._create_or_update_sale_order(order)
-                self._log_api_response(
-                    response_json={
-                        "order_id": order.get("id"),
-                        "status": order.get("status"),
-                        "message": "Sale Order created successfully",
-                    },
-                    func="create_sales_order_from_zort",
-                    path="zort_connector/models/sale_order.py",
-                    line=37,
-                )
             except Exception as e:
                 _logger.error("Error creating/updating sale order: %s", e)
-                self._log_api_response(
-                    response_json={
-                        "order_id": order.get("id"),
-                        "status": order.get("status"),
-                        "error": str(e),
-                    },
-                    func="create_sales_order_from_zort",
-                    level="error",
-                    path="zort_connector/models/sale_order.py",
-                    line=37,
-                )
 
     @api.model
     def update_sale_order_status(self):
@@ -107,11 +84,7 @@ class SaleOrder(models.Model):
         ]
         zort_order_ids_str = ",".join(zort_order_ids)
 
-        try:
-            response = self._get_list_order(status="", orderidlist=zort_order_ids_str)
-        except Exception as e:
-            _logger.error("Error fetching Zort orders for status update: %s", e)
-            return
+        response = self._get_list_order(status="", orderidlist=zort_order_ids_str)
 
         orders = response.get("list", [])
         for order in orders:
@@ -283,20 +256,19 @@ class SaleOrder(models.Model):
                 return default_customer.id
 
             try:
-                customer = self.env["res.partner"].create({
-                    "name": customer_name,
-                    "phone": customer_phone,
-                    "email": customer_email,
-                    "is_company": False,
-                    "customer_type": "person",
-                    "customer_platform_code": "magento",
-                })
-                self.env.cr.commit()
+                customer = self.env["res.partner"].create(
+                    {
+                        "name": customer_name,
+                        "phone": customer_phone,
+                        "email": customer_email,
+                        "is_company": False,
+                        "customer_type": "person",
+                        "customer_platform_code": "magento",
+                    }
+                )
                 return customer.id
             except Exception as e:
-                _logger.error(
-                    "Error creating customer from Magento order: %s", e
-                )
+                _logger.error("Error creating customer from Magento order: %s", e)
                 return default_customer.id
 
         if integration_name:
@@ -307,9 +279,6 @@ class SaleOrder(models.Model):
                 return customer.id
 
         return default_customer.id
-
-    def _auto_create_customer_from_magento(self, customer_data):
-        pass
 
     def action_view_zort_order_json(self):
         """
