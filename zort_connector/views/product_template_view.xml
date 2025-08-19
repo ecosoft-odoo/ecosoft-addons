@@ -18,8 +18,16 @@
                     name="action_update_product_to_zort"
                     type="object"
                     string="Update to Zort"
-                    class="btn-info fa fa-refresh"
+                    class="btn-info"
                     invisible="not is_created_on_zort"
+                />
+                <button
+                    name="action_update_qty_to_zort"
+                    type="object"
+                    string="Update Quantity to Zort"
+                    class="btn-info"
+                    invisible="not is_created_on_zort"
+                    help="Update the quantity of this product on Zort"
                 />
             </xpath>
             <xpath

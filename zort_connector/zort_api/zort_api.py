@@ -214,3 +214,131 @@ class ZortApi(models.AbstractModel):
             )
             _logger.error("Failed to update product in Zort: %s", str(e))
             return {"error": str(e)}
+
+    @api.model
+    def _update_product_available_stock_list(
+        self, warehousecode: str, data: dict
+    ) -> dict:
+        """
+        Update the available stock list for products in Zort.
+
+        :param warehousecode: str - The warehouse code.
+        :param data: dict - JSON payload with stock information.
+            Example:
+            {
+            "stocks": [
+                {
+                "sku": "P0001",
+                "stock": 10,
+                "cost": 100
+                }
+            ]
+            }
+        :return: dict - JSON response from the Zort API.
+        """
+        url = self._get_api_url("Product/UpdateProductAvailableStockList")
+        HEADER = self._get_header()
+        headers = HEADER.copy()
+        params = {"warehousecode": warehousecode}
+        try:
+            response = requests.post(
+                url, headers=headers, params=params, data=json.dumps(data), timeout=10
+            )
+            response.raise_for_status()
+            response_json = response.json()
+            self._log_api_response(
+                response_json, func="_update_product_available_stock_list", line=219
+            )
+            return response_json
+        except requests.RequestException as e:
+            error_msg = {"error": str(e)}
+            self._log_api_response(
+                error_msg,
+                func="_update_product_available_stock_list",
+                level="error",
+                line=219,
+            )
+            _logger.error("Failed to update product stock in Zort: %s", str(e))
+            return {"error": str(e)}
+
+    @api.model
+    def _increase_product_stock_list(self, warehousecode: str, data: dict) -> dict:
+        """
+        Increase the stock of products in Zort.
+
+        :param warehousecode: str - The warehouse code.
+        :param data: dict - JSON payload with stock information.
+            Example:
+            {
+            "stocks": [
+                {
+                "sku": "P0001",
+                "stock": 10,
+                "cost": 100
+                }
+            ]
+            }
+        :return: dict - JSON response from the Zort API.
+        """
+        url = self._get_api_url("Product/IncreaseProductStockList")
+        HEADER = self._get_header()
+        headers = HEADER.copy()
+        params = {"warehousecode": warehousecode}
+        try:
+            response = requests.post(
+                url, headers=headers, params=params, data=json.dumps(data), timeout=10
+            )
+            response.raise_for_status()
+            response_json = response.json()
+            self._log_api_response(
+                response_json, func="_increase_product_stock_list", line=260
+            )
+            return response_json
+        except requests.RequestException as e:
+            error_msg = {"error": str(e)}
+            self._log_api_response(
+                error_msg, func="_increase_product_stock_list", level="error", line=260
+            )
+            _logger.error("Failed to increase product stock in Zort: %s", str(e))
+            return {"error": str(e)}
+
+    @api.model
+    def _decrease_product_stock_list(self, warehousecode: str, data: dict) -> dict:
+        """
+        Decrease the stock of products in Zort.
+
+        :param warehousecode: str - The warehouse code.
+        :param data: dict - JSON payload with stock information.
+            Example:
+            {
+            "stocks": [
+                {
+                "sku": "P0001",
+                "stock": 10,
+                "cost": 100
+                }
+            ]
+            }
+        :return: dict - JSON response from the Zort API.
+        """
+        url = self._get_api_url("Product/DecreaseProductStockList")
+        HEADER = self._get_header()
+        headers = HEADER.copy()
+        params = {"warehousecode": warehousecode}
+        try:
+            response = requests.post(
+                url, headers=headers, params=params, data=json.dumps(data), timeout=10
+            )
+            response.raise_for_status()
+            response_json = response.json()
+            self._log_api_response(
+                response_json, func="_decreate_product_stock_list", line=301
+            )
+            return response_json
+        except requests.RequestException as e:
+            error_msg = {"error": str(e)}
+            self._log_api_response(
+                error_msg, func="_decreate_product_stock_list", level="error", line=301
+            )
+            _logger.error("Failed to decrease product stock in Zort: %s", str(e))
+            return {"error": str(e)}
