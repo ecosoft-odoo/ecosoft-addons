@@ -13,32 +13,32 @@ class SaleOrder(models.Model):
     is_zort_order = fields.Boolean(
         help="Indicates if this sale order is created from Zort.",
         default=False,
-        # readonly=True,
+        readonly=True,
     )
     zort_order_id = fields.Char(
         help="The ID of the order in Zort.",
         copy=False,
-        # readonly=True,
+        readonly=True,
     )
     zort_order_number = fields.Char(
         help="The order number in Zort.",
         copy=False,
-        # readonly=True,
+        readonly=True,
     )
     zort_order_status = fields.Char(
         help="The status of the order in Zort.",
         copy=False,
-        # readonly=True,
+        readonly=True,
     )
     zort_payment_status = fields.Char(
         help="The payment status of the order in Zort.",
         copy=False,
-        # readonly=True,
+        readonly=True,
     )
     zort_order_data = fields.Json(
         help="The raw order data fetched from Zort.",
         copy=False,
-        # readonly=True,
+        readonly=True,
     )
 
     @api.model

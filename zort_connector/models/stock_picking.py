@@ -1,6 +1,6 @@
 import logging
 
-from odoo import _, models
+from odoo import _, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -8,6 +8,10 @@ _logger = logging.getLogger(__name__)
 class StockPicking(models.Model):
     _name = "stock.picking"
     _inherit = ["stock.picking", "zort.api"]
+
+    updated_qty_to_zort = fields.Boolean(
+        default=False, help="Indicates if the quantity has been updated to Zort."
+    )
 
     def button_validate(self):
         res = super().button_validate()
@@ -19,13 +23,17 @@ class StockPicking(models.Model):
             self._sync_qty_to_zort()
         return res
 
+    def action_sync_qty_to_zort(self):
+        """Public action method for server actions."""
+        return self._sync_qty_to_zort()
+
     def _sync_qty_to_zort(self):
         """
         Syncs the quantity of products in Zort based on the stock picking type.
         Uses picking_type_code to decide whether to increase or decrease stock.
         """
         for picking in self:
-            data = []
+            data = {"stocks": []}
             # Use move_ids_without_package for outgoing, move_ids for incoming
             moves = (
                 picking.move_ids
@@ -34,13 +42,14 @@ class StockPicking(models.Model):
             )
             for move in moves:
                 if move.product_id.is_created_on_zort:
-                    data.append(
+                    data["stocks"].append(
                         {
                             "sku": move.product_id.default_code,
-                            "qty": move.quantity,
+                            "stock": move.quantity,
                         }
                     )
-            if not data:
+
+            if not data.get("stocks"):
                 continue
             if picking.picking_type_code == "incoming":
                 response = self._increase_product_stock_list(
@@ -70,6 +79,7 @@ class StockPicking(models.Model):
                     subtype_xmlid="mail.mt_note",
                 )
             else:
+                self.updated_qty_to_zort = True
                 picking.message_post(
                     body=_(f"Product stock {action} successfully on Zort."),
                     subtype_xmlid="mail.mt_note",

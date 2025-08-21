@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="action_update_qty_to_zort" model="ir.actions.server">
+        <field name="name">Update Quantity to Zort</field>
+        <field name="model_id" ref="stock.model_stock_picking" />
+        <field name="binding_model_id" ref="stock.model_stock_picking" />
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">
+# If update qty in stock.picking fail this allow user to manually trigger the update
+if record.state == 'done' and not record.updated_qty_to_zort:
+    record.action_sync_qty_to_zort()
+        </field>
+    </record>
+</odoo>

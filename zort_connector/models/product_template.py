@@ -39,14 +39,11 @@ class ProductTemplate(models.Model):
             "sellprice": self.list_price,
             "purchaseprice": self.standard_price,
             "unittext": self.uom_name,
-            # "weight": self.weight, // we can uncomment later
-            # "sell_vat_status": 0, // we can uncomment later
-            # "purchase_vat_status": 0 // we can uncomment later
+            # "weight": self.weight, # we can uncomment later
+            # "sell_vat_status": 0, # we can uncomment later
+            # "purchase_vat_status": 0 # we can uncomment later
         }
         response = self._add_product(data)
-
-        self.is_created_on_zort = True
-        self.zort_product_id = response.get("resDesc", "")
 
         if response.get("error"):
             _logger.error("Error creating product in Zort: %s", response.get("error"))
@@ -57,6 +54,24 @@ class ProductTemplate(models.Model):
                 ),
                 data=data,
             )
+        elif response.get("resCode") != "200":
+            _logger.error(
+                "Error creating product in Zort: %s",
+                response.get("resDesc", "Unknown error"),
+            )
+            return self._add_lognote_and_reload(
+                title="Error",
+                message=(
+                    "Failed to create product on Zort: {}\n"
+                    "Please check on Zort, the product may have already been created.\n"
+                    "If the product was created, you should update the Zort Product "
+                    "with the product ID from Zort."
+                ).format(response.get("resDesc", "Unknown error")),
+                data=data,
+            )
+
+        self.is_created_on_zort = True
+        self.zort_product_id = response.get("resDesc", "")
 
         return self._add_lognote_and_reload(
             title="Success", message="Product created successfully on Zort.", data=data
