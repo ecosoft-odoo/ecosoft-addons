@@ -65,9 +65,64 @@ class ZortApi(models.AbstractModel):
         }
         return HEADER
 
+    def _api_request(
+        self,
+        endpoint,
+        method="GET",
+        headers_extra=None,
+        params=None,
+        data=None,
+        func_name="",
+        line_number=0,
+    ):
+        """
+        Generic method to handle API requests to Zort.
+
+        :param endpoint: str - API endpoint (e.g., "Order/GetOrders")
+        :param method: str - HTTP method ("GET" or "POST")
+        :param headers_extra: dict - Additional headers to merge with base headers
+        :param params: dict - Query parameters for GET or URL parameters for POST
+        :param data: dict - JSON data for POST requests
+        :param func_name: str - Name of the calling function for logging
+        :param line_number: int - Line number for logging
+        :return: dict - JSON response from the API or error dict
+        """
+        url = self._get_api_url(endpoint)
+        headers = self._get_header().copy()
+
+        if headers_extra:
+            headers.update(headers_extra)
+
+        try:
+            if method.upper() == "GET":
+                response = requests.get(url, headers=headers, params=params, timeout=10)
+            elif method.upper() == "POST":
+                response = requests.post(
+                    url,
+                    headers=headers,
+                    params=params,
+                    data=json.dumps(data) if data else None,
+                    timeout=10,
+                )
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+
+            response.raise_for_status()
+            response_json = response.json()
+            self._log_api_response(response_json, func=func_name, line=line_number)
+            return response_json
+
+        except requests.exceptions.RequestException as e:
+            error_msg = {"error": str(e)}
+            self._log_api_response(
+                error_msg, func=func_name, level="error", line=line_number
+            )
+            _logger.error("Failed API request to %s: %s", endpoint, str(e))
+            return {"error": str(e)}
+
     @api.model
     def _get_list_order(
-        self, status: str = "0", orderidlist: str = "", numberlist: str = ""
+        self, status: str = "0", orderidlist: str = "", numberlist: str = "", **kwargs
     ) -> dict:
         """
         Fetch a list of orders based on their status and optional filters.
@@ -87,53 +142,40 @@ class ZortApi(models.AbstractModel):
             (optional).
         :param numberlist: str - Comma-separated list of order numbers to filter
             (optional).
+        :param kwargs: Additional query parameters such as:
+            - page: int - Page number
+            - keyword: str - Keyword to search
+            - createdafter: str - Filter orders created after this date (YYYY-MM-DD)
+            - createdbefore: str - Filter orders created before this date (YYYY-MM-DD)
+            - updatedafter: str - Filter orders updated after this date (YYYY-MM-DD)
+            - updatedbefore: str - Filter orders updated before this date (YYYY-MM-DD)
+            - orderdateafter: str - Filter orders with order date after (YYYY-MM-DD)
+            - orderdatebefore: str - Filter orders with order date before (YYYY-MM-DD)
+            - paymentafter: str - Filter orders with payment date after (YYYY-MM-DD)
+            - paymentbefore: str - Filter orders with payment date before (YYYY-MM-DD)
+            - fromamount: float - Minimum order amount
+            - toamount: float - Maximum order amount
+            - frompaymentamount: float - Minimum payment amount
+            - topaymentamount: float - Maximum payment amount
+            - limit: int - Limit number of results
         :return: dict - JSON response containing the list of orders.
         """
-        url = self._get_api_url("Order/GetOrders")
-        HEADER = self._get_header()
-        headers = HEADER.copy()
-        headers.update({"orderidlist": orderidlist, "numberlist": numberlist})
+        headers_extra = {"orderidlist": orderidlist, "numberlist": numberlist}
+        params = {"status": status}
 
-        params = {
-            # "page": 1,
-            # "keyword": "IV-2020",
-            # "createdafter": "2020-12-24",
-            # "createdbefore": "2020-12-27",
-            # "updatedafter": "2021-06-10",
-            # "updatedbefore": "2021-01-30",
-            # "orderdateafter": "2020-12-15",
-            # "orderdatebefore": "2020-12-15",
-            # "paymentafter": "2020-12-15",
-            # "paymentbefore": "2020-12-15",
-            "status": status,
-            # "fromamount": 0,
-            # "toamount": 10000,
-            # "frompaymentamount": 0,
-            # "topaymentamount": 10000,
-            # "limit": 2
-        }
-        try:
-            response = requests.get(url, headers=headers, params=params, timeout=10)
-            response.raise_for_status()
-            response_json = response.json()
-            self._log_api_response(response_json, func="_get_list_order", line=52)
-            return response_json
+        # Add any additional parameters from kwargs, filtering out None values
+        for key, value in kwargs.items():
+            if value is not None and value != "":
+                params[key] = value
 
-        except requests.exceptions.RequestException as e:
-            error_msg = {"error": str(e)}
-            self._log_api_response(
-                error_msg, func="_get_list_order", level="error", line=52
-            )
-            _logger.error("Failed to retrieve orders from Zort API: %s", str(e))
-            return {"error": str(e)}
-
-    @api.model
-    def _update_product_available_stock_list(self, warehouse: str, data: dict) -> dict:
-        pass
-
-    @api.model
-    def _get_products(self, sku: str = "") -> dict:
-        pass
+        return self._api_request(
+            endpoint="Order/GetOrders",
+            method="GET",
+            headers_extra=headers_extra,
+            params=params,
+            func_name="_get_list_order",
+            line_number=107,
+        )
 
     @api.model
     def _add_product(self, data: dict) -> dict:
@@ -155,25 +197,13 @@ class ZortApi(models.AbstractModel):
         }
         more details: https://developers.zortout.com/api-reference/product#add-product
         """
-
-        url = self._get_api_url("Product/AddProduct")
-        HEADER = self._get_header()
-        headers = HEADER.copy()
-        try:
-            response = requests.post(
-                url, headers=headers, data=json.dumps(data), timeout=10
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            self._log_api_response(response_json, func="_add_product", line=118)
-            return response_json
-        except requests.RequestException as e:
-            error_msg = {"error": str(e)}
-            self._log_api_response(
-                error_msg, func="_add_product", level="error", line=118
-            )
-            _logger.error("Failed to add product to Zort: %s", str(e))
-            return {"error": str(e)}
+        return self._api_request(
+            endpoint="Product/AddProduct",
+            method="POST",
+            data=data,
+            func_name="_add_product",
+            line_number=150,
+        )
 
     @api.model
     def _update_product(self, zort_product_id: int, data: dict) -> dict:
@@ -193,27 +223,15 @@ class ZortApi(models.AbstractModel):
         }
         :return: dict - JSON response from the Zort API after updating the product.
         """
-        url = self._get_api_url("Product/UpdateProduct")
-        HEADER = self._get_header()
-        headers = HEADER.copy()
-        PARAMS = {
-            "id": zort_product_id,
-        }
-        try:
-            response = requests.post(
-                url, headers=headers, params=PARAMS, data=json.dumps(data), timeout=10
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            self._log_api_response(response_json, func="_update_product", line=178)
-            return response_json
-        except requests.RequestException as e:
-            error_msg = {"error": str(e)}
-            self._log_api_response(
-                error_msg, func="_update_product", level="error", line=178
-            )
-            _logger.error("Failed to update product in Zort: %s", str(e))
-            return {"error": str(e)}
+        params = {"id": zort_product_id}
+        return self._api_request(
+            endpoint="Product/UpdateProduct",
+            method="POST",
+            params=params,
+            data=data,
+            func_name="_update_product",
+            line_number=178,
+        )
 
     @api.model
     def _update_product_available_stock_list(
@@ -236,30 +254,15 @@ class ZortApi(models.AbstractModel):
             }
         :return: dict - JSON response from the Zort API.
         """
-        url = self._get_api_url("Product/UpdateProductAvailableStockList")
-        HEADER = self._get_header()
-        headers = HEADER.copy()
         params = {"warehousecode": warehousecode}
-        try:
-            response = requests.post(
-                url, headers=headers, params=params, data=json.dumps(data), timeout=10
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            self._log_api_response(
-                response_json, func="_update_product_available_stock_list", line=219
-            )
-            return response_json
-        except requests.RequestException as e:
-            error_msg = {"error": str(e)}
-            self._log_api_response(
-                error_msg,
-                func="_update_product_available_stock_list",
-                level="error",
-                line=219,
-            )
-            _logger.error("Failed to update product stock in Zort: %s", str(e))
-            return {"error": str(e)}
+        return self._api_request(
+            endpoint="Product/UpdateProductAvailableStockList",
+            method="POST",
+            params=params,
+            data=data,
+            func_name="_update_product_available_stock_list",
+            line_number=219,
+        )
 
     @api.model
     def _increase_product_stock_list(self, warehousecode: str, data: dict) -> dict:
@@ -280,27 +283,15 @@ class ZortApi(models.AbstractModel):
             }
         :return: dict - JSON response from the Zort API.
         """
-        url = self._get_api_url("Product/IncreaseProductStockList")
-        HEADER = self._get_header()
-        headers = HEADER.copy()
         params = {"warehousecode": warehousecode}
-        try:
-            response = requests.post(
-                url, headers=headers, params=params, data=json.dumps(data), timeout=10
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            self._log_api_response(
-                response_json, func="_increase_product_stock_list", line=260
-            )
-            return response_json
-        except requests.RequestException as e:
-            error_msg = {"error": str(e)}
-            self._log_api_response(
-                error_msg, func="_increase_product_stock_list", level="error", line=260
-            )
-            _logger.error("Failed to increase product stock in Zort: %s", str(e))
-            return {"error": str(e)}
+        return self._api_request(
+            endpoint="Product/IncreaseProductStockList",
+            method="POST",
+            params=params,
+            data=data,
+            func_name="_increase_product_stock_list",
+            line_number=260,
+        )
 
     @api.model
     def _decrease_product_stock_list(self, warehousecode: str, data: dict) -> dict:
@@ -321,24 +312,69 @@ class ZortApi(models.AbstractModel):
             }
         :return: dict - JSON response from the Zort API.
         """
-        url = self._get_api_url("Product/DecreaseProductStockList")
-        HEADER = self._get_header()
-        headers = HEADER.copy()
         params = {"warehousecode": warehousecode}
-        try:
-            response = requests.post(
-                url, headers=headers, params=params, data=json.dumps(data), timeout=10
-            )
-            response.raise_for_status()
-            response_json = response.json()
-            self._log_api_response(
-                response_json, func="_decreate_product_stock_list", line=301
-            )
-            return response_json
-        except requests.RequestException as e:
-            error_msg = {"error": str(e)}
-            self._log_api_response(
-                error_msg, func="_decreate_product_stock_list", level="error", line=301
-            )
-            _logger.error("Failed to decrease product stock in Zort: %s", str(e))
-            return {"error": str(e)}
+        return self._api_request(
+            endpoint="Product/DecreaseProductStockList",
+            method="POST",
+            params=params,
+            data=data,
+            func_name="_decrease_product_stock_list",
+            line_number=301,
+        )
+
+    @api.model
+    def _get_return_orders(
+        self, numberlist: str = "", returnorderidlist: str = "", **kwargs
+    ) -> dict:
+        """
+        Fetch a list of return orders based on optional filters.
+
+        :param numberlist: str - Comma-separated list of order numbers to filter
+            (optional).
+        :param returnorderidlist: str - Comma-separated list of return order IDs to
+            filter (optional).
+        :param kwargs: Additional query parameters such as:
+            - returnorderdateafter: str - Return Order Date After (yyyy-MM-dd)
+            - returnorderdatebefore: str - Return Order Date Before (yyyy-MM-dd)
+            - fromamount: float - Minimum amount
+            - toamount: float - Maximum amount
+            - updatedatetimeafter: str - Updated Datetime After (yyyy-MM-dd HH:mm)
+            - updatedatetimebefore: str - Updated Datetime Before (yyyy-MM-dd HH:mm)
+            - createdatetimeafter: str - Created Datetime After (yyyy-MM-dd HH:mm)
+            - createdatetimebefore: str - Created Datetime Before (yyyy-MM-dd HH:mm)
+            - paymentafter: str - Paid Date After (yyyy-MM-dd)
+            - paymentbefore: str - Paid Date Before (yyyy-MM-dd)
+            - updatedafter: str - Updated Date After (yyyy-MM-dd)
+            - updatedbefore: str - Updated Date Before (yyyy-MM-dd)
+            - createdafter: str - Created Date After (yyyy-MM-dd)
+            - createdbefore: str - Created Date Before (yyyy-MM-dd)
+            - keyword: str - Keyword to search
+            - createusername: str - Created by (Username)
+            - warehousecode: str - Warehouse Code
+            - topaymentamount: float - Maximum payment amount
+            - frompaymentamount: float - Minimum payment amount
+            - referenceid: int - Reference Order ID
+            - referencenumber: str - Reference Order Number
+            - limit: int - Limit per page (Max = 500)
+            - page: int - Page (Default = 1)
+        :return: dict - JSON response containing the list of return orders.
+        """
+        headers_extra = {
+            "numberlist": numberlist,
+            "returnorderidlist": returnorderidlist,
+        }
+        params = {}
+
+        # Add any additional parameters from kwargs, filtering out None values
+        for key, value in kwargs.items():
+            if value is not None and value != "":
+                params[key] = value
+
+        return self._api_request(
+            endpoint="ReturnOrder/GetReturnOrders",
+            method="GET",
+            headers_extra=headers_extra,
+            params=params,
+            func_name="_get_return_orders",
+            line_number=346,
+        )

@@ -5,7 +5,7 @@
     "name": "zort_connector",
     "summary": "Connects Odoo with Zort",
     "version": "18.0.1.0.0",
-    "license": "LGPL-3",
+    "license": "AGPL-3",
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "maintainers": ["theerayuta@ecosoft.co.th"],
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
