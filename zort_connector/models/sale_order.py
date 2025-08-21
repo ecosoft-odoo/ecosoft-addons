@@ -112,9 +112,12 @@ class SaleOrder(models.Model):
             )
             _logger.info("Updated Sale Order: %s", existing_order.name)
 
+            # If zort order status is 'voided', cancel the order
             # If zort order status is 'waiting', confirm the order
             # If Zort order status is 'success',
             # mark delivery order as done and create draft invoice
+            if existing_order.zort_order_status == "Voided":
+                existing_order.action_cancel()
             if existing_order.zort_order_status == "Waiting":
                 existing_order.action_confirm()
             if existing_order.zort_order_status == "Success":
