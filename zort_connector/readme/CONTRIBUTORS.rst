@@ -1,1 +1,1 @@
-* Theerayut A. <theerayuta@ecosoft.co.th>
+- Theerayut A. <theerayuta@ecosoft.co.th>

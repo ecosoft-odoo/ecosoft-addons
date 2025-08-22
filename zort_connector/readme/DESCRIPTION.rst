@@ -1,10 +1,8 @@
-Zort Connector - E-commerce Integration for Odoo
-=================================================
+Zort Connector for Odoo
 
 The Zort Connector module provides seamless integration between Odoo and the Zort e-commerce platform, enabling businesses to synchronize their online sales operations with their ERP system.
 
 Key Features
-------------
 
 **Bidirectional Data Synchronization**
   * Orders: Automatic import from Zort to Odoo with real-time status updates
@@ -43,7 +41,6 @@ Key Features
   * Background processing for large data sets
 
 Technical Capabilities
-----------------------
 
 **API Integration**
   * Full Zort API v4 support
@@ -70,7 +67,6 @@ Technical Capabilities
   * Rate limiting compliance
 
 Use Cases
----------
 
 This module is ideal for businesses that:
 
@@ -81,7 +77,6 @@ This module is ideal for businesses that:
 * Manage multi-channel sales operations
 
 Supported Platforms
--------------------
 
 The connector supports orders from various e-commerce platforms connected to Zort:
 
@@ -91,7 +86,6 @@ The connector supports orders from various e-commerce platforms connected to Zor
 * And other Zort-integrated marketplaces
 
 Requirements
-------------
 
 * Odoo 18.0+
 * Active Zort account with API access
@@ -99,7 +93,6 @@ Requirements
 * Internet connectivity for API communication
 
 Getting Started
----------------
 
 1. Install the module
 2. Configure API credentials in Settings

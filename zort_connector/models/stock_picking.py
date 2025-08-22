@@ -1,7 +1,7 @@
 import logging
-
-from odoo import _,api, Command, fields, models
 from datetime import datetime, timedelta
+
+from odoo import _, api, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -97,14 +97,14 @@ class StockPicking(models.Model):
     @api.model
     def action_create_return_picking(self):
         """
-        In case of Zort return orders, this method will fetch the return orders
-        and create corresponding return pickings in Odoo.
+        Handle Zort return orders by fetching them and creating corresponding
+        return pickings in Odoo.
 
-        Get the return orders list from method `_get_zort_return_order()`.
-        Then for each return order, check zort return status following the logic below:
-        Situation:
-            Zort return status = 'Pending' --> Go to delivery order (link with SO) --> create return picking (assigned)
-            Zort return status = 'Success' --> Go to delivery order (link with SO) --> create return picking (done)
+        Logic:
+            - Fetch return orders using `_get_zort_return_order()`.
+            - For each return order:
+            - If status is 'Pending': create assigned return picking.
+            - If status is 'Success': done return picking.
         """
         return_orders = self._get_zort_return_order()
         if not return_orders:
@@ -142,7 +142,10 @@ class StockPicking(models.Model):
                 zort_order_numbers[zort_so_no] = order
 
         sale_orders = self.env["sale.order"].search(
-            [("zort_order_number", "in", list(zort_order_numbers.keys())), ("state", "=", "sale")]
+            [
+                ("zort_order_number", "in", list(zort_order_numbers.keys())),
+                ("state", "=", "sale"),
+            ]
         )
         for order in sale_orders:
             zort_so_no = order.zort_order_number
@@ -151,18 +154,26 @@ class StockPicking(models.Model):
 
             if return_status == "pending":
                 picking_ids = order.picking_ids.filtered(
-                    lambda p: p.state == "done" and p.picking_type_code == "outgoing" and p.origin == order.name
+                    lambda p, order=order: p.state == "done"
+                    and p.picking_type_code == "outgoing"
+                    and p.origin == order.name
                 )
                 picking = picking_ids[0] if picking_ids else None
                 zort_return_no = return_order_data.get("number", "")
-                if picking and not self._created_zort_return_picking(order, zort_return_no):
+                if picking and not self._created_zort_return_picking(
+                    order, zort_return_no
+                ):
                     try:
                         # Prepare context for the return wizard
-                        return_wizard = self.env["stock.return.picking"].with_context(
-                            active_ids=[picking.id],
-                            active_id=picking.id,
-                            active_model='stock.picking'
-                        ).create({})
+                        return_wizard = (
+                            self.env["stock.return.picking"]
+                            .with_context(
+                                active_ids=[picking.id],
+                                active_id=picking.id,
+                                active_model="stock.picking",
+                            )
+                            .create({})
+                        )
 
                         # Prepare item lines for the return wizard
                         # Sample structure:
@@ -181,20 +192,29 @@ class StockPicking(models.Model):
                         return_picking = return_wizard.action_create_returns()
                         return_picking.zort_return_no = zort_return_no
                         return_picking.zort_return_data = return_order_data
-                        msg = _("Zort has created a return order: %(zort_return_no)s", zort_return_no=zort_return_no)
+                        msg = _(
+                            "Zort has created a return order: %(zort_return_no)s",
+                            zort_return_no=zort_return_no,
+                        )
                         return_picking.message_post(body=msg)
                     except Exception as e:
                         _logger.error(
-                            "Error creating return picking for order %s: %s", order.name, str(e)
+                            "Error creating return picking for order %s: %s",
+                            order.name,
+                            str(e),
                         )
                         continue
 
             elif return_status == "success":
                 picking_ids = order.picking_ids.filtered(
-                    lambda p: p.state == "assigned" and p.picking_type_code == "incoming" and p.zort_return_no == zort_return_no
+                    lambda p, zort_return_no=zort_return_no: p.state == "assigned"
+                    and p.picking_type_code == "incoming"
+                    and p.zort_return_no == zort_return_no
                 )
                 if len(picking_ids) > 1:
-                    _logger.warning("Multiple incoming pickings found. Skipping return validation.")
+                    _logger.warning(
+                        "Multiple incoming pickings found. Skipping return validation."
+                    )
                     continue
                 picking = picking_ids[0] if picking_ids else None
                 if picking and picking.state == "assigned":
@@ -203,14 +223,15 @@ class StockPicking(models.Model):
                         "Return picking created successfully for order %s", order.name
                     )
 
-
     @api.model
     def _created_zort_return_picking(self, sale_order, zort_return_no) -> bool:
         """
         Returns True if no assigned incoming return picking exists for the sale order.
         """
         incoming_pickings = sale_order.picking_ids.filtered(
-            lambda p: p.picking_type_code == "incoming" and p.state == "assigned" and p.zort_return_no == zort_return_no
+            lambda p, return_no=zort_return_no: p.picking_type_code == "incoming"
+            and p.state == "assigned"
+            and p.zort_return_no == return_no
         )
         return bool(incoming_pickings)
 
@@ -232,7 +253,9 @@ class StockPicking(models.Model):
         # TODO: date to query should be configurable on settings
 
         # Use a default date range of 30 days for get return orders
-        returnorderdateafter = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        returnorderdateafter = (datetime.now() - timedelta(days=30)).strftime(
+            "%Y-%m-%d"
+        )
         returnorderdatebefore = datetime.now().strftime("%Y-%m-%d")
         kwargs.update(
             {
@@ -244,7 +267,9 @@ class StockPicking(models.Model):
 
         # Handle API Read timed out.
         if response.get("error"):
-            _logger.error("Error fetching return orders from Zort: %s", response.get("error"))
+            _logger.error(
+                "Error fetching return orders from Zort: %s", response.get("error")
+            )
             return []
 
         res = response.get("res")
@@ -266,4 +291,3 @@ class StockPicking(models.Model):
             "url": f"/zort_connector/view_zort_return_order_json/{self.id}",
             "target": "new",
         }
-
