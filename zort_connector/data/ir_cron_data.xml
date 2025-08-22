@@ -17,4 +17,12 @@
         <field name="interval_number">10</field>
         <field name="interval_type">minutes</field>
     </record>
+    <record id="ir_cron_auto_zort_return_order_import" model="ir.cron">
+        <field name="name">Auto Zort Return Order Import</field>
+        <field name="model_id" ref="model_stock_picking" />
+        <field name="state">code</field>
+        <field name="code">model.action_create_return_picking()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+    </record>
 </odoo>

@@ -121,6 +121,11 @@ class SaleOrder(models.Model):
             if existing_order.zort_order_status == "Waiting":
                 existing_order.action_confirm()
             if existing_order.zort_order_status == "Success":
+                # Maybe zort order skip from 'Pending' to 'Success'
+                # so we need to check if there is already confirm.
+                if existing_order.state not in ["done", "cancel"]:
+                    existing_order.action_confirm()
+
                 for picking in existing_order.picking_ids:
                     if picking.state not in ["done", "cancel"]:
                         picking.button_validate()
