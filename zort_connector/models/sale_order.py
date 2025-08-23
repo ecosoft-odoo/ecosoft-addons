@@ -118,7 +118,7 @@ class SaleOrder(models.Model):
             # mark delivery order as done and create draft invoice
             if existing_order.zort_order_status == "Voided":
                 existing_order.action_cancel()
-            if existing_order.zort_order_status == "Waiting":
+            if existing_order.zort_order_status == "Waiting" and existing_order.state not in ["done", "cancel"]:
                 existing_order.action_confirm()
             if existing_order.zort_order_status == "Success":
                 # Maybe zort order skip from 'Pending' to 'Success'

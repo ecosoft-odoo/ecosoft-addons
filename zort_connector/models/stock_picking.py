@@ -214,10 +214,11 @@ class StockPicking(models.Model):
                         continue
 
             elif return_status == "success":
+                zort_return_no = return_order_data.get("number", "")
                 picking_ids = order.picking_ids.filtered(
-                    lambda p, zort_return_no=zort_return_no: p.state == "assigned"
+                    lambda p, return_no=zort_return_no: p.state == "assigned"
                     and p.picking_type_code == "incoming"
-                    and p.zort_return_no == zort_return_no
+                    and p.zort_return_no == return_no
                 )
                 if len(picking_ids) > 1:
                     _logger.warning(
@@ -227,6 +228,7 @@ class StockPicking(models.Model):
                 picking = picking_ids[0] if picking_ids else None
                 if picking and picking.state == "assigned":
                     picking.button_validate()
+                    self._create_credit_note_for_return(picking.ids)
                     _logger.info(
                         "Return picking has been validated for order %s", order.name
                     )
@@ -257,7 +259,45 @@ class StockPicking(models.Model):
         Ensure this credit note should be able to reconcile with invoices
         related to the original sale order.
         """
-        pass
+        def get_price_unit(default_code, return_item_list):
+            # If return_item_list is available, match SKU to get pricepernumber
+            if return_item_list:
+                sku_to_price = {item['sku']: item['pricepernumber'] for item in return_item_list}
+                return sku_to_price.get(default_code, 0)
+            return 0
+
+
+        for picking in self.env['stock.picking'].browse(picking_ids):
+            if picking.picking_type_code != "incoming" or not picking.zort_return_no or picking.state != "done":
+                continue
+            sale_order = picking.sale_id
+            if not sale_order:
+                continue
+
+            return_item_list = picking.zort_return_data.get('list', [])
+
+            # Prepare lines for credit note: only products in the return picking
+            credit_lines = []
+            for move in picking.move_ids:
+                if move.product_id and move.quantity > 0:
+                    credit_lines.append((0, 0, {
+                        'product_id': move.product_id.id,
+                        'quantity': move.quantity,
+                        'price_unit': get_price_unit(move.product_id.default_code, return_item_list)
+                    }))
+            if not credit_lines:
+                continue
+            credit_note = self.env['account.move'].create({
+                'move_type': 'out_refund',
+                'invoice_origin': sale_order.name,
+                'invoice_user_id': sale_order.user_id.id,
+                'partner_id': sale_order.partner_id.id,
+                'invoice_date': fields.Date.context_today(self),
+                'invoice_line_ids': credit_lines,
+                'invoice_payment_term_id': sale_order.payment_term_id.id,
+                'ref': f"Return {picking.zort_return_no}",
+            })
+            picking.message_post(body=_("Draft credit note created for return picking: %s", credit_note.name))
 
     @api.model
     def _get_zort_return_order(self, **kwargs) -> list:
@@ -277,6 +317,8 @@ class StockPicking(models.Model):
                 "returnorderdatebefore": returnorderdatebefore,
             }
         )
+
+        _logger.info("Fetching return orders from Zort...")
         response = self._get_return_orders(**kwargs)
 
         # Handle API Read timed out.
