@@ -50,17 +50,8 @@ class SaleOrder(models.Model):
         Create or update sale orders in Odoo based on data from Zort.
 
         This method:
-        - Updates existing sale orders that match Zort order IDs:
-            - Updates fields: number, status, payment status, and stores raw Zort data.
-            - Triggers workflow actions based on Zort order status:
-            - Cancels if status is 'Voided'.
-            - Confirms if status is 'Waiting' and not done/cancelled.
-            - If status is 'Success', confirms (if not already), validates deliveries,
-              recomputes delivered quantities, and creates a draft invoice.
-        - If no matching sale order is found, creates a new sale order with:
-            - Customer determined from the Zort order.
-            - Order lines from Zort items, including shipping and discount lines if needed.
-            - Relevant Zort order metadata.
+        - Updates existing sale orders that match Zort order IDs
+        - Creates new sale orders from Zort data
 
         Args:
             status (str, optional): Zort order status filter for fetching new orders.
@@ -70,165 +61,202 @@ class SaleOrder(models.Model):
         Returns:
             bool: True if the operation completes successfully.
         """
+        # Update existing orders
+        self._update_existing_zort_orders()
 
-        # Try to update existing order first
+        # Create new orders
+        self._create_new_zort_orders(status, orderidlist, numberlist)
+
+        return True
+
+    def _update_existing_zort_orders(self):
+        """Update existing sale orders with latest data from Zort."""
         zort_ids = self._get_existing_zort_order_ids()
         res = self._get_list_order(status="", orderidlist=zort_ids)
         orders = res.get("list", [])
+
         for order in orders:
             try:
                 so = self.search([("zort_order_id", "=", order.get("id"))], limit=1)
                 if so:
-                    so.write(
-                        {
-                            "zort_order_number": order.get("number"),
-                            "zort_order_status": order.get("status"),
-                            "zort_payment_status": order.get("paymentstatus"),
-                            "zort_order_data": order,
-                        }
-                    )
-                    _logger.info("Updated Sale Order: %s", so.name)
-                    # If zort order status is 'voided', cancel the order
-                    # If zort order status is 'waiting', confirm the order
-                    # If Zort order status is 'success',
-                    # mark delivery order as done and create draft invoice
-                    if so.zort_order_status == "Voided":
-                        so.action_cancel()
-                    if so.zort_order_status == "Waiting" and so.state not in ["sale", "cancel"]:
-                        so.action_confirm()
-                    if so.zort_order_status == "Success":
-                        # Maybe zort order skip from 'Pending' to 'Success'
-                        # so we need to check if there is already confirm.
-                        if so.state not in ["sale", "cancel"]:
-                            so.action_confirm()
-
-                        for picking in so.picking_ids:
-                            if picking.state not in ["done", "cancel"]:
-                                picking.button_validate()
-                        _logger.info(
-                            "Delivery order done for Sale Order: %s", so.name
-                        )
-
-                        # Force recomputation of delivered quantities
-                        so.order_line.invalidate_recordset(["qty_delivered"])
-                        so.order_line._compute_qty_delivered()
-
-                        # Create draft invoice programmatically
-                        # This following code base on invoice policy.
-                        invoice_wizard = (
-                            self.env["sale.advance.payment.inv"]
-                            .with_context(
-                                active_ids=so.ids, active_id=so.id
-                            )
-                            .create(
-                                {
-                                    "advance_payment_method": "delivered",
-                                }
-                            )
-                        )
-                        invoice_wizard.create_invoices()
-                        _logger.info(
-                            "Draft invoice created for Sale Order: %s", so.name
-                        )
+                    self._update_sale_order_from_zort(so, order)
             except Exception as e:
-                _logger.error("Error updating existing sale order %s from Zort: %s", so.name, e)
+                _logger.error("Error updating existing sale order from Zort: %s", e)
 
+    def _update_sale_order_from_zort(self, sale_order, zort_order):
+        """Update a single sale order with Zort data and handle status changes."""
+        # Update order data
+        sale_order.write(
+            {
+                "zort_order_number": zort_order.get("number"),
+                "zort_order_status": zort_order.get("status"),
+                "zort_payment_status": zort_order.get("paymentstatus"),
+                "zort_order_data": zort_order,
+            }
+        )
+        _logger.info("Updated Sale Order: %s", sale_order.name)
 
-        # Create a new sale order
+        # Handle status-based actions
+        self._handle_zort_order_status(sale_order, zort_order.get("status"))
+
+    def _handle_zort_order_status(self, sale_order, zort_status):
+        """Handle order workflow based on Zort order status."""
+        if zort_status == "Voided":
+            sale_order.action_cancel()
+        elif zort_status == "Waiting" and sale_order.state not in ["sale", "cancel"]:
+            sale_order.action_confirm()
+        elif zort_status == "Success":
+            self._process_success_order(sale_order)
+
+    def _process_success_order(self, sale_order):
+        """Process order when Zort status is 'Success'."""
+        # Confirm order if not already confirmed
+        if sale_order.state not in ["sale", "cancel"]:
+            sale_order.action_confirm()
+
+        # Validate deliveries
+        for picking in sale_order.picking_ids:
+            if picking.state not in ["done", "cancel"]:
+                picking.button_validate()
+        _logger.info("Delivery order done for Sale Order: %s", sale_order.name)
+
+        # Force recomputation of delivered quantities
+        sale_order.order_line.invalidate_recordset(["qty_delivered"])
+        sale_order.order_line._compute_qty_delivered()
+
+        # Create draft invoice
+        self._create_draft_invoice(sale_order)
+
+    def _create_draft_invoice(self, sale_order):
+        """Create draft invoice for the sale order."""
+        invoice_wizard = (
+            self.env["sale.advance.payment.inv"]
+            .with_context(active_ids=sale_order.ids, active_id=sale_order.id)
+            .create({"advance_payment_method": "delivered"})
+        )
+        invoice_wizard.create_invoices()
+        _logger.info("Draft invoice created for Sale Order: %s", sale_order.name)
+
+    def _create_new_zort_orders(self, status, orderidlist, numberlist):
+        """Create new sale orders from Zort data."""
         _logger.info("Creating Sale Order from Zort...")
 
         zort_ids = [int(id) for id in self._get_existing_zort_order_ids().split(",")]
-        res = self._get_list_order(status=status, orderidlist=orderidlist, numberlist=numberlist)
+        res = self._get_list_order(
+            status=status, orderidlist=orderidlist, numberlist=numberlist
+        )
         orders = res.get("list", [])
+
         for order in orders:
             try:
                 if order.get("id") in zort_ids:
                     _logger.info("Zort Order already exists: %s", order.get("id"))
                     continue
 
-                # Prepare the data for the sale order
-                order_data = {
-                    "partner_id": self._get_marketplace_customer(order),
-                    "is_zort_order": True,
-                    "zort_order_id": order.get("id"),
-                    "zort_order_number": order.get("number"),
-                    "zort_order_status": order.get("status"),
-                    "zort_payment_status": order.get("paymentstatus"),
-                    "zort_order_data": order,
-                }
-
-                # Create the sale order
-                sale_order = self.create(order_data)
-
-                # Add order lines
-                order_lines = []
-                for line in order.get("list", []):
-                    product = self.env["product.product"].search(
-                        [("default_code", "=", line.get("sku"))], limit=1
-                    )
-                    if not product:
-                        _logger.warning(
-                            "Product with SKU %s not found. Skipping line.", line.get("sku")
-                        )
-                        continue
-                    order_lines.append(
-                        (
-                            0,
-                            0,
-                            {
-                                "product_id": product.id,
-                                "product_uom_qty": line.get("number", 1),
-                                "price_unit": line.get("totalprice", 0.0),
-                                "name": line.get("name", product.name),
-                            },
-                        )
-                    )
-
-                # check if there is shipping fee
-                shipping_amount = order.get("shippingamount", 0.0)
-                if shipping_amount > 0:
-                    order_lines.append(self._add_shipping_fee_line(shipping_amount))
-
-                # check if there is discount
-                discount_amount = order.get("discountamount", 0.0)
-                if discount_amount > 0:
-                    order_lines.append(self._add_discount_line(discount_amount))
-
-                if order_lines:
-                    sale_order.order_line = order_lines
-
-                _logger.info("Created Sale Order: %s", sale_order.name)
+                self._create_single_sale_order(order)
             except Exception as e:
-                _logger.error("Error creating sale order %s from Zort: %s", sale_order.name, e)
+                _logger.error("Error creating sale order from Zort: %s", e)
+
+    def _create_single_sale_order(self, zort_order):
+        """Create a single sale order from Zort order data."""
+        # Prepare order data
+        order_data = {
+            "partner_id": self._get_marketplace_customer(zort_order),
+            "is_zort_order": True,
+            "zort_order_id": zort_order.get("id"),
+            "zort_order_number": zort_order.get("number"),
+            "zort_order_status": zort_order.get("status"),
+            "zort_payment_status": zort_order.get("paymentstatus"),
+            "zort_order_data": zort_order,
+        }
+
+        # Create the sale order
+        sale_order = self.create(order_data)
+
+        # Add order lines
+        order_lines = self._prepare_order_lines(zort_order)
+        if order_lines:
+            sale_order.order_line = order_lines
+
+        _logger.info("Created Sale Order: %s", sale_order.name)
+
+    def _prepare_order_lines(self, zort_order):
+        """Prepare order lines from Zort order data."""
+        order_lines = []
+
+        # Add product lines
+        for line in zort_order.get("list", []):
+            product = self.env["product.product"].search(
+                [("default_code", "=", line.get("sku"))], limit=1
+            )
+            if not product:
+                _logger.warning(
+                    "Product with SKU %s not found. Skipping line.",
+                    line.get("sku"),
+                )
+                continue
+
+            order_lines.append(
+                (
+                    0,
+                    0,
+                    {
+                        "product_id": product.id,
+                        "product_uom_qty": line.get("number", 1),
+                        "price_unit": line.get("totalprice", 0.0),
+                        "name": line.get("name", product.name),
+                    },
+                )
+            )
+
+        # Add shipping fee if exists
+        shipping_amount = zort_order.get("shippingamount", 0.0)
+        if shipping_amount > 0:
+            order_lines.append(self._add_shipping_fee_line(shipping_amount))
+
+        # Add discount if exists
+        discount_amount = zort_order.get("discountamount", 0.0)
+        if discount_amount > 0:
+            order_lines.append(self._add_discount_line(discount_amount))
+
+        return order_lines
 
     def _add_shipping_fee_line(self, shipping_amount):
         """Add a shipping fee line to the sale order."""
         shipping_fee_product = self.env["product.product"].search(
             [("default_code", "=", "shipping_fee")], limit=1
         )
-        return (0, 0, {
-            "product_id": shipping_fee_product.id,
-            "product_uom_qty": 1,
-            "price_unit": shipping_amount,
-            "name": "Shipping Fee",
-        })
+        return (
+            0,
+            0,
+            {
+                "product_id": shipping_fee_product.id,
+                "product_uom_qty": 1,
+                "price_unit": shipping_amount,
+                "name": "Shipping Fee",
+            },
+        )
 
     def _add_discount_line(self, discount_amount):
         """Add a discount line to the sale order."""
         discount_product = self.env["product.product"].search(
             [("default_code", "=", "zort_discount")], limit=1
         )
-        return (0, 0, {
-            "product_id": discount_product.id,
-            "product_uom_qty": 1,
-            "price_unit": -discount_amount,
-            "name": "Discount",
-        })
+        return (
+            0,
+            0,
+            {
+                "product_id": discount_product.id,
+                "product_uom_qty": 1,
+                "price_unit": -discount_amount,
+                "name": "Discount",
+            },
+        )
 
     def _get_existing_zort_order_ids(self):
         """
-            Get existing Zort orders (id) in draft, sent, or sale state
-            Return as comma-separated string Ex. "1234,5678,91011"
+        Get existing Zort orders (id) in draft, sent, or sale state
+        Return as comma-separated string Ex. "1234,5678,91011"
         """
         zort_orders = self.search(
             [("is_zort_order", "=", True), ("state", "in", ["draft", "sent", "sale"])]

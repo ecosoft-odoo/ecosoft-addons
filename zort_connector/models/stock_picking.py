@@ -61,8 +61,10 @@ class StockPicking(models.Model):
             if not data.get("stocks"):
                 continue
             if picking.picking_type_code == "incoming":
-                wh_code = self.env["ir.config_parameter"].sudo().get_param(
-                    "zort_connector.warehouse_code", default="W0001"
+                wh_code = (
+                    self.env["ir.config_parameter"]
+                    .sudo()
+                    .get_param("zort_connector.warehouse_code", default="W0001")
                 )
                 response = self._increase_product_stock_list(
                     warehousecode=wh_code, data=data
@@ -194,12 +196,16 @@ class StockPicking(models.Model):
                             if sku in item_lines:
                                 line.quantity = item_lines[sku]
                         result = return_wizard.action_create_returns()
-                        if result and result.get('res_id'):
-                            return_picking = self.env['stock.picking'].browse(result['res_id'])
-                            return_picking.write({
-                                'zort_return_no': zort_return_no,
-                                'zort_return_data': return_order_data
-                            })
+                        if result and result.get("res_id"):
+                            return_picking = self.env["stock.picking"].browse(
+                                result["res_id"]
+                            )
+                            return_picking.write(
+                                {
+                                    "zort_return_no": zort_return_no,
+                                    "zort_return_data": return_order_data,
+                                }
+                            )
                             msg = _(
                                 "Zort has created a return order: %(zort_return_no)s",
                                 zort_return_no=zort_return_no,
@@ -244,7 +250,8 @@ class StockPicking(models.Model):
             and p.zort_return_no == return_no
         )
         _logger.info(
-            "Checking existing return pickings for order %s with Zort's return no %s: found %d",
+            "Checking existing return pickings for order %s with Zort's return no %s: "
+            "found %d",
             sale_order.name,
             zort_return_no,
             len(incoming_pickings),
@@ -259,45 +266,65 @@ class StockPicking(models.Model):
         Ensure this credit note should be able to reconcile with invoices
         related to the original sale order.
         """
+
         def get_price_unit(default_code, return_item_list):
             # If return_item_list is available, match SKU to get pricepernumber
             if return_item_list:
-                sku_to_price = {item['sku']: item['pricepernumber'] for item in return_item_list}
+                sku_to_price = {
+                    item["sku"]: item["pricepernumber"] for item in return_item_list
+                }
                 return sku_to_price.get(default_code, 0)
             return 0
 
-
-        for picking in self.env['stock.picking'].browse(picking_ids):
-            if picking.picking_type_code != "incoming" or not picking.zort_return_no or picking.state != "done":
+        for picking in self.env["stock.picking"].browse(picking_ids):
+            if (
+                picking.picking_type_code != "incoming"
+                or not picking.zort_return_no
+                or picking.state != "done"
+            ):
                 continue
             sale_order = picking.sale_id
             if not sale_order:
                 continue
 
-            return_item_list = picking.zort_return_data.get('list', [])
+            return_item_list = picking.zort_return_data.get("list", [])
 
             # Prepare lines for credit note: only products in the return picking
             credit_lines = []
             for move in picking.move_ids:
                 if move.product_id and move.quantity > 0:
-                    credit_lines.append((0, 0, {
-                        'product_id': move.product_id.id,
-                        'quantity': move.quantity,
-                        'price_unit': get_price_unit(move.product_id.default_code, return_item_list)
-                    }))
+                    credit_lines.append(
+                        (
+                            0,
+                            0,
+                            {
+                                "product_id": move.product_id.id,
+                                "quantity": move.quantity,
+                                "price_unit": get_price_unit(
+                                    move.product_id.default_code, return_item_list
+                                ),
+                            },
+                        )
+                    )
             if not credit_lines:
                 continue
-            credit_note = self.env['account.move'].create({
-                'move_type': 'out_refund',
-                'invoice_origin': sale_order.name,
-                'invoice_user_id': sale_order.user_id.id,
-                'partner_id': sale_order.partner_id.id,
-                'invoice_date': fields.Date.context_today(self),
-                'invoice_line_ids': credit_lines,
-                'invoice_payment_term_id': sale_order.payment_term_id.id,
-                'ref': f"Picking No. {picking.name}",
-            })
-            picking.message_post(body=_("Draft credit note created for return picking: %s", credit_note.name))
+            credit_note = self.env["account.move"].create(
+                {
+                    "move_type": "out_refund",
+                    "invoice_origin": sale_order.name,
+                    "invoice_user_id": sale_order.user_id.id,
+                    "partner_id": sale_order.partner_id.id,
+                    "invoice_date": fields.Date.context_today(self),
+                    "invoice_line_ids": credit_lines,
+                    "invoice_payment_term_id": sale_order.payment_term_id.id,
+                    "ref": f"Picking No. {picking.name}",
+                }
+            )
+            picking.message_post(
+                body=_(
+                    "Draft credit note created for return picking: %s", credit_note.name
+                )
+            )
 
     @api.model
     def _get_zort_return_order(self, **kwargs) -> list:

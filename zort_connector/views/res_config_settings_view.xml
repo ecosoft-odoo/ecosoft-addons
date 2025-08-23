@@ -24,7 +24,7 @@
                         string="Zort Endpoint URL"
                         class="col-lg-4"
                     />
-                    <field name="zort_endpoint_url"/>
+                    <field name="zort_endpoint_url" />
                     <label
                         for="zort_store_name"
                         string="Zort Store Name"

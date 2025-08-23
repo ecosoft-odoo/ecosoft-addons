@@ -240,9 +240,9 @@ The system automatically imports orders from Zort every 10 minutes using schedul
 2. **Order Status Updates**:
    - Updates existing orders with latest status from Zort
    - Triggers workflow actions based on status:
-     * **"Voided"**: Cancels the sale order
-     * **"Waiting"**: Confirms the sale order
-     * **"Success"**: Confirms order, validates deliveries, and creates draft invoice
+   **"Voided"**: Cancels the sale order
+   **"Waiting"**: Confirms the sale order
+   **"Success"**: Confirms order, validates deliveries, and creates draft invoice
 
 **Customer Handling**
 
