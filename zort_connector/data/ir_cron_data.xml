@@ -1,24 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo noupdate="1">
     <!-- need more implementation, this is just an example -->
-    <record id="ir_cron_auto_zort_order_import" model="ir.cron">
-        <field name="name">Auto Zort Order Import</field>
+    <record id="ir_cron_auto_sync_zort_order" model="ir.cron">
+        <field name="name">Auto Sync Zort Order</field>
         <field name="model_id" ref="model_sale_order" />
         <field name="state">code</field>
-        <field name="code">model.create_sales_order_from_zort()</field>
+        <field name="code">model.process_sales_order_from_zort()</field>
         <field name="interval_number">10</field>
         <field name="interval_type">minutes</field>
     </record>
-    <record id="ir_cron_auto_update_zort_order" model="ir.cron">
-        <field name="name">Auto Update Zort Order</field>
-        <field name="model_id" ref="model_sale_order" />
-        <field name="state">code</field>
-        <field name="code">model.update_sale_order_status()</field>
-        <field name="interval_number">10</field>
-        <field name="interval_type">minutes</field>
-    </record>
-    <record id="ir_cron_auto_zort_return_order_import" model="ir.cron">
-        <field name="name">Auto Zort Return Order Import</field>
+    <record id="ir_cron_auto_sync_zort_return_order" model="ir.cron">
+        <field name="name">Auto Sync Zort Return Order</field>
         <field name="model_id" ref="model_stock_picking" />
         <field name="state">code</field>
         <field name="code">model.action_create_return_picking()</field>

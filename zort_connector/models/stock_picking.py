@@ -295,7 +295,7 @@ class StockPicking(models.Model):
                 'invoice_date': fields.Date.context_today(self),
                 'invoice_line_ids': credit_lines,
                 'invoice_payment_term_id': sale_order.payment_term_id.id,
-                'ref': f"Return {picking.zort_return_no}",
+                'ref': f"Picking No. {picking.name}",
             })
             picking.message_post(body=_("Draft credit note created for return picking: %s", credit_note.name))
 
