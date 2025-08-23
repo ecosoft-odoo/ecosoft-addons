@@ -110,6 +110,7 @@ class StockPicking(models.Model):
             - If status is 'Success': done return picking.
         """
         return_orders = self._get_zort_return_order()
+        _logger.info("Fetched %d return orders from Zort.", len(return_orders))
         if not return_orders:
             _logger.info("No return orders found in Zort.")
             return
@@ -186,20 +187,24 @@ class StockPicking(models.Model):
                         # }
                         item_lines = {
                             item["sku"]: item["number"]
-                            for item in return_order_data.get("item_list", [])
+                            for item in return_order_data.get("list", [])
                         }
                         for line in return_wizard.product_return_moves:
                             sku = line.product_id.default_code
                             if sku in item_lines:
                                 line.quantity = item_lines[sku]
-                        return_picking = return_wizard.action_create_returns()
-                        return_picking.zort_return_no = zort_return_no
-                        return_picking.zort_return_data = return_order_data
-                        msg = _(
-                            "Zort has created a return order: %(zort_return_no)s",
-                            zort_return_no=zort_return_no,
-                        )
-                        return_picking.message_post(body=msg)
+                        result = return_wizard.action_create_returns()
+                        if result and result.get('res_id'):
+                            return_picking = self.env['stock.picking'].browse(result['res_id'])
+                            return_picking.write({
+                                'zort_return_no': zort_return_no,
+                                'zort_return_data': return_order_data
+                            })
+                            msg = _(
+                                "Zort has created a return order: %(zort_return_no)s",
+                                zort_return_no=zort_return_no,
+                            )
+                            return_picking.message_post(body=msg)
                     except Exception as e:
                         _logger.error(
                             "Error creating return picking for order %s: %s",
@@ -223,7 +228,7 @@ class StockPicking(models.Model):
                 if picking and picking.state == "assigned":
                     picking.button_validate()
                     _logger.info(
-                        "Return picking created successfully for order %s", order.name
+                        "Return picking has been validated for order %s", order.name
                     )
 
     @api.model
@@ -235,6 +240,12 @@ class StockPicking(models.Model):
             lambda p, return_no=zort_return_no: p.picking_type_code == "incoming"
             and p.state == "assigned"
             and p.zort_return_no == return_no
+        )
+        _logger.info(
+            "Checking existing return pickings for order %s with Zort's return no %s: found %d",
+            sale_order.name,
+            zort_return_no,
+            len(incoming_pickings),
         )
         return bool(incoming_pickings)
 
