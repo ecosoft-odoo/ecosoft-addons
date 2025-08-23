@@ -36,6 +36,11 @@ class ResConfigSettings(models.TransientModel):
         default="",
         config_parameter="zort_connector.store_name",
     )
+    zort_warehouse_code = fields.Char(
+        help="The warehouse code in Zort.",
+        default="W0001",
+        config_parameter="zort_connector.warehouse_code",
+    )
 
     @api.onchange("zort_connector_enabled")
     def _onchange_zort_connector_enabled(self):
@@ -51,4 +56,7 @@ class ResConfigSettings(models.TransientModel):
             )
             self.env["ir.config_parameter"].sudo().set_param(
                 "zort_connector.store_name", ""
+            )
+            self.env["ir.config_parameter"].sudo().set_param(
+                "zort_connector.warehouse_code", ""
             )

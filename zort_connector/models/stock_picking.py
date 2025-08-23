@@ -61,13 +61,16 @@ class StockPicking(models.Model):
             if not data.get("stocks"):
                 continue
             if picking.picking_type_code == "incoming":
+                wh_code = self.env["ir.config_parameter"].sudo().get_param(
+                    "zort_connector.warehouse_code", default="W0001"
+                )
                 response = self._increase_product_stock_list(
-                    warehousecode="W0001", data=data
+                    warehousecode=wh_code, data=data
                 )
                 action = _("increased")
             elif picking.picking_type_code == "outgoing":
                 response = self._decrease_product_stock_list(
-                    warehousecode="W0001", data=data
+                    warehousecode=wh_code, data=data
                 )
                 action = _("decreased")
             else:
