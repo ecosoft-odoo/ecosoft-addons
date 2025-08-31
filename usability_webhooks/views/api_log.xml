@@ -7,8 +7,8 @@
             <list>
                 <field name="create_date" optional="show" />
                 <field name="model" optional="show" />
-                <field name="data" optional="show" />
-                <field name="result" optional="show" />
+                <field name="data_preview" optional="show" />
+                <field name="result_preview" optional="show" />
                 <field name="log_type" optional="show" />
                 <field
                     name="state"
@@ -26,15 +26,19 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button
-                        name="action_call_api"
-                        string="Update API"
-                        type="object"
-                        class="oe_highlight"
-                    />
                     <field name="state" widget="statusbar" />
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_view_full_log"
+                            type="object"
+                            icon="oi-search"
+                            class="oe_stat_button"
+                            string="Full Log"
+                            invisible="not attachment_id"
+                        />
+                    </div>
                     <group>
                         <group name="main_left">
                             <field name="model" />
@@ -47,13 +51,15 @@
                         </group>
                     </group>
                     <group string="Input">
+                        <field name="data_size" readonly="1" />
                         <div colspan="2">
-                            <field name="data" />
+                            <field name="data_preview" />
                         </div>
                     </group>
                     <group string="Output">
+                        <field name="result_size" readonly="1" />
                         <div colspan="2">
-                            <field name="result" readonly="1" />
+                            <field name="result_preview" />
                         </div>
                     </group>
                 </sheet>
@@ -66,7 +72,7 @@
         <field name="model">api.log</field>
         <field name="arch" type="xml">
             <search>
-                <field name="data" string="Data" />
+                <field name="data_preview" string="Data Preview" />
                 <filter
                     name="state_draft"
                     string="Draft"
