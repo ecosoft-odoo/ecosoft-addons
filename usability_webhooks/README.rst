@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ====================
 REST API for Webhook
 ====================
@@ -17,7 +13,7 @@ REST API for Webhook
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
@@ -26,13 +22,17 @@ REST API for Webhook
 
 |badge1| |badge2| |badge3|
 
-This module is base webhooks standard and keep all log that interface
+This module provides a standard webhook framework for Odoo with full request/response logging.
 
-Step to see logs:
+**Features**
 
-1. Go to Settings > Technical > API Configuration > API Logs
-2. this table will keep all log that interface '/api/create_data' or '/api/create_update_data'
-3. Users can used this table for test API by click 'Update API'
+- 5 REST API routes: ``create_data``, ``update_data``, ``create_update_data``, ``search_data``, ``call_function``
+- Session-based and API Key authentication
+- Automatic API log creation per request, with configurable per-route toggle
+- Request and response **preview** (first N characters, configurable) stored directly on the log record
+- Request and response **size** (character count) displayed on each log
+- For payloads exceeding the preview limit, the full payload is stored as a JSON attachment accessible via the **Full Log** button
+- Autovacuum cron to purge old logs, with optional chunk-based deletion for large datasets
 
 **Table of contents**
 
@@ -41,6 +41,56 @@ Step to see logs:
 
 Usage
 =====
+
+**API Logs**
+
+Every API call can be logged under *Settings > Technical > API Configuration > API Logs*.
+Each log record shows:
+
+- **Request Preview** / **Response Preview** — first N characters of the payload (N is configurable, default 2,000)
+- **Request Size** / **Response Size** — total character count of the payload
+- **Full Log** button — appears when the payload exceeds the preview limit; opens the full JSON attachment
+
+**System Parameters**
+
+The following keys can be changed under *Settings > Technical > Parameters > System Parameters*:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 15 45
+
+   * - Key
+     - Default
+     - Description
+   * - ``webhook.preview_limit``
+     - ``2000``
+     - Maximum characters stored in the preview fields. Payloads longer than this value are also saved as a full JSON attachment.
+   * - ``webhook.create_data_log``
+     - ``True``
+     - Enable logging for ``/api/create_data``
+   * - ``webhook.update_data_log``
+     - ``True``
+     - Enable logging for ``/api/update_data``
+   * - ``webhook.create_update_data_log``
+     - ``True``
+     - Enable logging for ``/api/create_update_data``
+   * - ``webhook.search_data_log``
+     - ``True``
+     - Enable logging for ``/api/search_data``
+   * - ``webhook.call_function_log``
+     - ``True``
+     - Enable logging for ``/api/call_function``
+   * - ``webhook.rollback_state_failed``
+     - ``1``
+     - Roll back the transaction when the API response is not successful
+   * - ``webhook.rollback_except``
+     - ``1``
+     - Roll back the transaction when an unhandled exception occurs
+   * - ``webhook.ignore_checkcompany_model``
+     - ``[]``
+     - JSON list of model names excluded from company-scoped record lookup
+
+----
 
 Before sending a REST API request to Odoo, an initial call to authenticate the API is necessary.
 You can achieve this by calling the ``/web/session/authenticate`` route.

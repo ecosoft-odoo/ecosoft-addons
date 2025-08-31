@@ -20,36 +20,41 @@ class WebhookController(http.Controller):
         return getattr(request.env["webhook.utils"], function)(model, vals)
 
     def _create_api_logs(self, model, vals, function):
-        # Add logs
-        data_dict = {
-            "data": json.dumps(vals),
-            "model": model,
-            "route": f"/api/{function}",
-            "function_name": function,
-        }
-
         ICP = request.env["ir.config_parameter"]
         rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
         rollback_except = ICP.sudo().get_param("webhook.rollback_except")
+
+        data_str = json.dumps(vals)
+        state = "draft"
+        res = {}
+
         try:
             res = self._call_function_api(model, vals, function)
-            state = "done" if res["is_success"] else "failed"
-            data_dict.update({"result": res, "state": state})
+            state = "done" if res.get("is_success") else "failed"
             # Not success, rollback all data (if config in system parameter)
-            if not res["is_success"] and rollback_state_failed:
+            if not res.get("is_success") and rollback_state_failed:
                 request.env.cr.rollback()
         except Exception:
             res = {
                 "is_success": False,
                 "messages": traceback.format_exc(),
             }
-            data_dict.update({"result": res, "state": "failed"})
+            state = "failed"
             # Error from odoo exception,
             # rollback all data (if config in system parameter)
             if rollback_except:
                 request.env.cr.rollback()
-        if vals["is_create_log"]:
-            request.env["api.log"].create(data_dict)
+
+        if vals.get("is_create_log"):
+            log = request.env["api.log"].create(
+                {
+                    "model": model,
+                    "route": f"/api/{function}",
+                    "function_name": function,
+                    "state": state,
+                }
+            )
+            log._save_payload(data_str, json.dumps(res, ensure_ascii=False))
         return res
 
     def _set_create_logs(self, param, vals):
