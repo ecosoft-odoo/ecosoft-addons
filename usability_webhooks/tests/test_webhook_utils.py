@@ -200,7 +200,7 @@ class TestWebhookUtils(TransactionCase):
                 "id": self.test_log.id,
             },
             "payload": {
-                "method": "action_call_api",
+                "method": "action_call_api_with_context",
                 "parameter": {},
             },
         }
@@ -257,3 +257,50 @@ class TestWebhookUtils(TransactionCase):
             ValidationError, "Parameter 'search_key' in 'vals' not found!"
         ):
             self.webhook_utils.update_data(self.api_log_model, vals)
+
+    def test_08_unlink_removes_attachment(self):
+        """Deleting api.log via ORM unlink also removes its ir.attachment"""
+        log = self.env["api.log"].create({"log_type": "receive"})
+        log._save_payload("x" * 3000, "y" * 3000)
+        attachment_id = log.attachment_id.id
+        self.assertTrue(attachment_id)
+
+        log.unlink()
+
+        self.assertFalse(self.env["ir.attachment"].browse(attachment_id).exists())
+
+    def test_09_autovacuum_bulk_removes_attachment(self):
+        """autovacuum (bulk mode) also removes ir.attachment of vacuumed logs"""
+        log = self.env["api.log"].create({"log_type": "receive"})
+        log._save_payload("x" * 3000, "y" * 3000)
+        attachment_id = log.attachment_id.id
+        log_id = log.id
+        self.assertTrue(attachment_id)
+
+        self.env.cr.execute(
+            "UPDATE api_log SET create_date = NOW() - INTERVAL '10 days' WHERE id = %s",
+            (log_id,),
+        )
+
+        self.env["api.log"].autovacuum(days=5)
+
+        self.assertFalse(self.env["api.log"].browse(log_id).exists())
+        self.assertFalse(self.env["ir.attachment"].browse(attachment_id).exists())
+
+    def test_10_autovacuum_chunk_removes_attachment(self):
+        """autovacuum (chunk mode) also removes ir.attachment of vacuumed logs"""
+        log = self.env["api.log"].create({"log_type": "receive"})
+        log._save_payload("x" * 3000, "y" * 3000)
+        attachment_id = log.attachment_id.id
+        log_id = log.id
+        self.assertTrue(attachment_id)
+
+        self.env.cr.execute(
+            "UPDATE api_log SET create_date = NOW() - INTERVAL '10 days' WHERE id = %s",
+            (log_id,),
+        )
+
+        self.env["api.log"].autovacuum(days=5, chunk_size=100)
+
+        self.assertFalse(self.env["api.log"].browse(log_id).exists())
+        self.assertFalse(self.env["ir.attachment"].browse(attachment_id).exists())
