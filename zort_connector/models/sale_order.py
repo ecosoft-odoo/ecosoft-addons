@@ -141,7 +141,11 @@ class SaleOrder(models.Model):
         """Create new sale orders from Zort data."""
         _logger.info("Creating Sale Order from Zort...")
 
-        zort_ids = [int(id) for id in self._get_existing_zort_order_ids().split(",")]
+        zort_ids = [
+            int(id)
+            for id in self._get_existing_zort_order_ids().split(",")
+            if id.strip()
+        ]
         res = self._get_list_order(
             status=status, orderidlist=orderidlist, numberlist=numberlist
         )
