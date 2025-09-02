@@ -12,6 +12,7 @@
     "depends": ["base", "stock", "sale_management"],
     "data": [
         "data/ir_actions_server_data.xml",
+        "data/ir_config_parameter_data.xml",
         "data/ir_cron_data.xml",
         "data/partner_data.xml",
         "data/product_data.xml",

@@ -94,15 +94,22 @@ class ZortApi(models.AbstractModel):
             headers.update(headers_extra)
 
         try:
+            timeout = int(
+                self.env["ir.config_parameter"]
+                .sudo()
+                .get_param("zort_connector.limit_timeout", 10)
+            )
             if method.upper() == "GET":
-                response = requests.get(url, headers=headers, params=params, timeout=10)
+                response = requests.get(
+                    url, headers=headers, params=params, timeout=timeout
+                )
             elif method.upper() == "POST":
                 response = requests.post(
                     url,
                     headers=headers,
                     params=params,
-                    data=json.dumps(data) if data else None,
-                    timeout=10,
+                    json=data if data else None,
+                    timeout=timeout,
                 )
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
