@@ -57,32 +57,44 @@ class WebhookController(http.Controller):
         is_create_log = ast.literal_eval(is_create_log.capitalize())
         vals.update({"is_create_log": is_create_log})
 
-    @http.route("/api/create_data", type="json", auth="user")
+    def update_session_auth(self):
+        # Check session first. if no session, use API Key
+        if request.session.uid:
+            request.update_env(user=request.session.uid)
+        else:
+            request.env["ir.http"]._auth_method_bearer()
+
+    @http.route("/api/create_data", type="json", auth="none")
     def create_data(self, model, vals):
+        self.update_session_auth()
         self._set_create_logs("webhook.create_data_log", vals)
         res = self._create_api_logs(model, vals, "create_data")
         return res
 
-    @http.route("/api/update_data", type="json", auth="user")
+    @http.route("/api/update_data", type="json", auth="none")
     def update_data(self, model, vals):
+        self.update_session_auth()
         self._set_create_logs("webhook.update_data_log", vals)
         res = self._create_api_logs(model, vals, "update_data")
         return res
 
-    @http.route("/api/create_update_data", type="json", auth="user")
+    @http.route("/api/create_update_data", type="json", auth="none")
     def create_update_data(self, model, vals):
+        self.update_session_auth()
         self._set_create_logs("webhook.create_update_data_log", vals)
         res = self._create_api_logs(model, vals, "create_update_data")
         return res
 
-    @http.route("/api/search_data", type="json", auth="user")
+    @http.route("/api/search_data", type="json", auth="none")
     def search_data(self, model, vals):
+        self.update_session_auth()
         self._set_create_logs("webhook.search_data_log", vals)
         res = self._create_api_logs(model, vals, "search_data")
         return res
 
-    @http.route("/api/call_function", type="json", auth="user")
+    @http.route("/api/call_function", type="json", auth="none")
     def call_function(self, model, vals):
+        self.update_session_auth()
         self._set_create_logs("webhook.call_function_log", vals)
         res = self._create_api_logs(model, vals, "call_function")
         return res
