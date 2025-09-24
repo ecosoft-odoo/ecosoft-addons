@@ -56,7 +56,20 @@ and the body should include:
       }
    }
 
-Following successful authentication, you can proceed with five API routes:
+**Alternative Authentication Method (API Key)**
+
+As an alternative to session-based authentication, you can use an **API Key** for your requests. This approach bypasses the need for an initial authentication call to ``/web/session/authenticate``.
+
+To use this method, you must send a header with ``Authorization`` set to ``Bearer <api_key>`` for every API route call.
+
+.. code-block:: http
+
+   Authorization: Bearer <api_key>
+
+
+**API Routes**
+
+Following successful authentication, you can proceed with 5 API routes:
 
 1. ``/api/create_data``: This route allows the creation of new data only.
    The format for creating data should be in the following structure:
