@@ -27,6 +27,11 @@ class WebhookUtils(models.AbstractModel):
         val = ast.literal_eval(val) or []
         return model.search([(key_search, "in", val)])
 
+    def _truncate_text(self, text, limit=500):
+        return (
+            text if len(str(text)) <= limit else str(text)[:limit] + "... (truncated)"
+        )
+
     def _get_o2m_line(self, line_data_dict, line_obj):
         rec_fields = []
         rec_fields_append = rec_fields.append
@@ -506,7 +511,7 @@ class WebhookUtils(models.AbstractModel):
 
     @api.model
     def create_data(self, model, vals):
-        _logger.info(f"[{model}].create_data(), input: {vals}")
+        _logger.info("[%s].create_data(), input: %s", model, vals)
         res = self.friendly_create_data(model, vals)
         if res["is_success"]:
             res_id = res["result"]["id"]
@@ -514,23 +519,33 @@ class WebhookUtils(models.AbstractModel):
             result_field = vals.get("result_field", [])
             for result in result_field:
                 res["result"][result] = p[result]
-        _logger.info(f"[{model}].create_data(), output: {res}")
+
+        # Log info with truncated only
+        if _logger.isEnabledFor(logging.INFO):
+            res_log = res.copy()
+            res_log["result"] = self._truncate_text(res_log["result"])
+            _logger.info("[%s].create_data(), output: %s", model, res_log)
         return res
 
     @api.model
     def update_data(self, model, vals):
-        _logger.info(f"[{model}].update_data(), input: {vals}")
+        _logger.info("[%s].update_data(), input: %s", model, vals)
         res = self.friendly_update_data(model, vals)
         if res["is_success"]:
             search_key = vals.get("search_key", {})
             for key, value in search_key.items():
                 res["result"][key] = value
-        _logger.info(f"[{model}].update_data(), output: {res}")
+
+        # Log info with truncated only
+        if _logger.isEnabledFor(logging.INFO):
+            res_log = res.copy()
+            res_log["result"] = self._truncate_text(res_log["result"])
+            _logger.info("[%s].update_data(), output: %s", model, res_log)
         return res
 
     @api.model
     def create_update_data(self, model, vals):
-        _logger.info(f"[{model}].create_update_data(), input: {vals}")
+        _logger.info("[%s].create_update_data(), input: %s", model, vals)
         # Update
         rec = self._search_object(model, vals)
         if not rec:
@@ -540,7 +555,12 @@ class WebhookUtils(models.AbstractModel):
             search_key = vals.get("search_key", {})
             for key, value in search_key.items():
                 res["result"][key] = value
-        _logger.info(f"[{model}].create_update_data(), output: {res}")
+
+        # Log info with truncated only
+        if _logger.isEnabledFor(logging.INFO):
+            res_log = res.copy()
+            res_log["result"] = self._truncate_text(res_log["result"])
+            _logger.info("[%s].create_update_data(), output: %s", model, res_log)
         return res
 
     @api.model
@@ -608,14 +628,19 @@ class WebhookUtils(models.AbstractModel):
             }
         }
         """
-        _logger.info(f"[{model}].search_data(), input: {vals}")
+        _logger.info("[%s].search_data(), input: %s", model, vals)
         result = self._common_search_data(model, vals)
         res = {
             "is_success": True,
             "result": result,
             "messages": _("Record search successfully"),
         }
-        _logger.info(f"[{model}].search_data(), output: {res}")
+
+        # Log info with truncated only
+        if _logger.isEnabledFor(logging.INFO):
+            res_log = res.copy()
+            res_log["result"] = self._truncate_text(result)
+            _logger.info("[%s].search_data(), output: {%s}", model, res_log)
         return res
 
     @api.model
@@ -650,7 +675,7 @@ class WebhookUtils(models.AbstractModel):
             }
         }
         """
-        _logger.info(f"[{model}].call_function(), input: {vals}")
+        _logger.info("[%s].call_function(), input: %s", model, vals)
         data_dict = vals.get("payload", {})
         parameter = data_dict.get("parameter", {})
 
