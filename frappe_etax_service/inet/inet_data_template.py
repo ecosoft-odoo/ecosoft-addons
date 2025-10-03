@@ -91,6 +91,7 @@ def prepare_data_invoice(doc):
                         if line.tax_ids
                         else 0.0,
                         "line_total_amount": line.price_total,
+                        "line_allowance_actual_amount": 0.00,
                     }
                 )
 
