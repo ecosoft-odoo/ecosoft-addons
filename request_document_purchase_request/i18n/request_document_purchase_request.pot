@@ -55,6 +55,12 @@ msgid "In progress"
 msgstr ""
 
 #. module: request_document_purchase_request
+#. odoo-python
+#: code:addons/request_document_purchase_request/models/request_document.py:0
+msgid "Only one Expense Sheet can be created per Request Document."
+msgstr ""
+
+#. module: request_document_purchase_request
 #: model:ir.model,name:request_document_purchase_request.model_purchase_request
 #: model:ir.model.fields,field_description:request_document_purchase_request.field_request_document__purchase_request_ids
 #: model:ir.model.fields.selection,name:request_document_purchase_request.selection__request_document__request_type__purchase_request
