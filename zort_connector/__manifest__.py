@@ -9,8 +9,9 @@
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "maintainers": ["theerayuta@ecosoft.co.th"],
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
-    "depends": ["base", "stock", "sale_management"],
+    "depends": ["stock", "sale_management"],
     "data": [
+        "security/ir.model.access.csv",
         "data/ir_actions_server_data.xml",
         "data/ir_config_parameter_data.xml",
         "data/ir_cron_data.xml",
@@ -21,5 +22,6 @@
         "views/product_template_view.xml",
         "views/res_partner_view.xml",
         "views/stock_picking_view.xml",
+        "views/zort_ecommerce_channel_views.xml",
     ],
 }

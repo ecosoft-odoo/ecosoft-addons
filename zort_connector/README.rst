@@ -16,17 +16,11 @@ zort_connector
 .. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
-.. |badge3| image:: https://img.shields.io/badge/github-OCA%2Fecosoft--addons-lightgray.png?logo=github
-    :target: https://github.com/OCA/ecosoft-addons/tree/18.0/zort_connector
-    :alt: OCA/ecosoft-addons
-.. |badge4| image:: https://img.shields.io/badge/weblate-Translate%20me-F47D42.png
-    :target: https://translation.odoo-community.org/projects/ecosoft-addons-18-0/ecosoft-addons-18-0-zort_connector
-    :alt: Translate me on Weblate
-.. |badge5| image:: https://img.shields.io/badge/runboat-Try%20me-875A7B.png
-    :target: https://runboat.odoo-community.org/builds?repo=OCA/ecosoft-addons&target_branch=18.0
-    :alt: Try me on Runboat
+.. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
+    :target: https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/zort_connector
+    :alt: ecosoft-odoo/ecosoft-addons
 
-|badge1| |badge2| |badge3| |badge4| |badge5|
+|badge1| |badge2| |badge3|
 
 Zort Connector for Odoo
 
@@ -70,10 +64,10 @@ Integrates Odoo with Zort e-commerce platform for bidirectional synchronization 
 Bug Tracker
 ===========
 
-Bugs are tracked on `GitHub Issues <https://github.com/OCA/ecosoft-addons/issues>`_.
+Bugs are tracked on `GitHub Issues <https://github.com/ecosoft-odoo/ecosoft-addons/issues>`_.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
-`feedback <https://github.com/OCA/ecosoft-addons/issues/new?body=module:%20zort_connector%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
+`feedback <https://github.com/ecosoft-odoo/ecosoft-addons/issues/new?body=module:%20zort_connector%0Aversion:%2018.0%0A%0A**Steps%20to%20reproduce**%0A-%20...%0A%0A**Current%20behavior**%0A%0A**Expected%20behavior**>`_.
 
 Do not contact contributors directly about support or help with technical issues.
 
@@ -93,24 +87,14 @@ Contributors
 Maintainers
 ~~~~~~~~~~~
 
-This module is maintained by the OCA.
-
-.. image:: https://odoo-community.org/logo.png
-   :alt: Odoo Community Association
-   :target: https://odoo-community.org
-
-OCA, or the Odoo Community Association, is a nonprofit organization whose
-mission is to support the collaborative development of Odoo features and
-promote its widespread use.
-
 .. |maintainer-theerayuta@ecosoft.co.th| image:: https://github.com/theerayuta@ecosoft.co.th.png?size=40px
     :target: https://github.com/theerayuta@ecosoft.co.th
     :alt: theerayuta@ecosoft.co.th
 
-Current `maintainer <https://odoo-community.org/page/maintainer-role>`__:
+Current maintainer:
 
 |maintainer-theerayuta@ecosoft.co.th| 
 
-This module is part of the `OCA/ecosoft-addons <https://github.com/OCA/ecosoft-addons/tree/18.0/zort_connector>`_ project on GitHub.
+This module is part of the `ecosoft-odoo/ecosoft-addons <https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/zort_connector>`_ project on GitHub.
 
-You are welcome to contribute. To learn how please visit https://odoo-community.org/page/Contribute.
+You are welcome to contribute.

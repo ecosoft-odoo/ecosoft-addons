@@ -279,42 +279,46 @@ class SaleOrder(models.Model):
         :return: res.partner id
         """
         default_customer = self.env.ref("zort_connector.marketplace_customer_1")
-        integration_name = (order.get("integrationName") or "").lower()
+        sales_channel = (order.get("saleschannel") or "").lower()
         customer_phone = order.get("customerphone", "")
         customer_name = order.get("customername", "")
-        customer_email = order.get("customeremail", "")
+        customer_id_number = order.get("customeridnumber", "")
 
-        if integration_name == "magento" and customer_phone:
-            customer = self.env["res.partner"].search(
-                [("phone", "=", customer_phone)], limit=1
-            )
-            if customer:
-                return customer.id
-            if not customer_name:
-                return default_customer.id
-
-            try:
-                customer = self.env["res.partner"].create(
-                    {
-                        "name": customer_name,
-                        "phone": customer_phone,
-                        "email": customer_email,
-                        "is_company": False,
-                        "customer_type": "person",
-                        "customer_platform_code": "magento",
-                    }
+        # check if ecommerce channel use platform customer
+        ecommerce_channel = self.env["zort.ecommerce.channel"].search(
+            [("code", "=", sales_channel)], limit=1
+        )
+        if not ecommerce_channel:
+            return default_customer.id
+        if ecommerce_channel:
+            if not ecommerce_channel.use_customer_in_odoo:
+                return (
+                    ecommerce_channel.partner_id.id
+                    if ecommerce_channel.partner_id
+                    else default_customer.id
                 )
-                return customer.id
-            except Exception as e:
-                _logger.error("Error creating customer from Magento order: %s", e)
-                return default_customer.id
-
-        if integration_name:
-            customer = self.env["res.partner"].search(
-                [("customer_platform_code", "=", integration_name)], limit=1
-            )
-            if customer:
-                return customer.id
+            elif ecommerce_channel.use_customer_in_odoo:
+                # try to find customer by customer_phone
+                if sales_channel and customer_phone:
+                    phone = self.validate_customer_phone(customer_phone)
+                    customer = self.env["res.partner"].search(
+                        ["|", ("phone", "=", phone), ("vat", "=", customer_id_number)],
+                        limit=1,
+                    )
+                    if customer:
+                        return customer.id
+                # try to create new customer
+                if ecommerce_channel.auto_create_customer and customer_name:
+                    try:
+                        customer = self.create_new_customer(order)
+                        return customer.id
+                    except Exception as e:
+                        _logger.error("Error creating customer from Zort order: %s", e)
+                return (
+                    ecommerce_channel.partner_id.id
+                    if ecommerce_channel.partner_id
+                    else default_customer.id
+                )
 
         return default_customer.id
 
@@ -328,3 +332,38 @@ class SaleOrder(models.Model):
             "url": f"/zort_connector/view_zort_order_json/{self.id}",
             "target": "new",
         }
+
+    @api.model
+    def create_new_customer(self, order_data: dict):
+        """
+        Create a new customer based on the provided keyword arguments.
+        Make sure each key in kwargs matches a field in res.partner model.
+        Example kwargs: {
+            'name': 'John Doe',
+            'phone': '1234567890',
+            'email': 'john.doe@example.com'
+        }
+        :return: res.partner record
+        """
+        vals = {
+            "name": order_data.get("customername", "Online Customer"),
+            "phone": order_data.get("customerphone", ""),
+            "email": order_data.get("customeremail", ""),
+            "street": order_data.get("customeraddress", ""),
+            "city": order_data.get("customerprovince", ""),
+            "zip": order_data.get("customerpostcode", ""),
+            "vat": order_data.get("customeridnumber", ""),
+            "is_company": False,
+        }
+        customer = self.env["res.partner"].create(vals)
+        return customer
+
+    @staticmethod
+    def validate_customer_phone(phone: str) -> str:
+        """
+        Return the last 9 digits of the phone number.
+        :param phone: str - Phone number to process.
+        :return: str - Last 9 digits of the phone number.
+        """
+        phone = phone.strip()
+        return phone[-9:] if len(phone) >= 9 else phone
