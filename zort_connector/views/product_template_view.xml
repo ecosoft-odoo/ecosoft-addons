@@ -29,13 +29,19 @@
                     invisible="not is_created_on_zort"
                     help="Update the quantity of this product on Zort"
                 />
+                <button
+                    name="action_fetch_and_update_image_from_zort"
+                    type="object"
+                    string="Fetch Image from Zort"
+                    class="btn-info"
+                />
             </xpath>
             <xpath
                 expr="//page[@name='general_information']/group/group[@name='group_standard_price']"
                 position="inside"
             >
                 <field name="sync_with_zort" readonly="is_created_on_zort" />
-                <field name="zort_product_id" readonly="1" />
+                <field name="zort_product_id" readonly="not sync_with_zort" />
             </xpath>
         </field>
     </record>

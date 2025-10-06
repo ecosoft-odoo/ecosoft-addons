@@ -1,9 +1,11 @@
+import base64
 import json
 import logging
 
+import requests
 from markupsafe import Markup
 
-from odoo import fields, models
+from odoo import _, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -190,3 +192,62 @@ class ProductTemplate(models.Model):
             "type": "ir.actions.client",
             "tag": "reload",
         }
+
+    def fetch_product_image_from_zort(
+        self, sku_list: str = "", product_id_list: str = ""
+    ) -> dict:
+        """
+        Fetch product images from Zort for given SKU or product ID list.
+        Returns a dict mapping product IDs to image URLs.
+        """
+        response = self._get_products(skulist=sku_list, productidlist=product_id_list)
+        if response.get("error"):
+            _logger.error(
+                "Error fetching product images from Zort: %s", response.get("error")
+            )
+            return {}
+        return {
+            str(product.get("id")): product.get("imagepath")
+            for product in response.get("list", [])
+            if product.get("id") and product.get("imagepath")
+        }
+
+    def action_fetch_and_update_image_from_zort(self):
+        """Fetch and update product images from Zort for products linked to Zort."""
+        self.ensure_one()
+        if not self.zort_product_id:
+            return
+        image_map = self.fetch_product_image_from_zort(
+            product_id_list=self.zort_product_id
+        )
+        image_url = image_map.get(self.zort_product_id)
+        if not image_url:
+            _logger.warning(
+                "No image found for product ID %s on Zort", self.zort_product_id
+            )
+            self.message_post(body=_("No image found for this product on Zort."))
+            return
+        try:
+            response = requests.get(image_url, timeout=10)
+            response.raise_for_status()
+            image_data = base64.b64encode(response.content).decode("utf-8")
+            self.image_1920 = image_data
+            _logger.info(
+                "Image updated successfully from Zort for product %s", self.name
+            )
+            self.message_post(body=_("Product image updated successfully from Zort."))
+        except requests.RequestException as e:
+            _logger.error("Error fetching image from Zort: %s", str(e))
+            self.message_post(body=_("Failed to fetch image from Zort: %s", str(e)))
+
+    @staticmethod
+    def decode_image_url(image_url: str):
+        """Set the product image."""
+        try:
+            response = requests.get(image_url, timeout=10)
+            response.raise_for_status()
+            image_data = base64.b64encode(response.content).decode("utf-8")
+            return image_data
+        except requests.RequestException as e:
+            _logger.error("Error fetching image from Zort: %s", str(e))
+            return None

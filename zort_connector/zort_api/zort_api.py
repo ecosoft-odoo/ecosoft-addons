@@ -385,3 +385,33 @@ class ZortApi(models.AbstractModel):
             func_name="_get_return_orders",
             line_number=346,
         )
+
+    @api.model
+    def _get_products(
+        self, skulist: str = "", productidlist: str = "", **kwargs
+    ) -> dict:
+        """
+        Fetch a list of products based on optional filters.
+
+        :param skulist: str - Comma-separated list of SKUs to filter (optional).
+        :param productidlist: str - Comma-separated list of product IDs to filter
+            (optional).
+        :return: dict - JSON response containing the list of products.
+        :ref: https://developers.zortout.com/api-reference/product#get-products
+        """
+        headers_extra = {"skulist": skulist, "productidlist": productidlist}
+        params = {}
+
+        # Add any additional parameters from kwargs, filtering out None values
+        for key, value in kwargs.items():
+            if value is not None and value != "":
+                params[key] = value
+
+        return self._api_request(
+            endpoint="Product/GetProducts",
+            method="GET",
+            headers_extra=headers_extra,
+            params=params,
+            func_name="_get_products",
+            line_number=392,
+        )
