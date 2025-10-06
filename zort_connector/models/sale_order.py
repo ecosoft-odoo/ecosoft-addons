@@ -184,15 +184,27 @@ class SaleOrder(models.Model):
 
         _logger.info("Created Sale Order: %s", sale_order.name)
 
+    @staticmethod
+    def hook_process_sku(sku):
+        """
+        Hook to process SKU before fetching product.
+        Override in custom modules to modify SKU format if needed.
+        Example: Remove suffix after '#' (e.g., 'a-1234#left' -> 'a-1234').
+        """
+        return sku
+
+    def get_product_by_sku(self, sku):
+        """Fetch product by SKU (default_code)."""
+        sku = self.hook_process_sku(sku)
+        return self.env["product.product"].search([("default_code", "=", sku)], limit=1)
+
     def _prepare_order_lines(self, zort_order):
         """Prepare order lines from Zort order data."""
         order_lines = []
 
         # Add product lines
         for line in zort_order.get("list", []):
-            product = self.env["product.product"].search(
-                [("default_code", "=", line.get("sku"))], limit=1
-            )
+            product = self.get_product_by_sku(line.get("sku"))
             if not product:
                 _logger.warning(
                     "Product with SKU %s not found. Skipping line.",
