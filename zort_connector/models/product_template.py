@@ -1,3 +1,7 @@
+# Copyright 2025 Ecosoft Co., Ltd. (http://ecosoft.co.th)
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
+
+
 import base64
 import json
 import logging
@@ -141,47 +145,6 @@ class ProductTemplate(models.Model):
         return self._add_lognote_and_reload(
             title="Success", message="Stock updated successfully on Zort.", data=data
         )
-
-    # @api.model
-    # def batch_update_qty_to_zort_async(self):
-    #     """Schedule batch updates using queue jobs."""
-    #     batch_size = 200
-    #     offset = 0
-
-    #     while True:
-    #         product_ids = self.search(
-    #             [("is_created_on_zort", "=", True)],
-    #             offset=offset,
-    #             limit=batch_size
-    #         )
-
-    #         if not product_ids:
-    #             break
-
-    #         # Schedule each batch as a separate job
-    #         self.with_delay()._process_stock_batch(product_ids.ids)
-    #         offset += batch_size
-
-    # def _process_stock_batch(self, product_ids):
-    #     """Process a single batch of products."""
-    #     products = self.browse(product_ids).read([
-    #         "default_code",
-    #         "virtual_available"
-    #     ])
-
-    #     data = {
-    #         "stocks": [
-    #             {"sku": p["default_code"], "stock": p["virtual_available"]}
-    #             for p in products if p["default_code"]
-    #         ]
-    #     }
-
-    #     if data["stocks"]:
-    #         response = self._update_product_available_stock_list(
-    #             warehousecode="W0001",
-    #             data=data
-    #         )
-    #         _logger.info("Batch processed: %d products", len(data["stocks"]))
 
     def _add_lognote_and_reload(self, title: str, message: str, data: dict):
         """Add a log note to the chatter and return reload action."""

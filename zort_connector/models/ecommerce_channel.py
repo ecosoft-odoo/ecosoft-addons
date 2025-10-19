@@ -15,7 +15,6 @@ class ZortEcommerceChannel(models.Model):
         name = "Lazada"
         code = "lazada"
         use_dummy_customer = True
-        use_customer_in_odoo = False
         auto_create_customer = False
 
     Note:
@@ -42,10 +41,6 @@ class ZortEcommerceChannel(models.Model):
         comodel_name="res.partner",
         string="Platform Customer",
         help="Platform customer to use if no match found",
-    )
-    use_customer_in_odoo = fields.Boolean(
-        help="Use customer in Odoo if match found else use platform customer",
-        default=True,
     )
     auto_create_customer = fields.Boolean(
         help="Auto create customer if no match found",

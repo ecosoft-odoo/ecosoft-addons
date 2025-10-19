@@ -24,7 +24,6 @@
                             <field name="description" />
                         </group>
                         <group>
-                            <field name="use_customer_in_odoo" />
                             <field name="auto_create_customer" />
                         </group>
                     </group>
@@ -43,7 +42,6 @@
                 <field name="name" />
                 <field name="code" />
                 <field name="partner_id" />
-                <field name="use_customer_in_odoo" optional="show" width="150px" />
                 <field name="auto_create_customer" optional="show" width="150px" />
                 <button name="open_ecommerce_config_form" type="object" string="View" />
             </list>

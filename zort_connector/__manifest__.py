@@ -9,7 +9,7 @@
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "maintainers": ["theerayuta@ecosoft.co.th"],
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
-    "depends": ["stock", "sale_management"],
+    "depends": ["stock", "sale_management", "mrp"],
     "data": [
         "security/ir.model.access.csv",
         "data/ir_actions_server_data.xml",

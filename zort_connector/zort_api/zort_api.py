@@ -12,14 +12,12 @@ class ZortApi(models.AbstractModel):
     _name = "zort.api"
     _description = "Zort API Connector"
 
-    def _log_api_response(
-        self, response_json, func, level="info", path="zort_api.py", line=0
-    ):
+    def _log_api_response(self, msg, func, level="info", path="zort_api.py", line=0):
         """
         Logs the API response to the Odoo ir.logging model.
 
         Args:
-            response_json (dict): The JSON response data to be logged.
+            msg (dict): The JSON message data to be logged.
             func (str): The name of the function where the log is generated.
             level (str, optional): The log level (e.g., 'info', 'warning', 'error').
                 Defaults to 'info'.
@@ -32,7 +30,7 @@ class ZortApi(models.AbstractModel):
                 "type": "server",
                 "dbname": self.env.cr.dbname,
                 "level": level,
-                "message": json.dumps(response_json),
+                "message": json.dumps(msg),
                 "path": path,
                 "func": func,
                 "line": line,
@@ -116,7 +114,12 @@ class ZortApi(models.AbstractModel):
 
             response.raise_for_status()
             response_json = response.json()
-            self._log_api_response(response_json, func=func_name, line=line_number)
+            # on log return just number of record
+            number_response = (
+                len(response_json.get("list", [])) if "list" in response_json else 0
+            )
+            msg = {"success": True, "list_count": number_response}
+            self._log_api_response(msg=msg, func=func_name, line=line_number)
             return response_json
 
         except requests.exceptions.RequestException as e:

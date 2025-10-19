@@ -4,4 +4,8 @@
         <field name="key">zort_connector.limit_timeout</field>
         <field name="value">10</field>
     </record>
+    <record id="zort_connector_order_sync_days_back" model="ir.config_parameter">
+        <field name="key">zort_connector.order_sync_days_back</field>
+        <field name="value">10</field>
+    </record>
 </odoo>

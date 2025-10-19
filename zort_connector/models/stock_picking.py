@@ -333,8 +333,8 @@ class StockPicking(models.Model):
         """
         # TODO: date to query should be configurable on settings
 
-        # Use a default date range of 30 days for get return orders
-        returnorderdateafter = (datetime.now() - timedelta(days=30)).strftime(
+        # Use a default date range of 10 days for get return orders
+        returnorderdateafter = (datetime.now() - timedelta(days=10)).strftime(
             "%Y-%m-%d"
         )
         returnorderdatebefore = datetime.now().strftime("%Y-%m-%d")

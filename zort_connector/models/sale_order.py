@@ -1,4 +1,10 @@
+# Copyright 2025 Ecosoft Co., Ltd. (http://ecosoft.co.th)
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
+
+
 import logging
+import time
+from datetime import datetime, timedelta
 
 from odoo import api, fields, models
 
@@ -43,6 +49,17 @@ class SaleOrder(models.Model):
         copy=False,
         readonly=True,
     )
+    zort_sales_channel = fields.Char(
+        help="The sales channel of the order in Zort.",
+        copy=False,
+        readonly=True,
+    )
+    zort_customer_id = fields.Many2one(
+        "res.partner",
+        "e-Commerce Customer",
+        copy=False,
+        readonly=True,
+    )
 
     @api.model
     def process_sales_order_from_zort(self, status="0", orderidlist="", numberlist=""):
@@ -72,16 +89,36 @@ class SaleOrder(models.Model):
     def _update_existing_zort_orders(self):
         """Update existing sale orders with latest data from Zort."""
         zort_ids = self._get_existing_zort_order_ids()
-        res = self._get_list_order(status="", orderidlist=zort_ids)
-        orders = res.get("list", [])
+        if not zort_ids:
+            return
 
-        for order in orders:
-            try:
-                so = self.search([("zort_order_id", "=", order.get("id"))], limit=1)
-                if so:
-                    self._update_sale_order_from_zort(so, order)
-            except Exception as e:
-                _logger.error("Error updating existing sale order from Zort: %s", e)
+        page = 1
+        limit = 500
+        while True:
+            res = self._get_list_order(
+                status="", orderidlist=zort_ids, page=page, limit=limit
+            )
+            # TODO: Handle API errors properly
+            # on this point, we just break the loop
+            if res.get("error"):
+                _logger.error(
+                    "Error fetching orders from Zort: %s",
+                    res.get("error"),
+                )
+                break
+            orders = res.get("list", [])
+            if not orders:
+                break
+
+            for order in orders:
+                try:
+                    so = self.search([("zort_order_id", "=", order.get("id"))], limit=1)
+                    if so:
+                        self._update_sale_order_from_zort(so, order)
+                except Exception as e:
+                    _logger.error("Error updating existing sale order from Zort: %s", e)
+            page += 1
+            time.sleep(5)
 
     def _update_sale_order_from_zort(self, sale_order, zort_order):
         """Update a single sale order with Zort data and handle status changes."""
@@ -91,6 +128,7 @@ class SaleOrder(models.Model):
                 "zort_order_number": zort_order.get("number"),
                 "zort_order_status": zort_order.get("status"),
                 "zort_payment_status": zort_order.get("paymentstatus"),
+                "zort_sales_channel": zort_order.get("saleschannel"),
                 "zort_order_data": zort_order,
             }
         )
@@ -103,8 +141,6 @@ class SaleOrder(models.Model):
         """Handle order workflow based on Zort order status."""
         if zort_status == "Voided":
             sale_order.action_cancel()
-        elif zort_status == "Waiting" and sale_order.state not in ["sale", "cancel"]:
-            sale_order.action_confirm()
         elif zort_status == "Success":
             self._process_success_order(sale_order)
 
@@ -138,7 +174,7 @@ class SaleOrder(models.Model):
         _logger.info("Draft invoice created for Sale Order: %s", sale_order.name)
 
     def _create_new_zort_orders(self, status, orderidlist, numberlist):
-        """Create new sale orders from Zort data."""
+        """Create new sale orders from Zort data with exponential backoff."""
         _logger.info("Creating Sale Order from Zort...")
 
         zort_ids = [
@@ -146,20 +182,49 @@ class SaleOrder(models.Model):
             for id in self._get_existing_zort_order_ids().split(",")
             if id.strip()
         ]
-        res = self._get_list_order(
-            status=status, orderidlist=orderidlist, numberlist=numberlist
-        )
-        orders = res.get("list", [])
 
-        for order in orders:
-            try:
-                if order.get("id") in zort_ids:
-                    _logger.info("Zort Order already exists: %s", order.get("id"))
-                    continue
+        page = 1
+        limit = 500
+        orderdateafter = self.get_order_date_after()
+        while True:
+            res = self._get_list_order(
+                status=status,
+                orderidlist=orderidlist,
+                numberlist=numberlist,
+                page=page,
+                limit=limit,
+                orderdateafter=orderdateafter,
+            )
+            # TODO: Handle API errors properly
+            # on this point, we just break the loop
+            if res.get("error"):
+                _logger.error(
+                    "Error fetching orders from Zort: %s",
+                    res.get("error"),
+                )
+                break
 
-                self._create_single_sale_order(order)
-            except Exception as e:
-                _logger.error("Error creating sale order from Zort: %s", e)
+            orders = res.get("list", [])
+            if not orders:
+                break
+
+            for order in orders:
+                try:
+                    if order.get("id") in zort_ids:
+                        continue
+                    self._create_single_sale_order(order)
+                    _logger.info(
+                        "Successfully created Sale Order from Zort order %s",
+                        order.get("id"),
+                    )
+                except Exception as e:
+                    _logger.error(
+                        "Error creating sale order from Zort order %s: %s",
+                        order.get("id"),
+                        e,
+                    )
+            page += 1
+            time.sleep(5)
 
     def _create_single_sale_order(self, zort_order):
         """Create a single sale order from Zort order data."""
@@ -171,7 +236,9 @@ class SaleOrder(models.Model):
             "zort_order_number": zort_order.get("number"),
             "zort_order_status": zort_order.get("status"),
             "zort_payment_status": zort_order.get("paymentstatus"),
+            "zort_sales_channel": zort_order.get("saleschannel"),
             "zort_order_data": zort_order,
+            "zort_customer_id": self._get_platform_customer(zort_order),
         }
 
         # Create the sale order
@@ -181,7 +248,7 @@ class SaleOrder(models.Model):
         order_lines = self._prepare_order_lines(zort_order)
         if order_lines:
             sale_order.order_line = order_lines
-
+        sale_order.action_confirm()
         _logger.info("Created Sale Order: %s", sale_order.name)
 
     @staticmethod
@@ -219,7 +286,7 @@ class SaleOrder(models.Model):
                     {
                         "product_id": product.id,
                         "product_uom_qty": line.get("number", 1),
-                        "price_unit": line.get("totalprice", 0.0),
+                        "price_unit": line.get("pricepernumber", 0.0),
                         "name": line.get("name", product.name),
                     },
                 )
@@ -231,9 +298,15 @@ class SaleOrder(models.Model):
             order_lines.append(self._add_shipping_fee_line(shipping_amount))
 
         # Add discount if exists
-        discount_amount = zort_order.get("discountamount", 0.0)
-        if discount_amount > 0:
-            order_lines.append(self._add_discount_line(discount_amount))
+        discount = zort_order.get("discount", 0.0)
+        if discount and isinstance(discount, str):
+            discount = float(discount)
+            order_lines.append(self._add_discount_line(discount))
+
+        # Add voucher_amount if exists
+        voucher_amount = zort_order.get("voucheramount", 0.0)
+        if voucher_amount > 0:
+            order_lines.append(self._add_voucher_line(voucher_amount))
 
         return order_lines
 
@@ -253,19 +326,38 @@ class SaleOrder(models.Model):
             },
         )
 
-    def _add_discount_line(self, discount_amount):
+    def _add_discount_line(self, discount):
         """Add a discount line to the sale order."""
         discount_product = self.env["product.product"].search(
             [("default_code", "=", "zort_discount")], limit=1
         )
+        if isinstance(discount, str):
+            discount = float(discount)
+
         return (
             0,
             0,
             {
                 "product_id": discount_product.id,
                 "product_uom_qty": 1,
-                "price_unit": -discount_amount,
+                "price_unit": -discount,
                 "name": "Discount",
+            },
+        )
+
+    def _add_voucher_line(self, voucher_amount):
+        """Add a voucher line to the sale order."""
+        voucher_product = self.env["product.product"].search(
+            [("default_code", "=", "zort_voucher")], limit=1
+        )
+        return (
+            0,
+            0,
+            {
+                "product_id": voucher_product.id,
+                "product_uom_qty": 1,
+                "price_unit": voucher_amount,
+                "name": "Voucher",
             },
         )
 
@@ -274,8 +366,24 @@ class SaleOrder(models.Model):
         Get existing Zort orders (id) in draft, sent, or sale state
         Return as comma-separated string Ex. "1234,5678,91011"
         """
+        days_back = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("zort_connector.order_sync_days_back", default="10")
+        )
+        try:
+            days = int(days_back)
+            if days <= 0:
+                days = 10
+        except (TypeError, ValueError):
+            days = 10
+        orderdateafter = datetime.now() - timedelta(days=days)
         zort_orders = self.search(
-            [("is_zort_order", "=", True), ("state", "in", ["draft", "sent", "sale"])]
+            [
+                ("is_zort_order", "=", True),
+                ("state", "in", ["draft", "sent", "sale"]),
+                ("date_order", ">=", orderdateafter),
+            ]
         )
         zort_order_ids = [
             order.zort_order_id for order in zort_orders if order.zort_order_id
@@ -292,47 +400,34 @@ class SaleOrder(models.Model):
         """
         default_customer = self.env.ref("zort_connector.marketplace_customer_1")
         sales_channel = (order.get("saleschannel") or "").lower()
-        customer_phone = order.get("customerphone", "")
-        customer_name = order.get("customername", "")
-        customer_id_number = order.get("customeridnumber", "")
 
         # check if ecommerce channel use platform customer
         ecommerce_channel = self.env["zort.ecommerce.channel"].search(
             [("code", "=", sales_channel)], limit=1
         )
-        if not ecommerce_channel:
-            return default_customer.id
-        if ecommerce_channel:
-            if not ecommerce_channel.use_customer_in_odoo:
-                return (
-                    ecommerce_channel.partner_id.id
-                    if ecommerce_channel.partner_id
-                    else default_customer.id
-                )
-            elif ecommerce_channel.use_customer_in_odoo:
-                # try to find customer by customer_phone
-                if sales_channel and customer_phone:
-                    phone = self.validate_customer_phone(customer_phone)
-                    customer = self.env["res.partner"].search(
-                        ["|", ("phone", "=", phone), ("vat", "=", customer_id_number)],
-                        limit=1,
-                    )
-                    if customer:
-                        return customer.id
-                # try to create new customer
-                if ecommerce_channel.auto_create_customer and customer_name:
-                    try:
-                        customer = self.create_new_customer(order)
-                        return customer.id
-                    except Exception as e:
-                        _logger.error("Error creating customer from Zort order: %s", e)
-                return (
-                    ecommerce_channel.partner_id.id
-                    if ecommerce_channel.partner_id
-                    else default_customer.id
-                )
+        platform_customer_id = (
+            ecommerce_channel.partner_id.id
+            if ecommerce_channel and ecommerce_channel.partner_id
+            else default_customer.id
+        )
+        return platform_customer_id
 
-        return default_customer.id
+    def _get_platform_customer(self, order: dict) -> int:
+        """
+        Get the platform customer (res.partner) for the Zort order.
+        :return: res.partner id
+        """
+        sales_channel = (order.get("saleschannel") or "").lower()
+
+        ecommerce_channel = self.env["zort.ecommerce.channel"].search(
+            [("code", "=", sales_channel)], limit=1
+        )
+        if ecommerce_channel and ecommerce_channel.auto_create_customer:
+            customer = self.create_new_customer(order)
+            if customer:
+                return customer.id
+
+        return False
 
     def action_view_zort_order_json(self):
         """
@@ -367,8 +462,21 @@ class SaleOrder(models.Model):
             "vat": order_data.get("customeridnumber", ""),
             "is_company": False,
         }
-        customer = self.env["res.partner"].create(vals)
-        return customer
+        existing_customer = None
+        if vals["phone"]:
+            phone = self.validate_customer_phone(vals["phone"])
+            existing_customer = self.env["res.partner"].search(
+                [("phone", "=", phone)], limit=1
+            )
+        if vals["vat"]:
+            existing_customer = self.env["res.partner"].search(
+                [("vat", "=", vals["vat"])], limit=1
+            )
+        if existing_customer:
+            return existing_customer
+
+        new_customer = self.env["res.partner"].create(vals)
+        return new_customer
 
     @staticmethod
     def validate_customer_phone(phone: str) -> str:
@@ -379,3 +487,23 @@ class SaleOrder(models.Model):
         """
         phone = phone.strip()
         return phone[-9:] if len(phone) >= 9 else phone
+
+    def get_order_date_after(self):
+        """
+        Get the order date after value from configuration.
+        :return: str - Date in 'YYYY-MM-DD' format.
+        """
+        days_back = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("zort_connector.order_sync_days_back", default="10")
+        )
+        try:
+            days = int(days_back)
+            if days <= 0:
+                days = 10
+        except (TypeError, ValueError):
+            days = 10
+
+        orderdateafter = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+        return orderdateafter

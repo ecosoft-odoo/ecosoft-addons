@@ -12,11 +12,17 @@
                     id="zort_order_info"
                 >
                     <group>
-                        <field name="is_zort_order" string="Is Zort Order" />
-                        <field name="zort_order_id" string="Order ID" />
-                        <field name="zort_order_number" string="Order Number" />
-                        <field name="zort_order_status" string="Order Status" />
-                        <field name="zort_payment_status" string="Payment Status" />
+                        <group>
+                            <field name="is_zort_order" string="Is Zort Order" />
+                            <field name="zort_order_id" string="Order ID" />
+                            <field name="zort_order_number" string="Order Number" />
+                            <field name="zort_order_status" string="Order Status" />
+                        </group>
+                        <group>
+                            <field name="zort_payment_status" string="Payment Status" />
+                            <field name="zort_sales_channel" string="Sales Channel" />
+                            <field name="zort_customer_id" />
+                        </group>
                     </group>
                     <group>
                         <button
