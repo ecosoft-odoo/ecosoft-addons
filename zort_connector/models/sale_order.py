@@ -140,7 +140,7 @@ class SaleOrder(models.Model):
     def _handle_zort_order_status(self, sale_order, zort_status):
         """Handle order workflow based on Zort order status."""
         if zort_status == "Voided":
-            sale_order.action_cancel()
+            sale_order.with_context(disable_cancel_warning=True).action_cancel()
         elif zort_status == "Success":
             self._process_success_order(sale_order)
 
