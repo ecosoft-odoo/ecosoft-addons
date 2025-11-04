@@ -53,47 +53,25 @@ def prepare_data_invoice(doc):
         lambda inv_line: not inv_line.display_type and inv_line.price_unit > 0
     ):
         if not line.not_send_to_etax:
-            product_code = line.product_id.default_code if line.product_id else ""
-            product_name = line.product_id.name if line.product_id else line.name
-            line_tax_type_code = "VAT" if line.tax_ids and line.tax_ids.name else "FRE"
-            line_tax_rate = line.tax_ids[0].amount if line.tax_ids else 0.00
-
-            # CASE: Down Payment
-            if line.price_subtotal < 0:
-                doc_lines.append(
-                    {
-                        "product_code": product_code,
-                        "product_name": product_name,
-                        "product_price": line.price_unit,
-                        "product_quantity": abs(line.quantity),
-                        "line_tax_type_code": line_tax_type_code,
-                        "line_tax_rate": line_tax_rate,
-                        "line_base_amount": 0.00,
-                        "line_tax_amount": 0.00,
-                        "line_total_amount": 0.00,
-                        "line_allowance_actual_amount": abs(line.price_subtotal),
-                    }
-                )
-            else:
-                # Normal Line
-                doc_lines.append(
-                    {
-                        "product_code": product_code,
-                        "product_name": product_name,
-                        "product_price": line.price_unit,
-                        "product_quantity": line.quantity,
-                        "line_tax_type_code": line_tax_type_code,
-                        "line_tax_rate": line_tax_rate,
-                        "line_base_amount": line.price_subtotal
-                        if line.tax_ids
-                        else 0.00,
-                        "line_tax_amount": (line.price_total - line.price_subtotal)
-                        if line.tax_ids
-                        else 0.0,
-                        "line_total_amount": line.price_total,
-                        "line_allowance_actual_amount": 0.00,
-                    }
-                )
+            doc_lines.append(
+                {
+                    "product_code": line.product_id
+                    and line.product_id.default_code
+                    or "",
+                    "product_name": line.product_id
+                    and line.product_id.name
+                    or line.name,
+                    "product_price": line.price_unit,
+                    "product_quantity": line.quantity,
+                    "line_tax_type_code": line.tax_ids.name and "VAT" or "FRE",
+                    "line_tax_rate": line.tax_ids and line.tax_ids[0].amount or 0.00,
+                    "line_base_amount": line.tax_ids and line.price_subtotal or 0.00,
+                    "line_tax_amount": line.tax_ids
+                    and (line.price_total - line.price_subtotal)
+                    or 0.0,
+                    "line_total_amount": line.price_total,
+                }
+            )
 
     d["line_item_information"] = doc_lines
     d["original_amount_untaxed"] = doc._get_additional_amount()[0]
