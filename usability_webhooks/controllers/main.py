@@ -5,6 +5,8 @@ import ast
 import json
 import traceback
 
+from werkzeug.exceptions import BadRequest
+
 from odoo import http
 from odoo.http import request
 
@@ -62,6 +64,17 @@ class WebhookController(http.Controller):
         if request.session.uid:
             request.update_env(user=request.session.uid)
         else:
+            # NOTE: header send only x-api-key instead of Authorization: Bearer <key>
+            # If it not standard, i will remove later
+            access_token = request.httprequest.headers.get("x-api-key")
+            if access_token:
+                user_id = request.env["res.users.apikeys"]._check_credentials(
+                    scope="rpc", key=access_token
+                )
+                if not user_id:
+                    raise BadRequest("Access token invalid")
+                request.update_env(user=user_id)
+                return
             request.env["ir.http"]._auth_method_bearer()
 
     @http.route("/api/create_data", type="json", auth="none")
