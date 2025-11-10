@@ -624,43 +624,68 @@ class WebhookUtils(models.AbstractModel):
     @api.model
     def call_function(self, model, vals):
         """
-        Call a function on a model object based on the provided input.
-        Parameters (search_key) are used to search for the record:
-            - search_key:
-                A dictionary containing the search criteria to find the record.
+        Call a method on a specific model record using the provided input.
 
-        Parameters (payload) are used to call the function:
-            - method (str): The name of the function to call.
-            - parameter (dict):
-                A dictionary containing the arguments to pass to the function. (if any)
+        This method allows you to dynamically call a function on a model object
+        with optional parameters and context.
 
-        ==================================
-        Example Format for Call Function:
-        ==================================
+        Parameters
+        ----------
+        model : str
+            The name of the model to call the function on.
+        vals : dict
+            A dictionary containing the following keys:
+                - search_key : dict
+                    Criteria used to search for the target record.
+                - payload : dict
+                    - method (str): The name of the method to call on the record.
+                    - parameter (dict, optional): Arguments to pass to the method.
+                    - context (dict, optional): Context to use when calling the method.
+
+        Returns
+        -------
+        dict
+            A dictionary containing:
+                - is_success (bool): True if the method call succeeded.
+                - result (any): The return value of the called method.
+                - messages (str): Status message.
+
+        Example
+        -------
         {
             "params": {
-                "model": "account.move",  # Model to call
+                "model": "account.move",
                 "vals": {
-                    "search_key": {
-                        "name": "INV/2021/0001"
-                    },
+                    "search_key": {"name": "INV/2021/0001"},
                     "payload": {
                         "method": "action_post",
-                        # Optional, see the function definition for required parameters
                         "parameter": {},
+                        "context": {"force_create": True},
                     }
                 }
             }
         }
         """
-        _logger.info(f"[{model}].call_function(), input: {vals}")
-        data_dict = vals.get("payload", {})
-        parameter = data_dict.get("parameter", {})
+        _logger.info("[%s].call_function(), input: %s", model, vals)
 
-        rec = self._search_object(model, vals)
-        res = getattr(rec, data_dict["method"])(**dict(parameter) if parameter else {})
+        data_dict = vals.get("payload", {})
+        method_name = data_dict.get("method")
+        parameter = data_dict.get("parameter", {})
+        context = data_dict.get("context", {})
+
+        if not method_name:
+            raise ValidationError(self.env._("Missing 'method' in payload"))
+
+        rec = self._search_object(model, vals).with_context(**context)
+
+        if not hasattr(rec, method_name):
+            raise AttributeError(
+                f"Record(s) of model {model} has no method '{method_name}'"
+            )
+
+        result = getattr(rec, method_name)(**(parameter or {}))
         return {
             "is_success": True,
-            "result": res,
-            "messages": "Function {} called successfully".format(data_dict["method"]),
+            "result": result,
+            "messages": f"Function '{method_name}' called successfully",
         }
