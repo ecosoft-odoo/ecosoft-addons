@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 "access_zort_ecommerce_channel","zort.ecommerce.channel","model_zort_ecommerce_channel","sales_team.group_sale_salesman",1,1,1,1
+"access_zort_product","zort.product","model_zort_product","base.group_user",1,1,1,1

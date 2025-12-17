@@ -1,5 +1,5 @@
 ==============
-zort_connector
+Zort Connector
 ==============
 
 .. 

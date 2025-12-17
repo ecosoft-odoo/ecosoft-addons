@@ -26,8 +26,16 @@ class StockPicking(models.Model):
         res = super().button_validate()
         # Only update qty to zort if the picking is not related to a Zort order
         # if not internal transfer update qty to zort
-        if self.picking_type_code not in ("internal", "mrp_operation"):
-            self._sync_qty_to_zort()
+        # Skip internal transfers and MRP operations
+        if self.picking_type_code in ("internal", "mrp_operation"):
+            return res
+
+        # Skip if this picking is related to a Zort order
+        if self.sale_id and self.sale_id.zort_order_number:
+            return res
+
+        # Update quantity to Zort for other picking types
+        self._sync_qty_to_zort()
         return res
 
     def action_sync_qty_to_zort(self):
@@ -40,31 +48,31 @@ class StockPicking(models.Model):
         when click button_validate.
         """
         for picking in self:
+            data = {"stocks": []}
+            # Use move_ids_without_package for outgoing, move_ids for incoming
+            moves = (
+                picking.move_ids
+                if picking.picking_type_code == "incoming"
+                else picking.move_ids_without_package
+            )
+            for move in moves:
+                for product in move.product_id.zort_product_ids:
+                    qty_available = move.product_id.qty_available
+                    data["stocks"].append(
+                        {
+                            "productid": product.id_zort_product,
+                            "stock": qty_available,
+                        }
+                    )
+            if not data["stocks"]:
+                continue
+            wh_code = (
+                picking.env["ir.config_parameter"]
+                .sudo()
+                .get_param("zort_connector.warehouse_code", default="W0001")
+            )
             try:
-                data = {"stocks": []}
-                # Use move_ids_without_package for outgoing, move_ids for incoming
-                moves = (
-                    picking.move_ids
-                    if picking.picking_type_code == "incoming"
-                    else picking.move_ids_without_package
-                )
-                for move in moves:
-                    if move.product_id.is_created_on_zort:
-                        data["stocks"].append(
-                            {
-                                "sku": move.product_id.default_code,
-                                "stock": move.quantity,
-                            }
-                        )
-
-                if not data.get("stocks"):
-                    continue
-                wh_code = (
-                    self.env["ir.config_parameter"]
-                    .sudo()
-                    .get_param("zort_connector.warehouse_code", default="W0001")
-                )
-                response = self._update_product_available_stock_list(
+                response = picking._update_product_available_stock_list(
                     warehousecode=wh_code,
                     data=data,
                 )
@@ -73,12 +81,13 @@ class StockPicking(models.Model):
                         "Error syncing stock to Zort: %s", response.get("error")
                     )
                 else:
+                    picking.updated_qty_to_zort = True
                     _logger.info(
                         "Successfully synced stock to Zort for picking %s", picking.name
                     )
             except Exception as e:
                 _logger.error(
-                    "Exception occurred while syncing product stock to Zort: %s", str(e)
+                    "Exception occurred while syncing stock to Zort: %s", str(e)
                 )
 
     @api.model

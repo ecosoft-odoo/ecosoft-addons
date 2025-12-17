@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    "name": "zort_connector",
+    "name": "Zort Connector",
     "summary": "Connects Odoo with Zort",
     "version": "18.0.1.0.0",
     "license": "AGPL-3",
@@ -19,9 +19,10 @@
         "data/product_data.xml",
         "views/res_config_settings_view.xml",
         "views/sale_order_view.xml",
-        "views/product_template_view.xml",
-        "views/res_partner_view.xml",
         "views/stock_picking_view.xml",
         "views/zort_ecommerce_channel_views.xml",
+        "views/mrp_bom_views.xml",
+        "views/zort_product_view.xml",
+        "views/product_product_view.xml",
     ],
 }

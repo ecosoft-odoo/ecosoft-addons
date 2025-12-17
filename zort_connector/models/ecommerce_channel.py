@@ -14,7 +14,6 @@ class ZortEcommerceChannel(models.Model):
     - Example: Lazada
         name = "Lazada"
         code = "lazada"
-        use_dummy_customer = True
         auto_create_customer = False
 
     Note:
@@ -40,10 +39,10 @@ class ZortEcommerceChannel(models.Model):
     partner_id = fields.Many2one(
         comodel_name="res.partner",
         string="Platform Customer",
-        help="Platform customer to use if no match found",
+        help="Platform customer to use for this eCommerce channel",
     )
     auto_create_customer = fields.Boolean(
-        help="Auto create customer if no match found",
+        help="Auto create customer for save customer data from this eCommerce channel",
         default=False,
     )
 
@@ -51,7 +50,7 @@ class ZortEcommerceChannel(models.Model):
         (
             "code_uniq",
             "unique(code)",
-            _("The code of the eCommerce channel must be unique!"),
+            "The code of the eCommerce channel must be unique!",
         )
     ]
 

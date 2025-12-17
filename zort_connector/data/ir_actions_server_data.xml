@@ -12,4 +12,14 @@ if record.state == 'done' and not record.updated_qty_to_zort:
     record.action_sync_qty_to_zort()
         </field>
     </record>
+
+    <record id="action_fetch_image_from_zort_product" model="ir.actions.server">
+        <field name="name">Update image from zort product</field>
+        <field name="model_id" ref="product.model_product_product" />
+        <field name="state">code</field>
+        <field name="code">
+for product in records:
+    product.action_fetch_and_update_image_from_zort()
+        </field>
+    </record>
 </odoo>

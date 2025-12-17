@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="product_template_only_form_view" model="ir.ui.view">
-        <field name="name">product.template.only.form.view.inherit.sale</field>
-        <field name="model">product.template</field>
-        <field name="inherit_id" ref="product.product_template_only_form_view" />
+    <record id="product_product_only_form_view" model="ir.ui.view">
+        <field name="name">product.product.only.form.view.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
                 <field name="sync_with_zort" invisible="1" />
@@ -12,21 +12,20 @@
                     type="object"
                     string="Create to Zort"
                     class="oe_highlight"
-                    invisible="not sync_with_zort or is_created_on_zort"
+                    invisible="not sync_with_zort"
                 />
                 <button
                     name="action_update_product_to_zort"
                     type="object"
                     string="Update to Zort"
                     class="btn-info"
-                    invisible="not is_created_on_zort"
                 />
                 <button
                     name="action_update_qty_to_zort"
                     type="object"
                     string="Update Quantity to Zort"
                     class="btn-info"
-                    invisible="not is_created_on_zort"
+                    invisible="not sync_with_zort"
                     help="Update the quantity of this product on Zort"
                 />
                 <button
@@ -40,8 +39,8 @@
                 expr="//page[@name='general_information']/group/group[@name='group_standard_price']"
                 position="inside"
             >
-                <field name="sync_with_zort" readonly="is_created_on_zort" />
-                <field name="zort_product_id" readonly="not sync_with_zort" />
+                <field name="sync_with_zort" />
+                <field name="zort_product_ids" widget="many2many_tags" />
             </xpath>
         </field>
     </record>
