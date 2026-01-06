@@ -52,7 +52,7 @@ class HRExpense(models.Model):
                 and rec.sheet_id.request_document_id.state != "done"
             ):
                 raise UserError(
-                    self.env._(
+                    _(
                         "You cannot modify this record because the related "
                         "Request Document is not in 'Done' state."
                     )
