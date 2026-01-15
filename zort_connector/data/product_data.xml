@@ -8,6 +8,7 @@
         <field name="list_price">0.0</field>
         <field name="standard_price">0.0</field>
         <field name="default_code">shipping_fee</field>
+        <field name="invoice_policy">order</field>
     </record>
     <record id="product_discount" model="product.template">
         <field name="name">Discount</field>
@@ -17,6 +18,7 @@
         <field name="list_price">0.0</field>
         <field name="standard_price">0.0</field>
         <field name="default_code">zort_discount</field>
+        <field name="invoice_policy">order</field>
     </record>
     <record id="voucher_amount_zort" model="product.template">
         <field name="name">Zort Voucher</field>
@@ -26,5 +28,6 @@
         <field name="list_price">0.0</field>
         <field name="standard_price">0.0</field>
         <field name="default_code">zort_voucher</field>
+        <field name="invoice_policy">order</field>
     </record>
 </odoo>

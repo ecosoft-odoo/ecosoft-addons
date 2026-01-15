@@ -173,11 +173,7 @@ class ProductProduct(models.Model):
                 }
             ]
         }
-        warehousecode = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("zort_connector.warehouse_code", default="W0001")
-        )
+        warehousecode = self.env.company.zort_warehouse_code or "W0001"
         response = self._update_product_available_stock_list(
             warehousecode=warehousecode, data=data
         )

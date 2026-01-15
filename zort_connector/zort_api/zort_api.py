@@ -38,11 +38,7 @@ class ZortApi(models.AbstractModel):
         )
 
     def _get_api_url(self, endpoint):
-        base_url = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("zort_connector.endpoint_url")
-        )
+        base_url = self.env.company.zort_endpoint_url
         return f"{base_url}/{endpoint}"
 
     def _get_header(self):
@@ -50,16 +46,11 @@ class ZortApi(models.AbstractModel):
         Returns the headers required for API requests.
         :return: dict - Headers for the API request.
         """
+        company = self.env.company
         HEADER = {
-            "storename": self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("zort_connector.store_name"),
-            "apikey": self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("zort_connector.api_key"),
-            "apisecret": self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("zort_connector.api_secret"),
+            "storename": company.zort_store_name,
+            "apikey": company.zort_api_key,
+            "apisecret": company.zort_api_secret,
         }
         return HEADER
 
@@ -118,7 +109,12 @@ class ZortApi(models.AbstractModel):
             number_response = (
                 len(response_json.get("list", [])) if "list" in response_json else 0
             )
-            msg = {"success": True, "list_count": number_response}
+            msg = {
+                "url": url,
+                "params": params,
+                "success": True,
+                "list_count": number_response,
+            }
             self._log_api_response(msg=msg, func=func_name, line=line_number)
             return response_json
 

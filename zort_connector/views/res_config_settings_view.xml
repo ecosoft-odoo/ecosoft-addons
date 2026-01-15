@@ -21,30 +21,28 @@
                 >
                     <label
                         for="zort_endpoint_url"
-                        string="Zort Endpoint URL"
+                        string="Endpoint URL"
                         class="col-lg-4"
                     />
                     <field name="zort_endpoint_url" />
-                    <label
-                        for="zort_store_name"
-                        string="Zort Store Name"
-                        class="col-lg-4"
-                    />
+                    <label for="zort_store_name" string="Store Name" class="col-lg-4" />
                     <field name="zort_store_name" />
-                    <label for="zort_api_key" string="Zort API Key" class="col-lg-4" />
+                    <label for="zort_api_key" string="API Key" class="col-lg-4" />
                     <field name="zort_api_key" password="True" />
-                    <label
-                        for="zort_api_secret"
-                        string="Zort API Secret"
-                        class="col-lg-4"
-                    />
+                    <label for="zort_api_secret" string="API Secret" class="col-lg-4" />
                     <field name="zort_api_secret" password="True" />
                     <label
                         for="zort_warehouse_code"
-                        string="Zort Warehouse Code"
+                        string="Warehouse Code"
                         class="col-lg-4"
                     />
                     <field name="zort_warehouse_code" />
+                    <label
+                        for="zort_default_tax_id"
+                        string="Default Tax"
+                        class="col-lg-4"
+                    />
+                    <field name="zort_default_tax_id" />
                 </setting>
             </xpath>
         </field>

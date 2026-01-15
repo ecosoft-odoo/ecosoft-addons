@@ -3,10 +3,6 @@ from odoo.http import Response, request
 
 
 class ZortConnector(http.Controller):
-    @http.route("/zort_connector/zort_connector", auth="public")
-    def index(self, **kw):
-        return "Hello, world"
-
     @http.route(
         "/zort_connector/view_zort_order_json/<int:sale_order_id>",
         type="http",

@@ -60,6 +60,22 @@ class SaleOrder(models.Model):
         copy=False,
         readonly=True,
     )
+    validate_zort_order = fields.Boolean(
+        help="Indicates if the Zort order has been validated.",
+        copy=False,
+        default=False,
+        readonly=True,
+    )
+    zort_missing_product_ids = fields.Char(
+        help="Comma-separated list of Zort product IDs that are missing in Odoo.",
+        copy=False,
+        readonly=True,
+    )
+    zort_validation_message = fields.Text(
+        help="Validation warning messages from Zort order synchronization.",
+        copy=False,
+        readonly=True,
+    )
 
     @api.model
     def process_sales_order_from_zort(self, status="0", orderidlist="", numberlist=""):
@@ -94,7 +110,8 @@ class SaleOrder(models.Model):
 
         page = 1
         limit = 500
-        while True:
+        max_pages = 500  # Safety limit to prevent infinite loops
+        while page <= max_pages:
             res = self._get_list_order(
                 status="", orderidlist=zort_ids, page=page, limit=limit
             )
@@ -132,6 +149,7 @@ class SaleOrder(models.Model):
                 "zort_order_data": zort_order,
             }
         )
+        sale_order.validate_order_from_zort()
         _logger.info("Updated Sale Order: %s", sale_order.name)
 
         # Handle status-based actions
@@ -142,7 +160,8 @@ class SaleOrder(models.Model):
         if zort_status == "Voided":
             sale_order.with_context(disable_cancel_warning=True).action_cancel()
         elif zort_status == "Success":
-            self._process_success_order(sale_order)
+            if sale_order.validate_zort_order:
+                self._process_success_order(sale_order)
 
     def _process_success_order(self, sale_order):
         """Process order when Zort status is 'Success'."""
@@ -186,7 +205,8 @@ class SaleOrder(models.Model):
         page = 1
         limit = 500
         orderdateafter = self.get_order_date_after()
-        while True:
+        max_pages = 500  # Safety limit to prevent infinite loops
+        while page <= max_pages:
             res = self._get_list_order(
                 status=status,
                 orderidlist=orderidlist,
@@ -248,7 +268,11 @@ class SaleOrder(models.Model):
         order_lines = self._prepare_order_lines(zort_order)
         if order_lines:
             sale_order.order_line = order_lines
-        sale_order.action_confirm()
+
+        # validate sale order first
+        sale_order.validate_order_from_zort()
+        if sale_order.validate_zort_order:
+            sale_order.action_confirm()
         _logger.info("Created Sale Order: %s", sale_order.name)
 
     @staticmethod
@@ -261,17 +285,25 @@ class SaleOrder(models.Model):
         return sku
 
     def get_product_by_sku(self, sku):
-        """Fetch product by SKU (default_code)."""
-        sku = self.hook_process_sku(sku)
-        return self.env["product.product"].search([("default_code", "=", sku)], limit=1)
+        """
+        Fetch product by SKU (default_code).
+        """
+        id = self.hook_process_sku(sku)
+        zort_product = self.env["zort.product"].search(
+            [("id_zort_product", "=", id)], limit=1
+        )
+        if zort_product and zort_product.product_id:
+            return zort_product.product_id
+        return self.env["product.product"]
 
     def _prepare_order_lines(self, zort_order):
-        """Prepare order lines from Zort order data."""
+        """
+        Prepare order lines from Zort order data."""
         order_lines = []
-
         # Add product lines
         for line in zort_order.get("list", []):
-            product = self.get_product_by_sku(line.get("sku"))
+            # Instead of send sku, send zort product id.
+            product = self.get_product_by_sku(line.get("productid"))
             if not product:
                 _logger.warning(
                     "Product with SKU %s not found. Skipping line.",
@@ -279,6 +311,7 @@ class SaleOrder(models.Model):
                 )
                 continue
 
+            company = self.env.company
             order_lines.append(
                 (
                     0,
@@ -287,7 +320,8 @@ class SaleOrder(models.Model):
                         "product_id": product.id,
                         "product_uom_qty": line.get("number", 1),
                         "price_unit": line.get("pricepernumber", 0.0),
-                        "name": line.get("name", product.name),
+                        "name": product.name,
+                        "tax_id": [(6, 0, company.zort_default_tax_id.ids)],
                     },
                 )
             )
@@ -507,3 +541,108 @@ class SaleOrder(models.Model):
 
         orderdateafter = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
         return orderdateafter
+
+    def validate_order_from_zort(self):
+        """
+        Validate the order data received from Zort.
+        1. By check zort_order_data.get("amount") compare with sale order amount_total.
+        2. Check line item from zort_order_data.get("list") each zort product id
+            compare with product_id.zort_product_ids in sale order lines.
+
+        :return: bool - True if validation passes, False otherwise.
+        """
+        for order in self:
+            zort_data = order.zort_order_data or {}
+            zort_amount = zort_data.get("amount", 0.0)
+            validated = True
+            msg = ""
+            if float(zort_amount) != float(order.amount_total):
+                msg += (
+                    f"Amount mismatch: Zort amount is {zort_amount}, "
+                    f"Odoo amount is {order.amount_total}.\n"
+                )
+                validated = False
+
+            zort_line_items = zort_data.get("list", [])
+            zort_product_count = len(
+                [line for line in zort_line_items if line.get("id")]
+            )
+            odoo_product_count = len(
+                order.order_line.filtered(
+                    lambda line: line.product_id.type != "service"
+                )
+            )
+            if zort_product_count != odoo_product_count:
+                # This condition in sale order line not include discount,
+                # shipping, voucher lines
+                msg += (
+                    f"Line item count mismatch: Zort has {zort_product_count} items, "
+                    f"Odoo has {odoo_product_count} items.\n"
+                )
+
+            missing_product_ids = []
+            existing_zort_ids = set(
+                order.order_line.mapped("product_id.zort_product_ids.id_zort_product")
+            )
+            for zort_line in zort_line_items:
+                zort_product_id = zort_line.get("productid")
+                if zort_product_id not in existing_zort_ids:
+                    missing_product_ids.append(str(zort_product_id))
+
+            order.zort_missing_product_ids = ",".join(missing_product_ids)
+            order.zort_validation_message = msg.strip()
+            order.validate_zort_order = bool(validated)
+            if order.validate_zort_order:
+                order.zort_validation_message = (
+                    "This order has been validated successfully."
+                )
+        return bool(validated)
+
+    def update_zort_sale_order_line(self):
+        """
+        Update sale order lines based on the latest Zort order data.
+        Just add missing products from order data (Json).
+        """
+        for order in self:
+            zort_data = order.zort_order_data or {}
+            zort_line_items = zort_data.get("list", [])
+            existing_zort_ids = set(
+                order.order_line.mapped("product_id.zort_product_ids.id_zort_product")
+            )
+            for zort_line in zort_line_items:
+                zort_product_id = zort_line.get("id")
+                if zort_product_id in existing_zort_ids:
+                    continue
+
+                product = self.get_product_by_sku(zort_line.get("productid"))
+                if not product:
+                    _logger.warning(
+                        "Product with Zort ID %s not found. Skipping line.",
+                        zort_product_id,
+                    )
+                    continue
+
+                order.write(
+                    {
+                        "order_line": [
+                            (
+                                0,
+                                0,
+                                {
+                                    "product_id": product.id,
+                                    "product_uom_qty": zort_line.get("number", 1),
+                                    "price_unit": zort_line.get("pricepernumber", 0.0),
+                                    "name": product.name,
+                                    "tax_id": [
+                                        (
+                                            6,
+                                            0,
+                                            order.env.company.zort_default_tax_id.ids,
+                                        )
+                                    ],
+                                },
+                            )
+                        ]
+                    }
+                )
+        return True

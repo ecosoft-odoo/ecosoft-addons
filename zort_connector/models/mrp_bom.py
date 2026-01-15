@@ -27,12 +27,7 @@ class MrpBom(models.Model):
     def update_bom_qty_to_zort(self):
         """Update BOM quantity to Zort as the product's available quantity."""
 
-        warehousecode = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("zort_connector.warehouse_code")
-            or "W0001"
-        )
+        warehousecode = self.env.company.zort_warehouse_code or "W0001"
 
         stocks_dict = {}
         synced_templates = self.env["product.template"].search(

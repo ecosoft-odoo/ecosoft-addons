@@ -370,38 +370,85 @@ ul.auto-toc {
 !! source digest: sha256:9a7fb265c67b3fca2819f2ebc2ffadda7683e67b56116044131ca90655c85d64
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Beta" src="https://img.shields.io/badge/maturity-Beta-yellow.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/zort_connector"><img alt="ecosoft-odoo/ecosoft-addons" src="https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github" /></a></p>
-<p>Zort Connector for Odoo</p>
-<p>Integrates Odoo with Zort e-commerce platform for bidirectional synchronization of orders, products, inventory, and returns.</p>
-<p><strong>5 Main Zort API Endpoints Used:</strong></p>
-<ol class="arabic simple">
-<li><strong>Add Product API</strong> - Create products in Zort from Odoo</li>
-<li><strong>Update Product API</strong> - Update product information in Zort</li>
-<li><strong>Update Stock API</strong> - Sync inventory quantities to Zort</li>
-<li><strong>Get Orders API</strong> - Import orders from Zort to Odoo</li>
-<li><strong>Get Return Orders API</strong> - Process return orders from Zort</li>
-</ol>
-<p><strong>Key Features</strong></p>
+<p># คู่มือการใช้งานและพัฒนาโมดูล zort_connector</p>
+<p>## ภาพรวม</p>
+<p>โมดูล <cite>zort_connector</cite> สำหรับ Odoo นี้ถูกออกแบบมาเพื่อเชื่อมต่อกับระบบ ZORT ผ่าน API โดยมีการทำงานหลักผ่าน Scheduled Action (Cron Job) และมีการกำหนด Action ต่าง ๆ เพื่อซิงค์ข้อมูลระหว่าง Odoo และ ZORT</p>
+<p>—</p>
+<p>## การเริ่มต้นทำงานของระบบ</p>
+<p>ระบบจะเริ่มต้นทำงานโดยอัตโนมัติผ่าน Scheduled Action (Cron Job) ที่กำหนดไว้ในไฟล์ <cite>data/ir_cron_data.xml</cite> โดยแต่ละ Action จะถูกตั้งเวลาให้ทำงานตามรอบที่กำหนด เช่น ทุก ๆ 5 นาที หรือทุก ๆ 1 ชั่วโมง</p>
+<p>### ตัวอย่าง Scheduled Action ที่มีในระบบ</p>
 <ul class="simple">
-<li><strong>Order Management</strong>: Automatic import every 10 minutes with status mapping (Pending→Draft, Waiting→Confirmed, Success→Delivered+Invoiced, Voided→Cancelled)</li>
-<li><strong>Product Sync</strong>: Create/update products in Zort with SKU matching</li>
-<li><strong>Stock Sync</strong>: Real-time inventory updates on picking validation</li>
-<li><strong>Returns Processing</strong>: Automatic return picking creation and credit notes</li>
-<li><strong>Multi-platform Support</strong>: Lazada, Shopee, Magento integration</li>
-<li><strong>Robust Logging</strong>: Complete API request/response tracking</li>
+<li><strong>ซิงค์สินค้า (Sync Product)</strong>
+- ดึงข้อมูลสินค้าใหม่/อัปเดตจาก ZORT เข้ามาใน Odoo</li>
+<li><strong>ซิงค์ออเดอร์ (Sync Sale Order)</strong>
+- ดึงข้อมูลออเดอร์ใหม่จาก ZORT</li>
+<li><strong>ซิงค์สต็อก (Sync Stock Picking)</strong>
+- อัปเดตสถานะสต็อกจาก Odoo ไปยัง ZORT</li>
+<li><strong>ซิงค์พาร์ทเนอร์ (Sync Partner)</strong>
+- ดึงข้อมูลลูกค้า/ซัพพลายเออร์</li>
+<li><strong>ซิงค์ BOM (Sync BOM)</strong>
+- ดึงข้อมูล BOM จาก ZORT</li>
 </ul>
-<p><strong>Requirements</strong></p>
-<ul class="simple">
-<li>Odoo 18.0+</li>
-<li>Zort API credentials (Key, Secret, Store Name)</li>
-<li>Valid SKUs (default_code) on products</li>
-</ul>
-<p><strong>Quick Setup</strong></p>
+<p>Action เหล่านี้สามารถดูรายละเอียดและแก้ไขได้ที่ไฟล์ <cite>data/ir_cron_data.xml</cite> และโค้ดที่เกี่ยวข้องในโฟลเดอร์ <cite>models/</cite></p>
+<p>—</p>
+<p>## การทำงานของแต่ละ Action</p>
+<p>แต่ละ Action จะมีฟังก์ชันหลักในไฟล์ Python ที่เกี่ยวข้อง เช่น
+- <cite>models/product_product.py</cite> สำหรับซิงค์สินค้า
+- <cite>models/sale_order.py</cite> สำหรับซิงค์ออเดอร์
+- <cite>models/stock_picking.py</cite> สำหรับซิงค์สต็อก
+- <cite>models/partner.py</cite> สำหรับซิงค์พาร์ทเนอร์
+- <cite>models/mrp_bom.py</cite> สำหรับซิงค์ BOM</p>
+<p>โดยแต่ละฟังก์ชันจะเรียกใช้งาน API ผ่านโมดูล <cite>zort_api</cite></p>
+<p>—</p>
+<p>## API Specification</p>
+<p>รายละเอียดของ API ที่ใช้เชื่อมต่อกับ ZORT ถูกกำหนดไว้ในโฟลเดอร์ <cite>zort_api/</cite> โดยเฉพาะไฟล์ <cite>zort_api/zort_api.py</cite> ซึ่งจะมีฟังก์ชันสำหรับเรียกใช้งาน API ของ ZORT เช่น
+- การดึงข้อมูลสินค้า
+- การดึงข้อมูลออเดอร์
+- การอัปเดตสต็อก
+- การดึงข้อมูล BOM</p>
+<p>หากต้องการแก้ไขหรือเพิ่ม endpoint ใหม่ ให้แก้ไขที่ไฟล์นี้ และควรเขียน docstring อธิบายแต่ละฟังก์ชันให้ชัดเจน</p>
+<p>—</p>
+<p>## แนวทางสำหรับ Developer</p>
 <ol class="arabic simple">
-<li>Enable Zort Connector in Settings</li>
-<li>Configure API credentials</li>
-<li>Mark products “Sync with Zort”</li>
-<li>Scheduled actions handle automatic synchronization</li>
+<li><strong>เพิ่ม/แก้ไข Action</strong>
+- เพิ่ม/แก้ไข cron job ที่ไฟล์ <cite>data/ir_cron_data.xml</cite>
+- เขียนฟังก์ชันในไฟล์ Python ที่เกี่ยวข้องใน <cite>models/</cite></li>
+<li><strong>ปรับปรุง API</strong>
+- แก้ไขหรือเพิ่มฟังก์ชันใน <cite>zort_api/zort_api.py</cite>
+- ตรวจสอบและทดสอบการเชื่อมต่อกับ ZORT</li>
+<li><strong>การตั้งค่า</strong>
+- สามารถตั้งค่าการเชื่อมต่อ (API Key, URL ฯลฯ) ได้ที่เมนูตั้งค่าของ Odoo หรือไฟล์ <cite>data/ir_config_parameter_data.xml</cite></li>
+<li><strong>การทดสอบ</strong>
+- ทดสอบการทำงานของแต่ละ Action โดยดู log หรือผลลัพธ์ใน Odoo</li>
 </ol>
+<p>—</p>
+<p>—</p>
+<p>## อธิบายโครงสร้างข้อมูลสำคัญ</p>
+<p>### Zort Product</p>
+<p><cite>zort.product</cite> คือโมเดลที่ใช้เก็บข้อมูลสินค้าในฝั่ง ZORT โดยจะมีฟิลด์ <cite>id_zort_product</cite> ซึ่งเป็นรหัสอ้างอิงสินค้าจาก ZORT (Zort Product ID) และมีฟิลด์ <cite>product_id</cite> ที่ผูกกับสินค้าใน Odoo (<cite>product.product</cite>) อีกที</p>
+<p><strong>เหตุผลที่ต้องมี zort.product</strong></p>
+<ul class="simple">
+<li>ZORT มีรหัสสินค้า (id_zort_product) ที่ไม่ซ้ำกับ SKU และ SKU อาจซ้ำกันหรือเปลี่ยนแปลงได้</li>
+<li>การซิงค์ออเดอร์จาก ZORT เข้ามาใน Odoo จะใช้ id_zort_product ในการจับคู่กับสินค้าใน Odoo ได้แม่นยำกว่าการใช้ SKU</li>
+<li>ช่วยให้การ mapping ข้อมูลระหว่าง 2 ระบบถูกต้อง แม้ SKU จะไม่ unique หรือเปลี่ยนแปลงได้</li>
+</ul>
+<p>### Zort eCommerce Channel</p>
+<p><cite>zort.ecommerce.channel</cite> คือโมเดลที่ใช้เก็บข้อมูลช่องทางการขาย (eCommerce Channel) ที่เชื่อมต่อกับ ZORT เช่น Lazada, Shopee, Facebook เป็นต้น</p>
+<p><strong>วัตถุประสงค์</strong></p>
+<ul class="simple">
+<li>ใช้เก็บการตั้งค่าของแต่ละช่องทาง เช่น รหัส channel (<cite>code</cite>), ลูกค้า platform (<cite>partner_id</cite>), การสร้างลูกค้าอัตโนมัติ (<cite>auto_create_customer</cite>)</li>
+<li>ใช้สำหรับ mapping ข้อมูล order ที่มาจากแต่ละช่องทาง เพื่อให้สามารถแยกจัดการและตั้งค่าพิเศษได้ในแต่ละ channel</li>
+<li>รองรับการขยายช่องทางขายใหม่ ๆ ในอนาคต</li>
+</ul>
+<p>—</p>
+<p>## สรุป</p>
+<ul class="simple">
+<li>ระบบเริ่มทำงานด้วย Scheduled Action (Cron Job)</li>
+<li>Action หลัก ๆ ได้แก่ ซิงค์สินค้า ออเดอร์ สต็อก พาร์ทเนอร์ BOM</li>
+<li>มีโครงสร้างข้อมูลสำคัญ ได้แก่ zort.product (สำหรับ mapping สินค้า) และ zort.ecommerce.channel (สำหรับจัดการช่องทางขาย)</li>
+<li>API spec และโค้ดการเชื่อมต่ออยู่ที่ <cite>zort_api/zort_api.py</cite></li>
+<li>Developer สามารถต่อยอดหรือแก้ไขได้ตามแนวทางข้างต้น</li>
+</ul>
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">

@@ -8,55 +8,48 @@ class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
     zort_connector_enabled = fields.Boolean(
-        string="Enable Zort Connector",
         help="Enable the Zort Connector to connect Odoo with Zort.",
-        default=False,
-        config_parameter="zort_connector.enabled",
+        related="company_id.zort_connector_enabled",
+        readonly=False,
     )
     zort_endpoint_url = fields.Char(
-        string="Zort Endpoint URL",
         help="The URL of the Zort endpoint to connect with.",
-        default="https://open-api.zortout.com/v4",
-        config_parameter="zort_connector.endpoint_url",
+        related="company_id.zort_endpoint_url",
+        readonly=False,
     )
     zort_api_key = fields.Char(
-        string="Zort API Key",
         help="The API key to authenticate with the Zort endpoint.",
-        default="",
-        config_parameter="zort_connector.api_key",
+        related="company_id.zort_api_key",
+        readonly=False,
     )
     zort_api_secret = fields.Char(
-        string="Zort API Secret",
         help="The API secret to authenticate with the Zort endpoint.",
-        default="",
-        config_parameter="zort_connector.api_secret",
+        related="company_id.zort_api_secret",
+        readonly=False,
     )
     zort_store_name = fields.Char(
         help="The name of the store in Zort.",
-        default="",
-        config_parameter="zort_connector.store_name",
+        related="company_id.zort_store_name",
+        readonly=False,
     )
     zort_warehouse_code = fields.Char(
         help="The warehouse code in Zort.",
-        default="W0001",
-        config_parameter="zort_connector.warehouse_code",
+        related="company_id.zort_warehouse_code",
+        readonly=False,
+    )
+    zort_default_tax_id = fields.Many2one(
+        comodel_name="account.tax",
+        help="Default tax to apply for Zort products.",
+        related="company_id.zort_default_tax_id",
+        readonly=False,
     )
 
     @api.onchange("zort_connector_enabled")
     def _onchange_zort_connector_enabled(self):
         if not self.zort_connector_enabled:
-            self.env["ir.config_parameter"].sudo().set_param(
-                "zort_connector.endpoint_url", ""
-            )
-            self.env["ir.config_parameter"].sudo().set_param(
-                "zort_connector.api_key", ""
-            )
-            self.env["ir.config_parameter"].sudo().set_param(
-                "zort_connector.api_secret", ""
-            )
-            self.env["ir.config_parameter"].sudo().set_param(
-                "zort_connector.store_name", ""
-            )
-            self.env["ir.config_parameter"].sudo().set_param(
-                "zort_connector.warehouse_code", ""
-            )
+            self.company_id.zort_endpoint_url = ""
+            self.company_id.zort_api_key = ""
+            self.company_id.zort_api_secret = ""
+            self.company_id.zort_store_name = ""
+            self.company_id.zort_warehouse_code = ""
+            self.company_id.zort_default_tax_id = False
