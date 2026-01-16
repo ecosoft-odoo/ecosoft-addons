@@ -424,10 +424,10 @@ The format for creating data should be in the following structure:</p>
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value1&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="o">...</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
-</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
+</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
@@ -442,13 +442,13 @@ The format follows that of <tt class="docutils literal">create_data</tt>, but it
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value1&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="o">...</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
-</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
+</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
@@ -462,12 +462,13 @@ using a unique key in the field to find the desired data and update values in th
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value1&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="o">...</span><span class="w">
-</span>         <span class="p">}</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
+</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
@@ -481,10 +482,10 @@ by using a search domain to find the desired recordset. You can also limit and o
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;search_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="s2">&quot;field2&quot;</span><span class="p">,</span> <span class="s2">&quot;field3{subfield1, subfield2}&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span><span class="w">
-</span>            <span class="s2">&quot;search_domain&quot;</span><span class="p">:</span> <span class="s2">&quot;[('field', 'operator', 'value')]&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;search_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;field2&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;field3&gt;{&lt;subfield1&gt;, &lt;subfield2&gt;}&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span><span class="w">
+</span>            <span class="s2">&quot;search_domain&quot;</span><span class="p">:</span> <span class="s2">&quot;[('&lt;field&gt;', '&lt;operator&gt;', '&lt;value&gt;')]&quot;</span><span class="p">,</span><span class="w">
 </span>            <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span><span class="w">
-</span>            <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;field1 , field2 desc, ...&quot;</span><span class="w">
+</span>            <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;field1&gt; , &lt;field2&gt; desc, ...&quot;</span><span class="w">
 </span>         <span class="p">}</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
@@ -507,7 +508,7 @@ by using a search domain to find the desired recordset. You can also limit and o
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;method&gt;&quot;</span><span class="p">,</span><span class="w">
