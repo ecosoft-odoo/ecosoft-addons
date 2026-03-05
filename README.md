@@ -25,14 +25,14 @@ addon | version | maintainers | summary
 [account_asset_product](account_asset_product/) | 15.0.1.0.0 |  | Account Asset Product
 [account_financial_report_extension](account_financial_report_extension/) | 15.0.1.0.0 |  | Account Financial Report Extension
 [account_move_reconcile_no_cancel](account_move_reconcile_no_cancel/) | 15.0.1.0.0 |  | Account Move Reconcile No Cancel
-[account_reconciliation_widget_extension](account_reconciliation_widget_extension/) | 15.0.1.0.0 | [![ps-tubtim](https://github.com/ps-tubtim.png?size=30px)](https://github.com/ps-tubtim) [![Saran440](https://github.com/Saran440.png?size=30px)](https://github.com/Saran440) | Account Reconciliation Widget Extension
-[base_hide_delete_view](base_hide_delete_view/) | 15.0.1.0.0 | [![Saran440](https://github.com/Saran440.png?size=30px)](https://github.com/Saran440) | Base Hide Delete View
-[base_new_line_default](base_new_line_default/) | 15.0.1.0.0 | [![kittiu](https://github.com/kittiu.png?size=30px)](https://github.com/kittiu) | New one2many line defaults from previous line
+[account_reconciliation_widget_extension](account_reconciliation_widget_extension/) | 15.0.1.0.0 | <a href='https://github.com/ps-tubtim'><img src='https://github.com/ps-tubtim.png' width='32' height='32' style='border-radius:50%;' alt='ps-tubtim'/></a> <a href='https://github.com/Saran440'><img src='https://github.com/Saran440.png' width='32' height='32' style='border-radius:50%;' alt='Saran440'/></a> | Account Reconciliation Widget Extension
+[base_hide_delete_view](base_hide_delete_view/) | 15.0.1.0.0 | <a href='https://github.com/Saran440'><img src='https://github.com/Saran440.png' width='32' height='32' style='border-radius:50%;' alt='Saran440'/></a> | Base Hide Delete View
+[base_new_line_default](base_new_line_default/) | 15.0.1.0.0 | <a href='https://github.com/kittiu'><img src='https://github.com/kittiu.png' width='32' height='32' style='border-radius:50%;' alt='kittiu'/></a> | New one2many line defaults from previous line
 [base_report_extension](base_report_extension/) | 15.0.1.0.0 |  | Base Report Extension
 [ecosoft_services](ecosoft_services/) | 15.0.1.0.0 |  | Ecosoft Services
 [frappe_etax_service](frappe_etax_service/) | 15.0.1.0.1 |  | Connector to Frappe eTax service
 [hr_expense_cash_basis](hr_expense_cash_basis/) | 15.0.1.0.0 |  | HR Expense - Cash Basis
-[l10n_th_account_wht_cert_form_sequence](l10n_th_account_wht_cert_form_sequence/) | 15.0.1.0.0 | [![ps-tubtim](https://github.com/ps-tubtim.png?size=30px)](https://github.com/ps-tubtim) | Define sequence for WHT Cert.
+[l10n_th_account_wht_cert_form_sequence](l10n_th_account_wht_cert_form_sequence/) | 15.0.1.0.0 | <a href='https://github.com/ps-tubtim'><img src='https://github.com/ps-tubtim.png' width='32' height='32' style='border-radius:50%;' alt='ps-tubtim'/></a> | Define sequence for WHT Cert.
 [l10n_th_hr_expense_cash_basis](l10n_th_hr_expense_cash_basis/) | 15.0.1.0.0 |  | Thailand HR Expense - Cash Basis
 [mrp_price_difference](mrp_price_difference/) | 15.0.1.0.0 |  | MRP Price Difference
 [mrp_stock_analytic](mrp_stock_analytic/) | 15.0.1.0.0 |  | Analytic for manufacturing and stock
