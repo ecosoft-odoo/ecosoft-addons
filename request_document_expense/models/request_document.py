@@ -53,7 +53,7 @@ class RequestDocument(models.Model):
 
     def unlink(self):
         # Delete draft sheet
-        self.expense_sheet_ids.unlink()
+        self.expense_sheet_ids.sudo().unlink()
         return super().unlink()
 
     def open_request_document(self):
