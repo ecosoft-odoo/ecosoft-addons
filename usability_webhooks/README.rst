@@ -81,10 +81,10 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "payload": {
-                  "field1": "value1",
+                  "<field1>": "<value1>",
                   ...
                },
-               "result_field": ["field1", ...]  # optional
+               "result_field": ["<field1>", ...]  # optional
             }
          }
       }
@@ -100,13 +100,13 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "search_key": {
-                  "<key_field>": "value",  # can be ID or name search string
+                  "<key_field>": "<value>",  # can be ID or name search string
                },
                "payload": {
-                  "field1": "value1",
+                  "<field1>": "<value1>",
                   ...
                },
-               "result_field": ["field1", ...]  # optional
+               "result_field": ["<field1>", ...]  # optional
             }
          }
       }
@@ -121,12 +121,13 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "search_key": {
-                  "<key_field>": "value",  # can be ID or name search string
+                  "<key_field>": "<value>",  # can be ID or name search string
                },
                "payload": {
-                  "field1": "value1",
+                  "<field1>": "<value1>",
                   ...
-               }
+               },
+               "result_field": ["<field1>", ...]  # optional
             }
          }
       }
@@ -141,10 +142,10 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "payload": {
-                  "search_field": ["field1", "field2", "field3{subfield1, subfield2}", ...],
-                  "search_domain": "[('field', 'operator', 'value')]",
+                  "search_field": ["<field1>", "<field2>", "<field3>{<subfield1>, <subfield2>}", ...],
+                  "search_domain": "[('<field>', '<operator>', '<value>')]",
                   "limit": 1,
-                  "order": "field1 , field2 desc, ..."
+                  "order": "<field1> , <field2> desc, ..."
                }
             }
          }
@@ -164,7 +165,7 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "search_key": {
-                  "<key_field>": "value",  # can be ID or name search string
+                  "<key_field>": "<value>",  # can be ID or name search string
                },
                "payload": {
                   "method": "<method>",
