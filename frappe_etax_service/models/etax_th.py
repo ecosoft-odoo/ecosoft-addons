@@ -47,6 +47,7 @@ class ETaxTH(models.AbstractModel):
             ("to_process", "To Process"),
         ],
         string="ETax Status",
+        index=True,
         readonly=False,
         copy=False,
     )
@@ -154,11 +155,15 @@ class ETaxTH(models.AbstractModel):
                     }
                 )
 
-    def run_update_processing_document(self):
+    def run_update_processing_document(self, limit=100):
         """This method is called from a cron job.
         It is used to update processing documents
         """
-        records = self.search([("etax_status", "=", "processing")])
+        records = self.search(
+            [("etax_status", "=", "processing")],
+            limit=limit,
+            order="id",
+        )
         for record in records:
             try:
                 record.update_processing_document()
@@ -176,11 +181,15 @@ class ETaxTH(models.AbstractModel):
         doc_data = data_template.prepare_data(self)  # Rest API
         self._send_to_frappe(doc_data, form_type, form_name, pdf_content)
 
-    def run_sign_etax(self):
+    def run_sign_etax(self, limit=100):
         """This method is called from a cron job.
         It is used to sign etax for document with status "to_process"
         """
-        records = self.search([("etax_status", "=", "to_process")])
+        records = self.search(
+            [("etax_status", "=", "to_process")],
+            limit=limit,
+            order="id",
+        )
         for record in records:
             try:
                 record.sign_etax()
