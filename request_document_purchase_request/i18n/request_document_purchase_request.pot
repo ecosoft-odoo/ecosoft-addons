@@ -63,7 +63,6 @@ msgstr ""
 #. module: request_document_purchase_request
 #: model:ir.model,name:request_document_purchase_request.model_purchase_request
 #: model:ir.model.fields,field_description:request_document_purchase_request.field_request_document__purchase_request_ids
-#: model:ir.model.fields.selection,name:request_document_purchase_request.selection__request_document__request_type__purchase_request
 msgid "Purchase Request"
 msgstr ""
 
@@ -93,11 +92,6 @@ msgstr ""
 #. module: request_document_purchase_request
 #: model:ir.model,name:request_document_purchase_request.model_request_order
 msgid "Request Order"
-msgstr ""
-
-#. module: request_document_purchase_request
-#: model:ir.model.fields,field_description:request_document_purchase_request.field_request_document__request_type
-msgid "Request Type"
 msgstr ""
 
 #. module: request_document_purchase_request
