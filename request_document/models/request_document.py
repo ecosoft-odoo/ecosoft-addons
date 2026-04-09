@@ -30,7 +30,7 @@ class RequestDocument(models.Model):
         store=True,
     )
     request_type = fields.Selection(
-        selection=[],
+        selection="_get_request_type_selection",
         required=True,
     )
     state = fields.Selection(
@@ -58,6 +58,10 @@ class RequestDocument(models.Model):
         for rec in self:
             if rec.id:
                 rec.name = f"{rec.request_id.name} - {rec.id}"
+
+    @api.model
+    def _get_request_type_selection(self):
+        return []
 
     def open_request_document(self):
         return

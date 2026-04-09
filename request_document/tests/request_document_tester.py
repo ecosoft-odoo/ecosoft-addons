@@ -1,16 +1,15 @@
 # Copyright 2025 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models
+from odoo import api, models
 
 
 class RequestDocument(models.Model):
     _inherit = "request.document"
 
-    request_type = fields.Selection(
-        selection_add=[("tester", "Test")],
-        ondelete={"tester": "cascade"},
-    )
+    @api.model
+    def _get_request_type_selection(self):
+        return super()._get_request_type_selection() + [("tester", "Test")]
 
     def _create_tester(self):
         return True

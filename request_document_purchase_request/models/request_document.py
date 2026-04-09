@@ -8,14 +8,16 @@ from odoo.exceptions import UserError
 class RequestDocument(models.Model):
     _inherit = "request.document"
 
-    request_type = fields.Selection(
-        selection_add=[("purchase_request", "Purchase Request")],
-        ondelete={"purchase_request": "cascade"},
-    )
     purchase_request_ids = fields.One2many(
         comodel_name="purchase.request",
         inverse_name="request_document_id",
     )
+
+    @api.model
+    def _get_request_type_selection(self):
+        return super()._get_request_type_selection() + [
+            ("purchase_request", "Purchase Request")
+        ]
 
     def _get_state_progression_paths(self):
         return {

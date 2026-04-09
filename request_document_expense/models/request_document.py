@@ -8,14 +8,14 @@ from odoo.exceptions import UserError
 class RequestDocument(models.Model):
     _inherit = "request.document"
 
-    request_type = fields.Selection(
-        selection_add=[("expense", "Expense")],
-        ondelete={"expense": "cascade"},
-    )
     expense_sheet_ids = fields.One2many(
         comodel_name="hr.expense.sheet",
         inverse_name="request_document_id",
     )
+
+    @api.model
+    def _get_request_type_selection(self):
+        return super()._get_request_type_selection() + [("expense", "Expense")]
 
     @api.depends(
         "expense_sheet_ids", "expense_sheet_ids.name", "expense_sheet_ids.total_amount"
