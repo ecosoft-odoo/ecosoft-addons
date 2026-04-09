@@ -15,17 +15,13 @@ class WebhookUtils(models.AbstractModel):
     _name = "webhook.utils"
     _description = "Utils Class"
 
-    @tools.ormcache("model", "val", "args")
-    def _call_name_search_cache(self, model, val, args):
-        # Convert args to list, ORM cache can't use in type list
-        args = ast.literal_eval(args) or []
-        return model.name_search(val, args=args, operator="=")
-
-    @tools.ormcache("model", "val")
-    def _call_search_cache(self, model, key_search, val):
-        # Convert val to list, ORM cache can't use in type list
-        val = ast.literal_eval(val) or []
-        return model.search([(key_search, "in", val)])
+    @tools.ormcache("model", "key_search", "val", "extra_domain")
+    def _call_field_search_cache(self, model, key_search, val, extra_domain="[]"):
+        """Search records by an explicit field name.
+        All args must be hashable strings for ORM cache compatibility."""
+        val = ast.literal_eval(val)
+        domain = [(key_search, "in", val)] + ast.literal_eval(extra_domain)
+        return model.search(domain)
 
     def _get_o2m_line(self, line_data_dict, line_obj):
         rec_fields = []
@@ -120,24 +116,30 @@ class WebhookUtils(models.AbstractModel):
         {
             'payload': {
                 'field1': value1,
-                'field2_id': value2,  # can be ID or name search string
-                'attachment_ids': [  # for attach file
-                    {
-                        'name': value3,
-                        'datas': value4,
-                    }
-                ]
-                'line_ids': [
+                # many2one  -> {lookup_field: value}
+                'field2_id': {'name': value2},
+                # many2one  -> by ID
+                'field2_id': {'id': 5},
+                # many2many ->
+                #   {"mode": "add"|"replace", "records": [{lookup_field: value}]}
+                #   mode is optional, defaults to "replace"
+                'tag_ids': {
+                    'mode': 'replace',
+                    'records': [{'name': 'Tag1'}, {'name': 'Tag2'}]
+                },
+                'tag_ids': {'mode': 'add',     'records': [{'name': 'Tag1'}]},
+                'tag_ids': {'records': [{'name': 'Tag1'}]},  # same as replace
+                'attachment_ids': [               # attach file(s)
+                    {'name': value3, 'datas': value4}
+                ],
+                'line_ids': [                     # one2many -> list of record dicts
                     {
                         'field3': value5,
-                        'field4_id': value6,  # can be ID or name search string
+                        'field4_id': {'name': value6},  # nested many2one
+                        'attachment_ids': [             # attach file in line
+                            {'name': value7, 'datas': value8}
+                        ],
                     },
-                    'attachment_ids': [  # for attach file in line
-                        {
-                            'name': value7,
-                            'datas': value8,
-                        }
-                    ],
                     {..new record..}, {..new record..}, ...
                 ],
             },
@@ -194,11 +196,18 @@ class WebhookUtils(models.AbstractModel):
             },
             'payload': {
                 'field1': value1,
-                'field2_id': value2,  # can be ID or name search string
+                # many2one  -> {lookup_field: value}
+                'field2_id': {'name': value2},
+                # many2many ->
+                #   {"mode": "add"|"replace", "records": [{lookup_field: value}]}
+                #   mode is optional, defaults to "replace"
+                'tag_ids': {'mode': 'replace', 'records': [{'name': 'Tag1'}]},
+                'tag_ids': {'mode': 'add',     'records': [{'name': 'Tag1'}]},
+                # one2many -> list of record dicts
                 'line_ids': [
                     {
                         'field3': value3,
-                        'field4_id': value4,  # can be ID or name search string
+                        'field4_id': {'name': value4},
                     },
                     {..new record..}, {..new record..}, ...
                 ],
@@ -213,7 +222,6 @@ class WebhookUtils(models.AbstractModel):
         """
         data_dict = vals.get("payload", {})
         auto_create = vals.get("auto_create", {})
-        vals.get("search_key", {})
 
         rec = self._search_object(model, vals)
 
@@ -294,8 +302,8 @@ class WebhookUtils(models.AbstractModel):
                     # Replace value with child result
                     res[key] = child_result
                     model_list.append(sub_model)
-        # Clear caches
-        for model in model_list:
+        # Clear caches (use set to avoid redundant clears for repeated models)
+        for model in set(model_list):
             self.env[model].env.registry.clear_cache()
         return result
 
@@ -359,16 +367,15 @@ class WebhookUtils(models.AbstractModel):
 
         return result
 
-    def _get_search_args(
+    def _get_company_domain(
         self, have_company, model, rec_dict, main_company, ignore_checkcompany_model
     ):
         if have_company and model not in ignore_checkcompany_model:
-            return str(
-                [("company_id", "=", rec_dict.get("company_id", main_company.id))]
-            )
+            company_id = rec_dict.get("company_id", main_company.id)
+            return str([("company_id", "=", company_id)])
         return "[]"
 
-    def _auto_create_record(self, Model, val, key, auto_create, args):
+    def _do_auto_create(self, Model, key, auto_create):
         new_recs = (
             auto_create[key]
             if isinstance(auto_create[key], list)
@@ -376,7 +383,6 @@ class WebhookUtils(models.AbstractModel):
         )
         for new_rec in new_recs:
             self.friendly_create_data(Model._name, {"payload": new_rec})
-        return self._call_name_search_cache(Model, val, args)
 
     def _process_many2_field(
         self,
@@ -390,90 +396,120 @@ class WebhookUtils(models.AbstractModel):
     ):
         model = rec._fields[key].comodel_name
         Model = self.env[model]
-        search_vals = [rec_dict[key]]
-        value = []  # for many2many, result will be tuple
-        have_company = hasattr(Model, "company_id")
-
-        for val in search_vals:
-            # Support multi company
-            # orm cache can't use in type list,
-            # so we need to convert to string
-            args = self._get_search_args(
-                have_company, model, rec_dict, main_company, ignore_checkcompany_model
+        val = rec_dict[key]
+        # When looking up by id, skip company filtering: the ID is globally unique
+        # and Odoo's own record rules will enforce company access if needed.
+        lookup_by_id = self._val_lookup_by_id(ftype, val)
+        have_company = hasattr(Model, "company_id") and not lookup_by_id
+        extra_domain = self._get_company_domain(
+            have_company, model, rec_dict, main_company, ignore_checkcompany_model
+        )
+        if ftype == "many2many":
+            return self._process_many2many_field(
+                Model, val, extra_domain, key, auto_create
             )
-            if ftype == "many2many":
-                value = self._process_many2many_field(
-                    Model, val, args, key, auto_create
-                )
-            else:
-                value = self._process_many2one_field(Model, val, args, key, auto_create)
+        return self._process_many2one_field(Model, val, extra_domain, key, auto_create)
 
-        return value
+    def _process_many2one_field(self, Model, val, extra_domain, key, auto_create):
+        """Resolve a many2one value to a record ID.
 
-    def _process_many2one_field(self, Model, val, args, key, auto_create):
-        values = self._call_name_search_cache(Model, val, args)
+        val must be a dict with exactly one key-value pair specifying the
+        lookup field and its value, e.g. ``{"name": "Customer A"}`` or
+        ``{"id": 5}``.
+        """
+        key_search, search_val = next(iter(val.items()))
+        records = self._call_field_search_cache(
+            Model, key_search, str([search_val]), extra_domain
+        )
 
-        # If failed, try again by ID
-        if len(values) != 1 and val and isinstance(val, int):
-            rec = self._call_search_cache(Model, "id", str([val]))
-            values = [(rec.id,)] if len(rec) == 1 else values
-
-        # Found > 1, can't continue
-        if len(values) > 1:
+        if len(records) > 1:
             Model.env.registry.clear_cache()
             raise ValidationError(
-                self.env._("'%(val)s' matched more than 1 record") % {"val": val}
+                self.env._("'%(val)s' matched more than 1 record") % {"val": search_val}
             )
 
-        # If not found, but auto_create it
-        if not values and auto_create.get(key):
-            values = self._auto_create_record(Model, val, key, auto_create, args)
-
-        if not values:
-            Model.env.registry.clear_cache()
-            raise ValidationError(
-                self.env._("'%(key)s': '%(val)s' found no match.")
-                % {"key": key, "val": val}
-            )
-
-        return values[0][0]
-
-    def _process_many2many_field(self, Model, val, args, key, auto_create):
-        method_many2many = 4  # default is add new line
-        if val.get("replace", False):
-            method_many2many = 6  # change to replace all
-            del val["replace"]
-
-        key_search, val_search = next(iter(val.items()))
-
-        records = self._call_search_cache(Model, key_search, str(val_search))
         if not records and auto_create.get(key):
-            new_recs = (
-                auto_create[key]
-                if isinstance(auto_create[key], list)
-                else [auto_create[key]]
+            self._do_auto_create(Model, key, auto_create)
+            records = self._call_field_search_cache(
+                Model, key_search, str([search_val]), extra_domain
             )
-            for new_rec in new_recs:
-                self.friendly_create_data(Model._name, {"payload": new_rec})
-            records = self._call_search_cache(Model, key_search, str(val_search))
-        elif not records:
+
+        if not records:
             Model.env.registry.clear_cache()
             raise ValidationError(
                 self.env._("'%(key)s': '%(val)s' found no match.")
-                % {"key": key, "val": val}
+                % {"key": key, "val": search_val}
             )
-        if method_many2many == 6:
-            return [(6, 0, records.ids)]
-        else:
-            return [(4, rec.id) for rec in records]
+
+        return records[0].id
+
+    def _process_many2many_field(self, Model, val, extra_domain, key, auto_create):
+        """Resolve a many2many value to ORM write commands.
+
+        Format::
+
+            {"mode": "replace", "records": [{"lookup_field": value}, ...]}
+            {"mode": "add",     "records": [{"lookup_field": value}, ...]}
+            {"records": [...]}  # mode omitted → defaults to "replace"
+
+        ``mode`` is optional, defaults to ``"replace"``. Each record item must
+        contain exactly one key-value pair specifying the lookup field and its value.
+        """
+        mode = val.get("mode", "replace")
+        if mode not in ("add", "replace"):
+            raise ValidationError(
+                self.env._(
+                    "many2many field '%(key)s': 'mode' must be 'add' or 'replace'"
+                )
+                % {"key": key}
+            )
+        records_list = val.get("records", [])
+
+        # Group items by lookup field to batch DB queries per group.
+        # e.g. [{"name": "T1"}, {"name": "T2"}, {"ref": "R1"}]
+        # -> {"name": ["T1", "T2"], "ref": ["R1"]} -> 2 queries instead of 3
+        groups: dict[str, list] = {}
+        for item in records_list:
+            key_search, search_val = next(iter(item.items()))
+            groups.setdefault(key_search, []).append(search_val)
+
+        all_records = Model.browse()
+        for key_search, search_vals in groups.items():
+            records = self._call_field_search_cache(
+                Model, key_search, str(search_vals), extra_domain
+            )
+
+            if not records and auto_create.get(key):
+                self._do_auto_create(Model, key, auto_create)
+                records = self._call_field_search_cache(
+                    Model, key_search, str(search_vals), extra_domain
+                )
+
+            if not records:
+                Model.env.registry.clear_cache()
+                raise ValidationError(
+                    self.env._("'%(key)s': '%(val)s' found no match.")
+                    % {"key": key, "val": search_vals}
+                )
+
+            all_records |= records
+
+        if mode == "replace":
+            return [(6, 0, all_records.ids)]
+        return [(4, rec.id) for rec in all_records]
 
     @api.model
     def _finalize_data_to_write(self, rec, rec_dict, auto_create=False):
-        """For many2one, many2many, use name search to get id"""
+        """Resolve relational field values in rec_dict to ORM-ready IDs/commands.
+
+        - many2one  : ``{"lookup_field": value}`` -> integer ID
+        - many2many : ``[{"lookup_field": val}, ...]`` -> [(4/6, ...)] commands
+        - other fields are passed through unchanged.
+        """
         final_dict = {}
         ICP = self.env["ir.config_parameter"]
         ignore_checkcompany_model = ICP.sudo().get_param(
-            "webhook.ignore_checkcompany_model"
+            "webhook.ignore_checkcompany_model", "[]"
         )
         auto_create = auto_create or {}
         main_company = self.env.company
@@ -495,16 +531,32 @@ class WebhookUtils(models.AbstractModel):
             final_dict[key] = value
         return final_dict
 
+    def _val_lookup_by_id(self, ftype, val):
+        """Return True if val resolves a record purely by database id.
+
+        many2one : ``{"id": 5}``
+        many2many: ``[{"id": 1}, {"id": 2}]`` or replace-mode where every
+                   record item uses ``"id"`` as the lookup key.
+        """
+        if ftype == "many2one":
+            return isinstance(val, dict) and list(val) == ["id"]
+        if ftype == "many2many" and isinstance(val, dict):
+            records = val.get("records", [])
+            return bool(records) and all(
+                isinstance(item, dict) and list(item) == ["id"] for item in records
+            )
+        return False
+
     def _is_many2_field_with_string(self, ftype, key, rec_dict):
-        if (
-            key in rec_dict.keys()
-            and ftype in ("many2one", "many2many")
-            and rec_dict.get(key, False)
-        ):
-            if ftype == "many2many" and isinstance(rec_dict[key], dict):
-                return True
-            if ftype == "many2one" and isinstance(rec_dict[key], str):
-                return True
+        if key not in rec_dict or not rec_dict.get(key):
+            return False
+        val = rec_dict[key]
+        # many2one: {"field": "value"} or {"id": 5}
+        if ftype == "many2one" and isinstance(val, dict):
+            return True
+        # many2many: {"mode": "add"|"replace", "records": [...]}
+        if ftype == "many2many" and isinstance(val, dict):
+            return True
         return False
 
     @api.model
@@ -639,7 +691,8 @@ class WebhookUtils(models.AbstractModel):
                     Criteria used to search for the target record.
                 - payload : dict
                     - method (str): The name of the method to call on the record.
-                    - parameter (dict, optional): Arguments to pass to the method.
+                    - parameter (dict, optional):
+                        Keyword arguments to pass to the method.
                     - context (dict, optional): Context to use when calling the method.
 
         Returns
