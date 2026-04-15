@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.zort_connector</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='connectors_setting_container']" position="inside">
+                <setting
+                    id="zort_connector"
+                    documentation="https://developers.zortout.com/"
+                    help="Import Zort orders and sync product/stock data with Zort."
+                    string="Zort Connector"
+                >
+                    <field name="zort_connector_enabled" />
+                    <div class="content-group" invisible="not zort_connector_enabled">
+                        <div class="row mt16">
+                            <label
+                                for="zort_store_name"
+                                string="Store Name"
+                                class="col-lg-4 o_light_label"
+                            />
+                            <field name="zort_store_name" class="col-lg-8" />
+                        </div>
+                        <div class="row mt4">
+                            <label
+                                for="zort_api_key"
+                                string="API Key"
+                                class="col-lg-4 o_light_label"
+                            />
+                            <field
+                                name="zort_api_key"
+                                password="True"
+                                class="col-lg-8"
+                            />
+                        </div>
+                        <div class="row mt4">
+                            <label
+                                for="zort_api_secret"
+                                string="API Secret"
+                                class="col-lg-4 o_light_label"
+                            />
+                            <field
+                                name="zort_api_secret"
+                                password="True"
+                                class="col-lg-8"
+                            />
+                        </div>
+                        <div class="row mt4">
+                            <label
+                                for="zort_warehouse_code"
+                                string="Warehouse Code"
+                                class="col-lg-4 o_light_label"
+                            />
+                            <field name="zort_warehouse_code" class="col-lg-8" />
+                        </div>
+                        <div class="row mt4">
+                            <label
+                                for="zort_default_tax_id"
+                                string="Default Tax"
+                                class="col-lg-4 o_light_label"
+                            />
+                            <field name="zort_default_tax_id" class="col-lg-8" />
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

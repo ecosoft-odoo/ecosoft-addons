@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="module_category_zort_connector" model="ir.module.category">
+        <field name="name">Zort Connector</field>
+        <field name="description">Manage Zort orders and synchronisation.</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <record id="group_zort_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="module_category_zort_connector" />
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+        <field name="comment">Can view Zort orders and sync logs.</field>
+    </record>
+
+    <record id="group_zort_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="category_id" ref="module_category_zort_connector" />
+        <field name="implied_ids" eval="[(4, ref('group_zort_user'))]" />
+        <field
+            name="comment"
+        >Full access to Zort orders, sync logs, and configuration.</field>
+        <field
+            name="users"
+            eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"
+        />
+    </record>
+</odoo>

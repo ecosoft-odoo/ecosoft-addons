@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Top-level Zort menu root -->
+    <menuitem
+        id="zort_menu_root"
+        name="Zort"
+        sequence="100"
+        groups="zort_connector.group_zort_user"
+    />
+
+    <!-- Sub menu -->
+    <menuitem id="zort_menu" name="Zort" parent="zort_menu_root" sequence="10" />
+    <menuitem
+        id="zort_menu_products"
+        name="Products"
+        parent="zort_menu_root"
+        sequence="30"
+    />
+
+    <menuitem
+        id="zort_menu_config"
+        name="Configuration"
+        parent="zort_menu_root"
+        sequence="100"
+        groups="zort_connector.group_zort_manager"
+    />
+</odoo>

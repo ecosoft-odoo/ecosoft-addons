@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!-- Create Product -->
+    <record id="api_config_zort_create_product" model="api.config">
+        <field name="name">Zort Create Product</field>
+        <field name="code">zort_create_product</field>
+        <field name="model_id" ref="product.model_product_product" />
+        <field name="api_type">rest_api</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/Product/AddProduct</field>
+        <field name="method">post</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field name="result_success_key" />
+        <field name="result_message_key">resDesc</field>
+        <field name="save_log">True</field>
+        <field name="python_code">{
+    "sku": rec.default_code,
+    "name": rec.name,
+    "sellprice": rec.lst_price,
+    "purchaseprice": rec.standard_price,
+    "unittext": rec.uom_name,
+}</field>
+    </record>
+
+    <!-- Update Product -->
+    <record id="api_config_zort_update_product" model="api.config">
+        <field name="name">Zort Update Product</field>
+        <field name="code">zort_update_product</field>
+        <field name="model_id" ref="product.model_product_template" />
+        <field name="api_type">rest_api</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/Product/UpdateProduct</field>
+        <field name="method">post</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field name="result_success_key">resCode</field>
+        <field name="result_success_value">200</field>
+        <field name="result_message_key">resDesc</field>
+        <field name="save_log">True</field>
+        <field
+            name="params_code"
+        >{"id": rec.zort_product_ids[:1].id_zort_product}</field>
+        <field name="python_code">{
+    "name": rec.name,
+    "sellprice": rec.list_price,
+    "purchaseprice": rec.standard_price,
+    "unittext": rec.uom_name,
+    # "weight": rec.weight,
+    # "sell_vat_status": 0,
+    # "purchase_vat_status": 0,
+}</field>
+    </record>
+
+    <!-- Update Product Qty -->
+    <record id="api_config_zort_update_qty" model="api.config">
+        <field name="name">Zort Update Product Qty</field>
+        <field name="code">zort_update_qty</field>
+        <field name="model_id" ref="product.model_product_template" />
+        <field name="api_type">rest_api</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/Product/UpdateProductAvailableStockList</field>
+        <field name="method">post</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field name="result_success_key">resCode</field>
+        <field name="result_success_value">200</field>
+        <field name="result_message_key">resDesc</field>
+        <field name="save_log">True</field>
+        <field
+            name="params_code"
+        >{"warehousecode": env.company.zort_warehouse_code or "W0001"}</field>
+        <field name="python_code">{
+    "stocks": [
+        {
+            "sku": rec.default_code,
+            "stock": rec.qty_available,
+        }
+    ]
+}</field>
+    </record>
+
+    <!-- Fetch Product Image -->
+    <record id="api_config_zort_fetch_product_image" model="api.config">
+        <field name="name">Zort Fetch Product Image</field>
+        <field name="code">zort_fetch_product_image</field>
+        <field name="model_id" ref="product.model_product_template" />
+        <field name="api_type">rest_api</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/Product/GetProducts</field>
+        <field name="method">get</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field
+            name="params_code"
+        >{"productidlist": rec.zort_product_ids[:1].id_zort_product}</field>
+        <field name="result_success_key" />
+        <field name="save_log">True</field>
+    </record>
+
+    <!-- Fetch Return Orders -->
+    <record id="api_config_zort_get_return_order" model="api.config">
+        <field name="name">Zort Get Return Orders</field>
+        <field name="code">zort_get_return_order</field>
+        <field name="model_id" ref="stock.model_stock_picking" />
+        <field name="api_type">rest_api</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/ReturnOrder/GetReturnOrders</field>
+        <field name="method">get</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field name="result_success_key" />
+        <field name="save_log">True</field>
+        <field name="params_code">{
+    "returnorderdateafter": env.context.get("zort_return_date_after", today_datetime.strftime("%Y-%m-%d")),
+    "returnorderdatebefore": today_datetime.strftime("%Y-%m-%d"),
+}</field>
+    </record>
+
+    <!-- Sync Stock from Picking -->
+    <record id="api_config_zort_sync_stock_picking" model="api.config">
+        <field name="name">Zort Sync Stock from Picking</field>
+        <field name="code">zort_sync_stock_picking</field>
+        <field name="model_id" ref="stock.model_stock_picking" />
+        <field name="api_type">rest_api</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/Product/UpdateProductAvailableStockList</field>
+        <field name="method">post</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field name="result_success_key">resCode</field>
+        <field name="result_success_value">200</field>
+        <field name="result_message_key">resDesc</field>
+        <field name="save_log">True</field>
+        <field
+            name="params_code"
+        >{"warehousecode": env.company.zort_warehouse_code or "W0001"}</field>
+        <field name="python_code">{
+    "stocks": [
+        {"productid": zp.id_zort_product, "stock": move.product_id.qty_available}
+        for move in (rec.move_ids if rec.picking_type_code == "incoming" else rec.move_ids_without_package)
+        for zp in move.product_id.zort_product_ids
+    ]
+}</field>
+    </record>
+
+    <!-- Get Order -->
+    <record id="api_config_zort_get_order" model="api.config">
+        <field name="name">Zort Get Orders</field>
+        <field name="code">zort_get_order</field>
+        <field name="api_type">rest_api</field>
+        <field
+            name="description"
+        >Zort API credentials and endpoint configuration. Edit the Headers field to set storename, apikey, and apisecret.</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/Order/GetOrders</field>
+        <field name="method">get</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field name="result_success_key" />
+        <field name="save_log">False</field>
+    </record>
+</odoo>

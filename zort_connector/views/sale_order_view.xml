@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="inherit_sale_order_view" model="ir.ui.view">
+        <field name="name">sale.order.inherit.zort.connector</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='customer_signature']" position="after">
+                <page
+                    name="zort_order_info"
+                    string="Zort Order Info"
+                    id="zort_order_info"
+                >
+                    <group>
+                        <group>
+                            <field name="zort_order_id" />
+                            <field name="zort_order_number" string="Order Number" />
+                            <field name="zort_order_status" string="Order Status" />
+                            <field name="validate_zort_order" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="zort_payment_status" string="Payment Status" />
+                            <field name="zort_sales_channel" string="Sales Channel" />
+                            <field name="zort_customer_id" />
+                            <field
+                                name="zort_missing_product_ids"
+                                readonly="1"
+                                invisible="validate_zort_order"
+                            />
+                            <field
+                                name="zort_validation_message"
+                                string="Validation Message"
+                                readonly="1"
+                            />
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
