@@ -349,3 +349,9 @@ msgstr ""
 #: model:ir.model.fields,help:usability_webhooks.field_api_log__website_message_ids
 msgid "Website communication history"
 msgstr ""
+
+#. module: usability_webhooks
+#. odoo-python
+#: code:addons/usability_webhooks/controllers/utils.py:0
+msgid "many2many field '%(key)s': 'mode' must be 'add' or 'replace'"
+msgstr ""
