@@ -1,12 +1,13 @@
 [project]
 name = "odoo-addons-ecosoft-odoo-ecosoft-addons"
-version = "18.0.20250602.0"
+version = "18.0.20260418.0"
 dependencies = [
     "odoo-addon-request_document==18.0.*",
     "odoo-addon-request_document_exception==18.0.*",
     "odoo-addon-request_document_expense==18.0.*",
     "odoo-addon-request_document_purchase_request==18.0.*",
     "odoo-addon-request_document_tier_validation==18.0.*",
+    "odoo-addon-usability_api_connector==18.0.*",
     "odoo-addon-usability_webhooks==18.0.*",
 ]
 classifiers=[
