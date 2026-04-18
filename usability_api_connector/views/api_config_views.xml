@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="api_config_list_view" model="ir.ui.view">
+        <field name="name">api.config.list.view</field>
+        <field name="model">api.config</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="model_id" />
+            </list>
+        </field>
+    </record>
+    <record id="api_config_form_view" model="ir.ui.view">
+        <field name="name">api.config.form.view</field>
+        <field name="model">api.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_test_call_api"
+                        type="object"
+                        string="Test API"
+                    />
+                </header>
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div class="oe_title">
+                        <label class="oe_edit_only" for="name" string="API Name" />
+                        <h1>
+                            <field name="name" placeholder="API Name" />
+                        </h1>
+                        <h4>
+                            <label for="code" />
+                            <field name="code" placeholder="API Code" />
+                        </h4>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="model_id" />
+                            <field name="description" />
+                        </group>
+                        <group>
+                            <field name="endpoint_system" />
+                            <field name="endpoint_url" />
+                            <field name="route_path" />
+                            <field name="callback_url" />
+                            <field name="api_type" />
+                            <field name="save_log" />
+                            <label for="disable_ssl" />
+                            <div>
+                                <div class="o_row">
+                                    <field
+                                        name="disable_ssl"
+                                        class="oe_inline"
+                                        options="{'no_create': True}"
+                                    />
+                                    <span
+                                        class="oe_inline text-danger"
+                                        invisible="not disable_ssl"
+                                    >Warning: SSL verification disabled. For development use only.</span>
+                                </div>
+                            </div>
+                        </group>
+                        <group name="auth" string="Authentication">
+                            <field name="auth_required" />
+                            <field name="auth_db" invisible="not auth_required" />
+                            <field name="auth_username" invisible="not auth_required" />
+                            <field
+                                name="auth_password"
+                                password="True"
+                                invisible="not auth_required"
+                            />
+                            <field
+                                name="auth_token"
+                                readonly="1"
+                                invisible="not auth_required"
+                            />
+                        </group>
+                        <group
+                            name="xmlrpc"
+                            string="XML-RPC"
+                            invisible="api_type != 'xmlrpc'"
+                        >
+                            <field
+                                name="execute_model"
+                                required="api_type == 'xmlrpc'"
+                            />
+                            <field
+                                name="execute_method"
+                                required="api_type == 'xmlrpc'"
+                            />
+                            <field
+                                name="execute_context"
+                                required="api_type == 'xmlrpc'"
+                            />
+                        </group>
+                        <group
+                            name="rest_api"
+                            string="REST API"
+                            invisible="api_type != 'rest_api'"
+                        >
+                            <field name="method" required="api_type == 'rest_api'" />
+                            <field
+                                name="headers"
+                                placeholder='{"Cookie": f"session_id={auth_token}", "X-Request-Id": "12345"}'
+                            />
+                        </group>
+                    </group>
+                    <group name="result_mapping" string="Result Mapping">
+                        <field name="result_success_key" />
+                        <field
+                            name="result_success_value"
+                            placeholder="Leave empty for truthy check (e.g. True, success, 200)"
+                        />
+                        <field name="result_message_key" />
+                    </group>
+                    <notebook>
+                        <page name="python_code" string="JSON / Payload">
+                            <div class="alert alert-info" role="alert">
+                                Write a Python expression that evaluates to a dict or list.
+                                Dictionary keys must be quoted strings.
+                                Use <code>rec</code> to access the current record.
+                                Example: <code
+                            >{"name": rec.name, "body": "bar", "userId": 1}</code>
+                            </div>
+                            <field name="python_code" widget="code" />
+                        </page>
+                        <page
+                            name="params_code"
+                            string="Params"
+                            invisible="api_type != 'rest_api'"
+                        >
+                            <div class="alert alert-info" role="alert">
+                                Write a Python expression that evaluates to a dict of URL query parameters (<code
+                            >?key=value</code>).
+                                Use <code>rec</code> to access the current record.
+                                Example: <code
+                            >{"id": rec.external_id, "lang": "th"}</code>
+                            </div>
+                            <field name="params_code" widget="code" nolabel="1" />
+                        </page>
+                        <page name="test_result" string="Test Result">
+                            <group>
+                                <field name="api_status" readonly="1" />
+                            </group>
+                            <field
+                                name="api_result"
+                                widget="code"
+                                readonly="1"
+                                options="{'mode': 'javascript'}"
+                            />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_api_export" model="ir.actions.act_window">
+        <field name="name">API Exports</field>
+        <field name="res_model">api.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_action_webservice_configuration"
+        name="Web Services"
+        parent="base.menu_custom"
+    />
+    <menuitem
+        id="menu_action_api_export"
+        parent="menu_action_webservice_configuration"
+        name="API Exports"
+        action="action_api_export"
+        sequence="20"
+    />
+</odoo>

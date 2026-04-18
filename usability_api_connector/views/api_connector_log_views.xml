@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="api_connector_log_list_view" model="ir.ui.view">
+        <field name="name">api.connector.log.list.view</field>
+        <field name="model">api.connector.log</field>
+        <field name="arch" type="xml">
+            <list
+                decoration-success="state == 'success'"
+                decoration-danger="state == 'failed'"
+                decoration-muted="state == 'draft'"
+            >
+                <field name="create_date" />
+                <field name="api_code" />
+                <field name="api_name" />
+                <field name="res_model" />
+                <field name="user_id" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-success="state == 'success'"
+                    decoration-danger="state == 'failed'"
+                    decoration-warning="state == 'draft'"
+                />
+            </list>
+        </field>
+    </record>
+
+    <record id="api_connector_log_form_view" model="ir.ui.view">
+        <field name="name">api.connector.log.form.view</field>
+        <field name="model">api.connector.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="api_code" />
+                            <field name="api_name" />
+                            <field name="end_point" />
+                            <field name="res_model" />
+                            <field name="res_id" />
+                        </group>
+                        <group>
+                            <field
+                                name="state"
+                                widget="badge"
+                                decoration-success="state == 'success'"
+                                decoration-danger="state == 'failed'"
+                                decoration-warning="state == 'draft'"
+                            />
+                            <field name="user_id" />
+                            <field name="create_date" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="payload" string="Payload">
+                            <field
+                                name="payload"
+                                widget="code"
+                                readonly="1"
+                                options="{'mode': 'javascript'}"
+                            />
+                        </page>
+                        <page name="result" string="Result">
+                            <field
+                                name="result"
+                                widget="code"
+                                readonly="1"
+                                options="{'mode': 'javascript'}"
+                            />
+                        </page>
+                        <page name="error" string="Error" invisible="not error_message">
+                            <field name="error_message" readonly="1" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_api_connector_log" model="ir.actions.act_window">
+        <field name="name">Outbound API Logs</field>
+        <field name="res_model">api.connector.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_api_connector_log"
+        parent="menu_action_webservice_configuration"
+        name="Outbound API Logs"
+        action="action_api_connector_log"
+        sequence="30"
+    />
+</odoo>
