@@ -1,0 +1,524 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usability_api_connector
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid ""
+"<span class=\"oe_inline text-danger\" invisible=\"not disable_ssl\">Warning:"
+" SSL verification disabled. For development use only.</span>"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "API Code"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model,name:usability_api_connector.model_api_config
+msgid "API Configuration"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.actions.act_window,name:usability_api_connector.action_api_export
+#: model:ir.ui.menu,name:usability_api_connector.menu_action_api_export
+msgid "API Exports"
+msgstr ""
+
+#. module: usability_api_connector
+#. odoo-python
+#: code:addons/usability_api_connector/models/common_base_api.py:0
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__api_log_ids
+#: model:ir.model.fields,field_description:usability_api_connector.field_common_base_api__api_log_ids
+msgid "API Logs"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "API Name"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__api_result
+#: model:ir.model.fields,field_description:usability_api_connector.field_common_base_api__api_result
+msgid "API Result"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__api_status
+#: model:ir.model.fields,field_description:usability_api_connector.field_common_base_api__api_status
+msgid "API Status"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__api_type
+msgid "API Type"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__active
+msgid "Active"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__api_code
+msgid "Api Code"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__api_log_count
+#: model:ir.model.fields,field_description:usability_api_connector.field_common_base_api__api_log_count
+msgid "Api Log Count"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__api_name
+msgid "Api Name"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "Archived"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__auth_required
+msgid "Auth Required"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__auth_token
+msgid "Auth Token"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "Authentication"
+msgstr ""
+
+#. module: usability_api_connector
+#. odoo-python
+#: code:addons/usability_api_connector/models/common_base_api.py:0
+msgid "Authentication failed: Invalid database, username or password."
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__callback_status
+#: model:ir.model.fields,field_description:usability_api_connector.field_common_base_api__callback_status
+msgid "Callback Status"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__callback_url
+msgid "Callback URL"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__user_id
+msgid "Called By"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__create_date
+msgid "Called Date"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__code
+msgid "Code"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model,name:usability_api_connector.model_common_base_api
+msgid "Common Base API"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__create_uid
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__method__delete
+msgid "DELETE"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__auth_db
+msgid "Database"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__description
+msgid "Description"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__disable_ssl
+msgid "Disable SSL Verification"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,help:usability_api_connector.field_api_config__disable_ssl
+msgid "Disable SSL verification for API calls"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__display_name
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,help:usability_api_connector.field_api_config__result_message_key
+msgid ""
+"Dot-notation path to the error/info message in the API response.\n"
+"Examples:\n"
+"  'message'              - {'message': 'error detail'}\n"
+"  'error.message.value'  - {'error': {'message': {'value': '...'}}}\n"
+"  'errors.0'             - {'errors': ['first error', ...]}"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,help:usability_api_connector.field_api_config__result_success_key
+msgid ""
+"Dot-notation path to the success indicator in the API response.\n"
+"Examples:\n"
+"  'is_success'         - {'is_success': True}\n"
+"  'result.is_success'  - {'result': {'is_success': True}}\n"
+"  '0.status'           - [{'status': 'ok', ...}]\n"
+"Leave empty to treat any non-empty response as success."
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_status__draft
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_connector_log__state__draft
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__api_status__draft
+msgid "Draft"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__end_point
+msgid "End Point"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__endpoint_system
+msgid "Endpoint System"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__endpoint_url
+msgid "Endpoint URL"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_connector_log_form_view
+msgid "Error"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__error_message
+msgid "Error Message"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__execute_context
+msgid "Execute Context"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__execute_method
+msgid "Execute Method"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__execute_model
+msgid "Execute Model"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,help:usability_api_connector.field_api_config__result_success_value
+msgid ""
+"Expected value that means success (compared as string).\n"
+"Examples: 'True', 'success', '200', 'ok'\n"
+"Leave empty to use truthy check on the key value."
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__endpoint_system__external
+msgid "External REST"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__callback_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_connector_log__state__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__api_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__callback_status__failed
+msgid "Failed"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__method__get
+msgid "GET"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__headers
+msgid "Headers"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__id
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__id
+msgid "ID"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "JSON / Payload"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__write_uid
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__write_date
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "Leave empty for truthy check (e.g. True, success, 200)"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__result_message_key
+msgid "Message Key"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__method
+msgid "Method"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__model_id
+msgid "Model"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__name
+msgid "Name"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__callback_status__none
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__callback_status__none
+msgid "None"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__endpoint_system__odoo
+msgid "Odoo"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model,name:usability_api_connector.model_api_connector_log
+msgid "Outbound API Call Log"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.actions.act_window,name:usability_api_connector.action_api_connector_log
+#: model:ir.ui.menu,name:usability_api_connector.menu_api_connector_log
+msgid "Outbound API Logs"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__method__post
+msgid "POST"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__method__put
+msgid "PUT"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__params_code
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "Params"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__auth_password
+msgid "Password"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__payload
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_connector_log_form_view
+msgid "Payload"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__python_code
+msgid "Python Code"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,help:usability_api_connector.field_api_config__params_code
+msgid ""
+"Python expression returning a dict of URL query parameters (?key=value). "
+"Evaluated with the same context as JSON / Payload (rec, env). For GET/DELETE"
+" these are merged with the payload params. For POST/PUT these are sent "
+"alongside the request body."
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "REST API"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__res_id
+msgid "Record ID"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__res_model
+msgid "Res Model"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_type__rest_api
+msgid "Rest API"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__result
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_connector_log_form_view
+msgid "Result"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "Result Mapping"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__route_path
+msgid "Route Path"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__save_log
+msgid "Save Log"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__state
+msgid "State"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__callback_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_connector_log__state__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__api_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__callback_status__success
+msgid "Success"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__result_success_key
+msgid "Success Key"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__result_success_value
+msgid "Success Value"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "Test API"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "Test Result"
+msgstr ""
+
+#. module: usability_api_connector
+#. odoo-python
+#: code:addons/usability_api_connector/models/common_base_api.py:0
+msgid "Unsupported API type: %s"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__auth_username
+msgid "Username"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.ui.menu,name:usability_api_connector.menu_action_webservice_configuration
+msgid "Web Services"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,help:usability_api_connector.field_api_config__python_code
+msgid ""
+"Write Python code that the action will execute. Some variables are available"
+" for use; help about python expression is given in the help tab."
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid ""
+"Write a Python expression that evaluates to a dict of URL query parameters (<code>?key=value</code>).\n"
+"                                Use <code>rec</code> to access the current record.\n"
+"                                Example: <code>{\"id\": rec.external_id, \"lang\": \"th\"}</code>"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid ""
+"Write a Python expression that evaluates to a dict or list.\n"
+"                                Dictionary keys must be quoted strings.\n"
+"                                Use <code>rec</code> to access the current record.\n"
+"                                Example: <code>{\"name\": rec.name, \"body\": \"bar\", \"userId\": 1}</code>"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_type__xmlrpc
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "XML-RPC"
+msgstr ""
+
+#. module: usability_api_connector
+#: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
+msgid "{\"Cookie\": f\"session_id={auth_token}\", \"X-Request-Id\": \"12345\"}"
+msgstr ""
