@@ -52,17 +52,17 @@
                         </group>
                     </group>
                     <notebook>
-                        <page name="payload" string="Payload">
+                        <page name="result" string="Result">
                             <field
-                                name="payload"
+                                name="result"
                                 widget="code"
                                 readonly="1"
                                 options="{'mode': 'javascript'}"
                             />
                         </page>
-                        <page name="result" string="Result">
+                        <page name="payload" string="Payload">
                             <field
-                                name="result"
+                                name="payload"
                                 widget="code"
                                 readonly="1"
                                 options="{'mode': 'javascript'}"
