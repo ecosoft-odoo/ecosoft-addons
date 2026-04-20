@@ -82,21 +82,13 @@ class CommonBaseApi(models.AbstractModel):
             },
         }
 
-    def _write_failed_state(self, result, api_data=None, payload=None):
-        """Mark as failed and store message safely"""
-        self.write(
-            {
-                "api_status": "failed",
-                "api_result": result,
-            }
-        )
-        self._create_api_log(
-            api_data=api_data,
-            payload=payload,
-            state="failed",
-            result=result,
-        )
-        return False
+    def _write_failed_state(self, result):
+        """Write failed state to record. Override to add custom failure behavior."""
+        return self.write({"api_status": "failed", "api_result": result})
+
+    def _hook_on_failed(self, code_api, error_msg):
+        """Hook called after a failed API call. Override to handle failure."""
+        return
 
     def _truncate_text(self, text, limit=1000):
         """Helper: truncate text for safe storage"""
@@ -118,6 +110,16 @@ class CommonBaseApi(models.AbstractModel):
             ),
         }
 
+    def _eval_config_value(self, value):
+        """Evaluate a config field as a Python expression
+        if valid, else return as-is."""
+        if not value:
+            return value
+        try:
+            return safe_eval(value, globals_dict=self._get_payload_globals_dict())
+        except SyntaxError:
+            return value
+
     def get_login(self, api_data, ssl_context):
         """
         Handle authentication for REST and XMLRPC
@@ -137,7 +139,7 @@ class CommonBaseApi(models.AbstractModel):
                 },
             }
             response = requests.post(
-                f"{api_data.endpoint_url}/web/session/authenticate",
+                f"{self._eval_config_value(api_data.endpoint_url)}/web/session/authenticate",
                 json=payload,
                 timeout=10,
                 verify=not api_data.disable_ssl,
@@ -154,7 +156,8 @@ class CommonBaseApi(models.AbstractModel):
 
         elif api_data.api_type == "xmlrpc":
             common = xmlrpc.client.ServerProxy(
-                f"{api_data.endpoint_url}/xmlrpc/2/common", context=ssl_context
+                f"{self._eval_config_value(api_data.endpoint_url)}/xmlrpc/2/common",
+                context=ssl_context,
             )
             token = common.authenticate(
                 api_data.auth_db, api_data.auth_username, api_data.auth_password, {}
@@ -214,13 +217,27 @@ class CommonBaseApi(models.AbstractModel):
             merged_params = {**(payload or {}), **(params or {})}
             kwargs = {"params": merged_params}
         else:
-            kwargs = {"json": payload}
+            if getattr(api_data, "is_form_data", False):
+                headers.pop("Content-Type", None)
+                # Form data only supports strings;
+                # auto-serialize nested dict/list to JSON
+                kwargs = {
+                    "data": {
+                        k: json.dumps(v) if isinstance(v, (dict | list)) else v
+                        for k, v in payload.items()
+                    }
+                }
+            else:
+                kwargs = {"json": payload}
             if params:
                 kwargs["params"] = params
         try:
+            url = (
+                f"{self._eval_config_value(api_data.endpoint_url)}{api_data.route_path}"
+            )
             result = requests.request(
-                method,
-                f"{api_data.endpoint_url}{api_data.route_path}",
+                method=method,
+                url=url,
                 headers=headers,
                 timeout=30,
                 **kwargs,
@@ -236,19 +253,19 @@ class CommonBaseApi(models.AbstractModel):
         if api_data.api_type == "xmlrpc":
             route = api_data.route_path or "/xmlrpc/2/object"
             models = xmlrpc.client.ServerProxy(
-                f"{api_data.endpoint_url}{route}", context=ssl_context
+                f"{self._eval_config_value(api_data.endpoint_url)}{route}",
+                context=ssl_context,
             )
             try:
                 raw = self._execute_xmlrpc_api(models, api_data, auth_token, payload)
             except Exception as e:
-                if "Access Denied" in str(e):
+                if "Access Denied" in str(e) and api_data.auth_method != "static_token":
                     auth_token = self.get_login(api_data, ssl_context)
                     raw = self._execute_xmlrpc_api(
                         models, api_data, auth_token, payload
                     )
                 else:
                     _logger.exception("_connect_odoo with XML-RPC Error")
-                    self._write_failed_state(str(e), api_data=api_data, payload=payload)
                     return {"is_success": False, "message": str(e)}
             # Wrap raw xmlrpc result so _is_result_success can use
             # default "is_success" key egardless of what execute_kw
@@ -263,13 +280,13 @@ class CommonBaseApi(models.AbstractModel):
             data = result.json()
         except Exception as e:
             _logger.exception("_connect_odoo with Rest API Error")
-            self._write_failed_state(str(e), api_data=api_data, payload=payload)
             return {"is_success": False, "message": str(e)}
 
         # Retry on session expired
         if (
             isinstance(data, dict)
             and data.get("error", {}).get("message") == "Odoo Session Expired"
+            and api_data.auth_method != "static_token"
         ):
             auth_token = self.get_login(api_data, ssl_context)
             response = self._execute_rest_api(
@@ -316,7 +333,9 @@ class CommonBaseApi(models.AbstractModel):
 
         try:
             payload = self._get_data_payload_callback(result)
-            requests.post(api_data.callback_url, json=payload, timeout=10)
+            requests.post(
+                self._eval_config_value(api_data.callback_url), json=payload, timeout=10
+            )
             self.write({"callback_status": "success"})
         except Exception:
             _logger.exception("Callback URL failed")
@@ -461,11 +480,20 @@ class CommonBaseApi(models.AbstractModel):
                 ssl_context = ssl._create_unverified_context()
 
             if api_data.auth_required:
-                auth_token = api_data.auth_token or self.get_login(
-                    api_data, ssl_context
-                )
-                if not auth_token:
-                    raise ValidationError(self.env._("No valid authentication token."))
+                if api_data.auth_method == "static_token":
+                    auth_token = self._eval_config_value(api_data.auth_token)
+                    if not auth_token:
+                        raise ValidationError(
+                            self.env._("Static token is required but not set.")
+                        )
+                else:
+                    auth_token = api_data.auth_token or self.get_login(
+                        api_data, ssl_context
+                    )
+                    if not auth_token:
+                        raise ValidationError(
+                            self.env._("No valid authentication token.")
+                        )
 
             try:
                 payload = safe_eval(
@@ -504,9 +532,8 @@ class CommonBaseApi(models.AbstractModel):
                 api_data, result, payload
             )
             if not is_success:
-                self._write_failed_state(
-                    message_err, api_data=api_data, payload=payload
-                )
+                self._write_failed_state(message_err)
+                self._hook_on_failed(code_api, message_err)
                 return self._notify_user("danger", message_err)
 
             # Success
@@ -516,18 +543,20 @@ class CommonBaseApi(models.AbstractModel):
                     "api_result": self._truncate_text(result),
                 }
             )
-
-            # Hook method
             self._hook_update_data(code_api, result)
-
-            # Callback (if any)
             self._handle_callback(api_data, result)
-
             return self._notify_user("success", self.env._("API call successful."))
 
         except Exception as e:
             _logger.exception("Call API Error")
-            self._write_failed_state(str(e), api_data=api_data, payload=payload)
+            self._create_api_log(
+                api_data=api_data,
+                payload=payload,
+                state="failed",
+                result=str(e),
+            )
+            self._write_failed_state(str(e))
+            self._hook_on_failed(code_api, str(e))
             return self._notify_user("danger", str(e))
 
     def _create_api_log(
