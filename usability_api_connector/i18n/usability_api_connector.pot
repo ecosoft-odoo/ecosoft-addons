@@ -93,6 +93,11 @@ msgid "Archived"
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__auth_method
+msgid "Auth Method"
+msgstr ""
+
+#. module: usability_api_connector
 #: model:ir.model.fields,field_description:usability_api_connector.field_api_config__auth_required
 msgid "Auth Required"
 msgstr ""
@@ -277,6 +282,11 @@ msgid "Failed"
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_config__is_form_data
+msgid "Form Data"
+msgstr ""
+
+#. module: usability_api_connector
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__method__get
 msgid "GET"
 msgstr ""
@@ -312,6 +322,11 @@ msgstr ""
 #. module: usability_api_connector
 #: model_terms:ir.ui.view,arch_db:usability_api_connector.api_config_form_view
 msgid "Leave empty for truthy check (e.g. True, success, 200)"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__auth_method__login
+msgid "Login (user/password)"
 msgstr ""
 
 #. module: usability_api_connector
@@ -439,8 +454,18 @@ msgid "Save Log"
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields,help:usability_api_connector.field_api_config__is_form_data
+msgid "Send POST/PUT body as form-encoded (data=) instead of JSON (json=)"
+msgstr ""
+
+#. module: usability_api_connector
 #: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__state
 msgid "State"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__auth_method__static_token
+msgid "Static Token"
 msgstr ""
 
 #. module: usability_api_connector
