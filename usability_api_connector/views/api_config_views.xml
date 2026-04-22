@@ -68,17 +68,24 @@
                         </group>
                         <group name="auth" string="Authentication">
                             <field name="auth_required" />
-                            <field name="auth_db" invisible="not auth_required" />
-                            <field name="auth_username" invisible="not auth_required" />
+                            <field name="auth_method" invisible="not auth_required" />
+                            <field
+                                name="auth_db"
+                                invisible="not auth_required or auth_method == 'static_token'"
+                            />
+                            <field
+                                name="auth_username"
+                                invisible="not auth_required or auth_method == 'static_token'"
+                            />
                             <field
                                 name="auth_password"
                                 password="True"
-                                invisible="not auth_required"
+                                invisible="not auth_required or auth_method == 'static_token'"
                             />
                             <field
                                 name="auth_token"
-                                readonly="1"
                                 invisible="not auth_required"
+                                readonly="auth_method != 'static_token'"
                             />
                         </group>
                         <group
@@ -105,6 +112,10 @@
                             invisible="api_type != 'rest_api'"
                         >
                             <field name="method" required="api_type == 'rest_api'" />
+                            <field
+                                name="is_form_data"
+                                invisible="method not in ('post', 'put')"
+                            />
                             <field
                                 name="headers"
                                 placeholder='{"Cookie": f"session_id={auth_token}", "X-Request-Id": "12345"}'

@@ -44,6 +44,13 @@ class ApiConfig(models.Model):
     )
     active = fields.Boolean(default=True)
     auth_required = fields.Boolean()
+    auth_method = fields.Selection(
+        selection=[
+            ("login", "Login (user/password)"),
+            ("static_token", "Static Token"),
+        ],
+        default="login",
+    )
     auth_username = fields.Char(string="Username")
     auth_password = fields.Char(string="Password")
     auth_db = fields.Char(string="Database")
@@ -68,6 +75,10 @@ class ApiConfig(models.Model):
         "Evaluated with the same context as JSON / Payload (rec, env). "
         "For GET/DELETE these are merged with the payload params. "
         "For POST/PUT these are sent alongside the request body.",
+    )
+    is_form_data = fields.Boolean(
+        string="Form Data",
+        help="Send POST/PUT body as form-encoded (data=) instead of JSON (json=)",
     )
     save_log = fields.Boolean()
 
