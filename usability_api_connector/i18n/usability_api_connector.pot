@@ -213,9 +213,12 @@ msgid ""
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_move__api_status__draft
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_payment__api_status__draft
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_status__draft
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_connector_log__state__draft
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__api_status__draft
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__etax_service_mixin__api_status__draft
 msgid "Draft"
 msgstr ""
 
@@ -273,11 +276,17 @@ msgid "External REST"
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_move__api_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_move__callback_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_payment__api_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_payment__callback_status__failed
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_status__failed
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__callback_status__failed
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_connector_log__state__failed
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__api_status__failed
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__callback_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__etax_service_mixin__api_status__failed
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__etax_service_mixin__callback_status__failed
 msgid "Failed"
 msgstr ""
 
@@ -350,8 +359,11 @@ msgid "Name"
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_move__callback_status__none
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_payment__callback_status__none
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__callback_status__none
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__callback_status__none
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__etax_service_mixin__callback_status__none
 msgid "None"
 msgstr ""
 
@@ -469,11 +481,17 @@ msgid "Static Token"
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_move__api_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_move__callback_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_payment__api_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__account_payment__callback_status__success
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__api_status__success
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__callback_status__success
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_connector_log__state__success
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__api_status__success
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__common_base_api__callback_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__etax_service_mixin__api_status__success
+#: model:ir.model.fields.selection,name:usability_api_connector.selection__etax_service_mixin__callback_status__success
 msgid "Success"
 msgstr ""
 
