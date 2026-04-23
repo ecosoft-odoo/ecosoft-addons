@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="etax_doctype_wizard_view" model="ir.ui.view">
+        <field name="name">etax.doctype.wizard.view</field>
+        <field name="model">etax.doctype.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sign e-Tax Invoice">
+                <group>
+                    <group>
+                        <field
+                            name="etax_doctype_id"
+                            domain="etax_doctype_locked and [('id', '=', etax_doctype_id)] or [('move_type', '=', move_type)]"
+                            options="{'no_create_edit': True, 'no_open': True}"
+                            readonly="etax_doctype_locked"
+                            required="1"
+                        />
+                        <field name="etax_doctype_locked" invisible="1" />
+                        <!-- <field name="run_background" /> -->
+                    </group>
+                    <group>
+                        <field name="move_type" readonly="1" />
+                    </group>
+                </group>
+                <footer>
+                    <button
+                        string="Sign"
+                        name="sign_etax_invoice"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_etax_doctype_wizard" model="ir.actions.act_window">
+        <field name="name">Sign e-Tax Invoice</field>
+        <field name="res_model">etax.doctype.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="etax_doctype_wizard_view" />
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="account.model_account_move" />
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>

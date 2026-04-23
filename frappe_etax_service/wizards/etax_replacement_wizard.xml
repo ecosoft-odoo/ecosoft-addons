@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="etax_replacement_wizard_view" model="ir.ui.view">
+        <field name="name">etax.replacement.wizard.view</field>
+        <field name="model">etax.replacement.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Replacement">
+                <p>
+                    This action will cancel this document, and create a replacement document.<br
+                />
+                    <b
+                >After correction, please submit and sign eTax as soon as possible to keep things in sync.</b><br
+                />
+                    Are you sure to continue?
+                </p>
+                <group>
+                    <group>
+                        <field
+                            name="purpose_code_id"
+                            options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"
+                            domain="[('etax_doctype_code_ids.code', '=', etax_doctype_code)]"
+                            required="1"
+                        />
+                    </group>
+                    <group>
+                        <field name="reason" />
+                        <field name="etax_doctype_code" readonly="1" />
+                    </group>
+                </group>
+                <footer>
+                    <button
+                        string="Create Replacement"
+                        name="create_replacement"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_etax_replacement_wizard" model="ir.actions.act_window">
+        <field name="name">Create Replacement</field>
+        <field name="res_model">etax.replacement.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
