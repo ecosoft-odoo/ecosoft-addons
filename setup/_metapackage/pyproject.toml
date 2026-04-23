@@ -1,7 +1,8 @@
 [project]
 name = "odoo-addons-ecosoft-odoo-ecosoft-addons"
-version = "18.0.20260418.0"
+version = "18.0.20260423.0"
 dependencies = [
+    "odoo-addon-frappe_etax_service==18.0.*",
     "odoo-addon-request_document==18.0.*",
     "odoo-addon-request_document_exception==18.0.*",
     "odoo-addon-request_document_expense==18.0.*",
