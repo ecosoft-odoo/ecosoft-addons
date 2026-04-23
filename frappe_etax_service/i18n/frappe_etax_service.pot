@@ -1,0 +1,977 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* frappe_etax_service
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "%s: eTax status is already Processing/Success"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "%s: must be posted/paid before signing eTax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__api_log_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__api_log_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__api_log_ids
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "API Logs"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__api_result
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__api_result
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__api_result
+msgid "API Result"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__api_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__api_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__api_status
+msgid "API Status"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_account_move_reversal
+msgid "Account Move Reversal"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_needaction
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_ids
+msgid "Activities"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_exception_decoration
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_state
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_state
+msgid "Activity State"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_type_icon
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_type_icon
+msgid "Activity Type Icon"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_account_debit_note
+msgid "Add Debit Note wizard"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Additional Information"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/wizards/account_debit_note.py:0
+#: code:addons/frappe_etax_service/wizards/account_move_reversal.py:0
+msgid "All eTax Status should be same."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid "Allow to send an email to partner after sign etax."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__api_log_count
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__api_log_count
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__api_log_count
+msgid "Api Log Count"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__etax_doctype_code_ids
+msgid "Applicable Doctype Codes"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_attachment_count
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_attachment_count
+msgid "Attachment Count"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid ""
+"Authentication token for Frappe e-Tax Service. Format: "
+"[api_key]:[api_secret]"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__callback_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__callback_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__callback_status
+msgid "Callback Status"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_doctype_wizard_view
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_replacement_wizard_view
+msgid "Cancel"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "Cannot find report '%s', or multiple found"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"Cannot reset to draft, eTax submission already started or succeeded.\n"
+"You should do the refund process instead."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__code
+msgid "Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_res_company
+msgid "Companies"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "Company '%s' does not have a Tax ID (VAT) configured."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__create_purpose
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__create_purpose
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__create_purpose
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__create_purpose
+msgid "Create Purpose"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__create_purpose_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__create_purpose_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__create_purpose_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__create_purpose_code
+msgid "Create Purpose Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/wizards/etax_replacement_wizard.py:0
+msgid "Create Replace e-Tax not allowed after %s"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_move.py:0
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+#: model:ir.actions.act_window,name:frappe_etax_service.action_etax_replacement_wizard
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_replacement_wizard_view
+msgid "Create Replacement"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+msgid "Create Replacement Receipt e-Tax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Create Replacement e-Tax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__create_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__create_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__create_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__create_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__create_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__create_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__create_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__create_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move_reversal__credit_note_doctype_code_ids
+msgid "Credit Note Doctype Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_account_bank_statement_line__replaced_entry_id
+#: model:ir.model.fields,help:frappe_etax_service.field_account_move__replaced_entry_id
+msgid "Currently this field only support invoice and not payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype__move_type__out_refund
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype_wizard__move_type__out_refund
+msgid "Customer Credit Note"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype__move_type__out_invoice_debit
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype_wizard__move_type__out_invoice_debit
+msgid "Customer Debit Note"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype__move_type__out_invoice
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype_wizard__move_type__out_invoice
+msgid "Customer Invoice"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype__move_type__entry
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype_wizard__move_type__entry
+msgid "Customer Payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_debit_note__debit_note_doctype_code_ids
+msgid "Debit Note Doctype Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Digitally signed eTax invoice"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__display_name
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__display_name
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__display_name
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__display_name
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_etax_doctype_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Doctype"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.actions.act_window,name:frappe_etax_service.action_etax_doctype
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__etax_doctype_code
+#: model:ir.ui.menu,name:frappe_etax_service.doctype_code_menu
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_etax_purpose_code_search
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Doctype Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.constraint,message:frappe_etax_service.constraint_etax_doctype_code_code_uniq
+msgid "Doctype code must be unique"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__doctype_code_id
+msgid "Document Type Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_etax_service_mixin
+msgid "ETax Service Model"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__etax_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__etax_status
+msgid "ETax Status"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid "Ecosoft e-Tax Services"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_move__etax_status__error
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_payment__etax_status__error
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_service_mixin__etax_status__error
+msgid "Error"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+msgid "Error Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+msgid "Error Message"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Error code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Error message"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__etax_doctype_locked
+msgid "Etax Doctype Locked"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_error_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_error_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__etax_error_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__etax_error_code
+msgid "Etax Error Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_error_message
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_error_message
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__etax_error_message
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__etax_error_message
+msgid "Etax Error Message"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_payment_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_payment_id
+msgid "Etax Payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_transaction_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_transaction_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__etax_transaction_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__etax_transaction_code
+msgid "Etax Transaction Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_follower_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_follower_ids
+msgid "Followers"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_partner_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__activity_type_icon
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_etax_doctype
+msgid "For config doctype code that send to INET"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__name
+msgid "Form Name"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.constraint,message:frappe_etax_service.constraint_etax_doctype_code_uniq_per_doc
+msgid "Form name must be unique"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:api.config,name:frappe_etax_service.api_etax_invoice_frappe
+msgid "Frappe - eTax Invoice"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:api.config,name:frappe_etax_service.api_etax_payment_frappe
+msgid "Frappe - eTax Payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:api.config,name:frappe_etax_service.api_etax_payment_replace_frappe
+msgid "Frappe - eTax Payment Replacement"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__frappe_auth_token
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__frappe_auth_token
+msgid "Frappe Auth Token"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__frappe_server_url
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__frappe_server_url
+msgid "Frappe Server Url"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_etax_purpose_code_search
+msgid "Group By"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__has_create_replacement
+msgid "Has Create Replacement"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__has_message
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__id
+msgid "ID"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_exception_icon
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_exception_icon
+msgid "Icon"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__activity_exception_icon
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_account_bank_statement_line__etax_payment_id
+#: model:ir.model.fields,help:frappe_etax_service.field_account_move__etax_payment_id
+msgid ""
+"If 'Use Credit Note on Payment' is selected,             Select payment for "
+"retrieve original data."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__message_needaction
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__message_has_error
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__message_has_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__doc_source_template
+msgid "Invoice template source"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_replacement_wizard__origin_ref__account_move
+msgid "Invoices"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_is_follower
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__is_send_frappe
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__is_send_frappe
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__is_send_frappe
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__is_send_frappe
+msgid "Is Send Frappe"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_account_move
+msgid "Journal Entry"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_account_move_line
+msgid "Journal Item"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__write_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__write_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__write_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__write_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__write_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__write_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__write_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__write_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_has_error
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid "Multiple reconciled invoices not allowed"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__my_activity_date_deadline
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__name
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__name
+msgid "Name"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_date_deadline
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_summary
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_summary
+msgid "Next Activity Summary"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_type_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_type_id
+msgid "Next Activity Type"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_needaction_counter
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_has_error_counter
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__message_needaction_counter
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__message_has_error_counter
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_move.py:0
+msgid "Only posted etax invoice can have a substitution"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid "Only posted etax payment can have a substitution"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__origin_ref
+msgid "Origin"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid "Paste your frappe server URL"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid "Paste your frappe token"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_account_payment
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_replacement_wizard__origin_ref__account_payment
+msgid "Payments"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_move.py:0
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid "Please select only one type"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_move__etax_status__processing
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_payment__etax_status__processing
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_service_mixin__etax_status__processing
+msgid "Processing"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__purpose_code_id
+msgid "Purpose"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.actions.act_window,name:frappe_etax_service.action_etax_purpose_code
+#: model:ir.ui.menu,name:frappe_etax_service.sub_purpose_code_menu
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_etax_purpose_code_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_etax_purpose_code_search
+msgid "Purpose Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_etax_purpose_code
+msgid "Purpose Code follow INET convention."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__reason
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__reason
+msgid "Reason"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_move__etax_status__replace
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_payment__etax_status__replace
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_service_mixin__etax_status__replace
+msgid "Replaced"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__replaced_entry_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__replaced_entry_id
+msgid "Replaced Document"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__replaced_receipt_id
+msgid "Replaced Receipt Payment Document"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_replacement_wizard_view
+msgid "Replacement"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__replacement_lock_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__replacement_lock_date
+msgid "Replacement Lock Date"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__report_id
+msgid "Report"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_user_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_user_id
+msgid "Responsible User"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_etax_doctype_wizard
+msgid "Select eTax Document Type"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_etax_replacement_wizard
+msgid "Select etax replacement document on wizard"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__doc_source_template
+msgid "Select source template between Odoo and Frappe"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__is_send_etax_email
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__is_send_etax_email
+msgid "Send Email"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_doctype_wizard_view
+msgid "Sign"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+#: model:ir.actions.act_window,name:frappe_etax_service.action_etax_doctype_wizard
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_doctype_wizard_view
+msgid "Sign e-Tax Invoice"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move_line__skip_etax
+msgid "Skip Etax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_etax_doctype_code
+msgid "Standard eTax Document Type Code (INET)"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Status"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__activity_state
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_move__etax_status__success
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_payment__etax_status__success
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_service_mixin__etax_status__success
+msgid "Success"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_replacement_wizard_view
+msgid ""
+"This action will cancel this document, and create a replacement document.<br/>\n"
+"                    <b>After correction, please submit and sign eTax as soon as possible to keep things in sync.</b><br/>\n"
+"                    Are you sure to continue?"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "This eTax document has been replaced"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_account_payment__replaced_receipt_id
+msgid "This field support replacement payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_account_bank_statement_line__is_credit_payment_entry
+#: model:ir.model.fields,help:frappe_etax_service.field_account_move__is_credit_payment_entry
+msgid ""
+"This is used to indicate this document             will cancel etax payment "
+"on INET (Case Etax)"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+msgid "Transaction Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "Transaction code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__move_type
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__move_type
+msgid "Type"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__activity_exception_decoration
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid "URL of the Frappe e-Tax Service."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__is_credit_payment_entry
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__is_credit_payment_entry
+msgid "Use Credit Note on Payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__website_message_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_doctype__website_message_ids
+#: model:ir.model.fields,help:frappe_etax_service.field_etax_purpose_code__website_message_ids
+msgid "Website communication history"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "_prepare_etax_doc_data() not implemented for model: %s"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "e-Tax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "e-Tax Info"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "e-Tax Invoice"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid ""
+"e-Tax Replacement not allowed after this date of next invoice month. For "
+"example, if replace lock date is 10 and invoice date is 20/11/2000, "
+"replacement e-Tax is not allowed after 10/12/2000."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.ui.menu,name:frappe_etax_service.etax_service_menu
+msgid "e-Tax service"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_doctype_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_doctype_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__etax_doctype_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__etax_doctype_id
+msgid "eTax Doctype"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_doctype_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_doctype_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__etax_doctype_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__etax_doctype_code
+msgid "eTax Doctype Code"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__etax_doctype_id
+msgid "eTax Document Type"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_debit_note__purpose_code_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move_reversal__purpose_code_id
+msgid "eTax Refund Reason"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_debit_note__etax_status
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move_reversal__etax_status
+msgid "eTax Status"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid "eTax invoice is processing"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype__doc_source_template__frappe
+msgid "frappe"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype__doc_source_template__odoo
+msgid "odoo"
+msgstr ""
