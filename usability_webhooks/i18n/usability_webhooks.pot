@@ -68,6 +68,12 @@ msgid "Activity Type Icon"
 msgstr ""
 
 #. module: usability_webhooks
+#. odoo-python
+#: code:addons/usability_webhooks/models/api_log.py:0
+msgid "Attachment"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__message_attachment_count
 msgid "Attachment Count"
 msgstr ""
@@ -83,9 +89,8 @@ msgid "Created on"
 msgstr ""
 
 #. module: usability_webhooks
-#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__data
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_search
-msgid "Data"
+msgid "Data Preview"
 msgstr ""
 
 #. module: usability_webhooks
@@ -124,6 +129,16 @@ msgstr ""
 #. module: usability_webhooks
 #: model:ir.model.fields,help:usability_webhooks.field_api_log__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+
+#. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_form
+msgid "Full Log"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__attachment_id
+msgid "Full Payload"
 msgstr ""
 
 #. module: usability_webhooks
@@ -290,13 +305,28 @@ msgid "Record updated successfully"
 msgstr ""
 
 #. module: usability_webhooks
-#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__activity_user_id
-msgid "Responsible User"
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__data_preview
+msgid "Request Preview"
 msgstr ""
 
 #. module: usability_webhooks
-#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__result
-msgid "Result"
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__data_size
+msgid "Request Size"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__result_preview
+msgid "Response Preview"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__result_size
+msgid "Response Size"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__activity_user_id
+msgid "Responsible User"
 msgstr ""
 
 #. module: usability_webhooks
@@ -328,11 +358,6 @@ msgstr ""
 #. module: usability_webhooks
 #: model:ir.model.fields,help:usability_webhooks.field_api_log__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr ""
-
-#. module: usability_webhooks
-#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_form
-msgid "Update API"
 msgstr ""
 
 #. module: usability_webhooks
