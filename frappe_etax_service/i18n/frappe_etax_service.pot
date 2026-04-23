@@ -962,6 +962,7 @@ msgid "eTax Status"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
 msgid "eTax invoice is processing"
 msgstr ""
