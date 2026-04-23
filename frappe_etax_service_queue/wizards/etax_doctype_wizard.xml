@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="etax_doctype_wizard_view" model="ir.ui.view">
+        <field name="name">etax.doctype.wizard.view</field>
+        <field name="model">etax.doctype.wizard</field>
+        <field name="inherit_id" ref="frappe_etax_service.etax_doctype_wizard_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='etax_doctype_id']" position="after">
+                <field name="run_background" />
+            </xpath>
+        </field>
+    </record>
+</odoo>
