@@ -36,6 +36,14 @@
                 </div>
                 <div
                     groups="account.group_account_invoice,account.group_account_readonly"
+                    class="text-right alert alert-warning"
+                    role="alert"
+                    invisible="etax_status != 'processing'"
+                >
+                    eTax invoice is processing
+                </div>
+                <div
+                    groups="account.group_account_invoice,account.group_account_readonly"
                     class="text-right alert alert-info"
                     role="alert"
                     invisible="etax_status != 'replace'"
