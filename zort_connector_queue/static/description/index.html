@@ -370,7 +370,30 @@ ul.auto-toc {
 !! source digest: sha256:e538629fc7b20839ae96e37201a05ee6e10d0b323d58bda49d4e9e949610ae6f
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Alpha" src="https://img.shields.io/badge/maturity-Alpha-red.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/zort_connector_queue"><img alt="ecosoft-odoo/ecosoft-addons" src="https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github" /></a></p>
-<p>TODO</p>
+<p>Extends <tt class="docutils literal">zort_connector</tt> to process order synchronization and pending-order
+conversion <strong>asynchronously via queue jobs</strong> (using <tt class="docutils literal">queue_job_cron</tt>).</p>
+<p>By default, <tt class="docutils literal">zort_connector</tt> fetches and processes all Zort order pages
+synchronously inside the cron transaction. For stores with a large number of
+orders this can cause long-running transactions and cron timeouts. This module
+offloads the heavy work to the OCA queue-job runner so each page is processed
+in its own independent job.</p>
+<p><strong>What it adds</strong></p>
+<ul class="simple">
+<li><strong>Async page dispatch</strong> - overrides <tt class="docutils literal">_dispatch_sync_page</tt> so that each
+page of a Zort order sync run is enqueued as a separate queue job
+(description: <em>“Zort sync page N/total”</em>).</li>
+<li><strong>Async pending-order batches</strong> - overrides <tt class="docutils literal">_dispatch_pending_orders_batch</tt>
+so that each batch of pending <tt class="docutils literal">zort.order</tt> records is enqueued as a
+separate queue job.</li>
+<li><strong>Cron flag</strong> - sets <tt class="docutils literal">run_as_queue_job = True</tt> and
+<tt class="docutils literal">no_parallel_queue_job_run = True</tt> on the base <strong>Auto Sync Zort Order</strong>
+cron, so the scheduler dispatches a queue job instead of running inline and
+prevents duplicate concurrent runs.</li>
+<li><strong>Graceful fallback</strong> - both dispatch overrides detect whether they are
+already running inside a queue job (via <tt class="docutils literal">job_uuid</tt> in context). If not,
+they fall back to synchronous base behaviour, so the module is safe to
+install even when the queue runner is temporarily stopped.</li>
+</ul>
 <div class="admonition important">
 <p class="first admonition-title">Important</p>
 <p class="last">This is an alpha version, the data model and design can change at any time without warning.
@@ -408,7 +431,7 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <div class="section" id="contributors">
 <h2><a class="toc-backref" href="#toc-entry-4">Contributors</a></h2>
 <ul class="simple">
-<li>Saran Lim. &lt;<a class="reference external" href="mailto:saranl&#64;ecosoft.co.th">saranl&#64;ecosoft.co.th</a>&gt;</li>
+<li>Saran Lim. &lt;&lt;<a class="reference external" href="mailto:saranl&#64;ecosoft.co.th">saranl&#64;ecosoft.co.th</a>&gt;&gt;</li>
 </ul>
 </div>
 <div class="section" id="maintainers">

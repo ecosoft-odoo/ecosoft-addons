@@ -22,43 +22,60 @@ Zort Connector
 
 |badge1| |badge2| |badge3|
 
-Zort Connector for Odoo
+Connects Odoo with `Zort <https://www.zortout.com/>`_ (Thai multi-channel
+e-commerce platform) for bidirectional synchronization of orders, products,
+inventory, and returns.
 
-Integrates Odoo with Zort e-commerce platform for bidirectional
-synchronization of orders, products, inventory, and returns.
+**Zort API endpoints used**
 
-**5 Main Zort API Endpoints Used:**
+.. list-table::
+   :header-rows: 1
+   :widths: 5 40 55
 
-1. **Add Product API** - Create products in Zort from Odoo
-2. **Update Product API** - Update product information in Zort
-3. **Update Stock API** - Sync inventory quantities to Zort
-4. **Get Orders API** - Import orders from Zort to Odoo
-5. **Get Return Orders API** - Process return orders from Zort
+   * - #
+     - Endpoint
+     - Purpose
+   * - 1
+     - ``/Order/GetOrders``
+     - Pull orders from Zort into Odoo
+   * - 2
+     - ``/ReturnOrder/GetReturnOrders``
+     - Pull return orders from Zort
+   * - 3
+     - ``/Product/AddProduct``
+     - Create a new product in Zort
+   * - 4
+     - ``/Product/UpdateProduct``
+     - Push product name/price changes to Zort
+   * - 5
+     - ``/Product/UpdateProductAvailableStockList``
+     - Push available-stock quantity to Zort
 
-**Key Features**
+**Key features**
 
-- **Order Management**: Automatic import every 10 minutes with status
-  mapping (Pending→Draft, Waiting→Confirmed, Success→Delivered+Invoiced,
-  Voided→Cancelled)
-- **Product Sync**: Create/update products in Zort with SKU matching
-- **Stock Sync**: Real-time inventory updates on picking validation
-- **Returns Processing**: Automatic return picking creation and credit
-  notes
-- **Multi-platform Support**: Lazada, Shopee, Magento integration
-- **Robust Logging**: Complete API request/response tracking
+- **Automatic order import** - scheduled every 10 minutes; supports paginated
+  results and a configurable look-back window (default 10 days).
+- **Status-driven workflow** - Zort status changes trigger matching Odoo actions:
 
-**Requirements**
+  - *Pending* → Sale Order stays draft
+  - *Waiting* → Sale Order confirmed
+  - *Success* → delivery validated + draft invoice created
+  - *Voided* → Sale Order cancelled
 
-- Odoo 18.0+
-- Zort API credentials (Key, Secret, Store Name)
-- Valid SKUs (default_code) on products
-
-**Quick Setup**
-
-1. Enable Zort Connector in Settings
-2. Configure API credentials
-3. Mark products "Sync with Zort"
-4. Scheduled actions handle automatic synchronization
+- **Product & stock push** - create/update products in Zort from the product
+  form; stock is pushed automatically on every non-Zort, non-internal picking
+  validation.
+- **Return order processing** - Zort return orders are fetched every 10 minutes;
+  a return picking is created on *Pending* status and validated (with a draft
+  credit note) on *Success* status.
+- **Multi-channel support** - eCommerce channel records map Zort
+  ``saleschannel`` codes (Lazada, Shopee, Tiktok, …) to Odoo billing partners
+  and control auto-customer-creation.
+- **Robust sync logging** - every sync run is recorded in **Zort > Sync Logs**
+  with per-page created/updated/failed counters and error messages.
+- **Extensible hooks** - key methods (``_dispatch_sync_page``,
+  ``_dispatch_pending_orders_batch``, ``hook_process_sku``) are designed to be
+  overridden by add-on modules (e.g. an async queue-job extension).
 
 .. IMPORTANT::
    This is an alpha version, the data model and design can change at any time without warning.
@@ -69,6 +86,298 @@ synchronization of orders, products, inventory, and returns.
 
 .. contents::
    :local:
+
+Configuration
+=============
+
+1. Enable the connector
+=======================
+
+Go to **Settings → Sales → Integrations → Zort Connector** and tick
+**Zort Connector**. The credential fields appear below the toggle:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Field
+     - Description
+   * - Store Name
+     - Your store identifier on Zort (``storename`` request header)
+   * - API Key
+     - Zort API key (stored encrypted)
+   * - API Secret
+     - Zort API secret (stored encrypted)
+   * - Warehouse Code
+     - Zort warehouse code used for stock sync (default: ``W0001``)
+   * - Default Tax
+     - Tax applied to every order line imported from Zort
+
+Save the settings. Disabling the toggle clears all credential fields.
+
+2. Configure eCommerce channels
+================================
+
+Go to **Zort → Configuration → eCommerce Channels** and create one record per
+sales channel that appears in the Zort ``saleschannel`` field
+(e.g. ``lazada``, ``shopee``).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Field
+     - Description
+   * - Name
+     - Display name (e.g. Lazada)
+   * - Code
+     - Must match the Zort ``saleschannel`` value (lowercase)
+   * - Platform Customer
+     - Billing partner used for sale orders from this channel; falls back to
+       the default marketplace customer if left empty
+   * - Auto Create Customer
+     - When enabled, an end-customer (``res.partner``) is created from the
+       order's customer data; deduplication is done by phone or VAT number
+
+3. Prepare products
+====================
+
+For each product that must be synchronised with Zort:
+
+a. Set a unique **Internal Reference** (SKU / ``default_code``).
+b. Open the product form and tick **Sync with Zort** (on the product variant).
+c. Use the **Create on Zort** button to push the product to Zort for the first
+   time. After a successful push, a **Zort Products** entry is created
+   automatically with the Zort-assigned product ID (``id_zort_product``).
+
+If a product already exists in Zort, create the mapping manually via
+**Zort → Products → Zort Products** → New - fill in *Zort Product ID*, *Code*,
+and link to the Odoo product.
+
+4. Special service products
+============================
+
+Three service products are required for fee lines on imported orders. They are
+created automatically on module installation:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Internal Reference
+     - Purpose
+   * - ``shipping_fee``
+     - Shipping cost line
+   * - ``zort_discount``
+     - Discount line (negative amount)
+   * - ``zort_voucher``
+     - Voucher / coupon line
+
+Do **not** delete or rename these products.
+
+5. System parameters (advanced)
+================================
+
+The following ``ir.config_parameter`` keys control sync behaviour and can be
+changed in **Settings → Technical → Parameters → System Parameters**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 15 40
+
+   * - Key
+     - Default
+     - Description
+   * - ``zort_connector.order_sync_days_back``
+     - ``10``
+     - Days to look back when no previous sync cursor exists
+   * - ``zort_connector.last_sync_datetime``
+     - *(empty)*
+     - Auto-updated after each successful sync run; clear to force a full re-sync
+   * - ``zort_connector.pending_order_batch_size``
+     - ``500``
+     - Number of ``zort.order`` records processed per cron batch
+
+6. Scheduled actions
+=====================
+
+Four scheduled actions are installed and run every **10 minutes** (all guarded
+by the ``zort_connector_enabled`` company flag):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 55
+
+   * - Scheduled Action
+     - What it does
+   * - Auto Sync Zort Order
+     - Fetches new/updated orders from Zort
+   * - Process Zort Orders to Sale Orders
+     - Converts pending ``zort.order`` records into Odoo sale orders
+   * - Validate Zort - Sale Orders
+     - Validates draft sale orders against the original Zort data
+   * - Auto Sync Zort Return Order
+     - Fetches return orders and creates return pickings / credit notes
+
+The actions are created with ``noupdate="1"``; change their interval in
+**Settings → Technical → Automation → Scheduled Actions**.
+
+Usage
+=====
+
+Zort menu
+=========
+
+After installation a top-level **Zort** menu is available to users in the
+``Zort User`` group. The menu contains:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Menu item
+     - Contents
+   * - Zort → Orders
+     - List of all imported ``zort.order`` records
+   * - Zort → Sync Logs
+     - Per-page sync log with created/updated/failed counters
+   * - Products → Zort Products
+     - Zort ↔ Odoo product mapping table
+   * - Configuration → eCommerce Channels
+     - Channel settings (managers only)
+
+Order import
+============
+
+Orders are pulled from Zort automatically every 10 minutes by the
+**Auto Sync Zort Order** scheduled action.
+
+Each Zort order is stored as a ``zort.order`` record with state **New**. A
+second cron (**Process Zort Orders to Sale Orders**) converts New records into
+Odoo sale orders in configurable batches (default 500).
+
+To trigger the import manually, open **Zort → Orders** and use the
+**Sync Now** action, or run the scheduled actions from
+**Settings → Technical → Automation → Scheduled Actions**.
+
+Order status mapping
+====================
+
+When a ``zort.order`` is updated by a subsequent sync run, the linked sale
+order is updated automatically:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Zort status
+     - Odoo action
+   * - Pending
+     - Sale order remains in Draft
+   * - Waiting
+     - Sale order is Confirmed
+   * - Success
+     - Delivery is validated; a draft invoice is created
+   * - Voided
+     - Sale order is Cancelled
+
+Order validation
+================
+
+A third cron (**Validate Zort - Sale Orders**) checks each draft sale order
+against the original Zort data:
+
+- **Amount check** - Odoo total must match the Zort ``amount`` field.
+- **Line item check** - every Zort product ID must be present in the order
+  lines and the count must match.
+
+If both checks pass, ``validate_zort_order`` is set to ``True`` and the order
+is confirmed. Mismatch details are written to the **Validation Message** field
+on the sale order.
+
+To fix a missing product line manually, open the sale order and click
+**Update Zort Order Lines** - the method adds any product lines present in
+Zort but absent in Odoo.
+
+Product operations
+==================
+
+Open a product variant form (**Products → Products**, switch to the variant).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Button
+     - Action
+   * - Create on Zort
+     - Calls ``/Product/AddProduct``; creates a ``zort.product`` mapping record
+       on success. Only available when **Sync with Zort** is ticked.
+   * - Update on Zort
+     - Calls ``/Product/UpdateProduct`` with current name, prices, and UoM.
+       Requires an existing ``zort.product`` mapping.
+   * - Update Qty to Zort
+     - Pushes ``qty_available`` to Zort via
+       ``/Product/UpdateProductAvailableStockList``.
+   * - Fetch Image from Zort
+     - Downloads the product image from Zort and sets it on the Odoo product.
+
+Stock synchronization
+=====================
+
+When a delivery or receipt picking is validated, the connector automatically
+pushes the updated ``qty_available`` of each Zort-linked product to Zort
+(``/Product/UpdateProductAvailableStockList``).
+
+Pickings are **skipped** automatically if:
+
+- The picking is an **internal transfer**.
+- The picking is linked to a **Zort sale order** (stock is managed by Zort in
+  that case).
+- None of the move lines contain a product with a Zort mapping.
+
+Return orders
+=============
+
+The **Auto Sync Zort Return Order** scheduled action fetches return orders from
+Zort every 10 minutes (``/ReturnOrder/GetReturnOrders``):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Zort return status
+     - Odoo action
+   * - Pending
+     - A return picking (incoming) is created from the original delivery,
+       quantities are set from the Zort return lines, and the Zort return
+       number is stored on the picking.
+   * - Success
+     - The existing return picking is validated; a draft credit note is created
+       and linked to the original sale order.
+
+Sync logs
+=========
+
+Every order sync run creates one ``zort.sync.log`` record per page fetched.
+Open **Zort → Sync Logs** to see:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Field
+     - Meaning
+   * - Sync From / To
+     - Date-time window of the sync run
+   * - Page / Total Pages
+     - Which page this log covers
+   * - State
+     - In Progress / Done / Failed
+   * - Created / Updated / Failed
+     - Per-page order counters
+   * - Error Message
+     - Details when a page fetch or upsert fails
 
 Bug Tracker
 ===========
@@ -84,18 +393,18 @@ Credits
 =======
 
 Authors
--------
+~~~~~~~
 
 * Ecosoft
 
 Contributors
-------------
+~~~~~~~~~~~~
 
-- Theerayut A. <theerayuta@ecosoft.co.th>
-- Saran Lim. <saranl@ecosoft.co.th>
+- Theerayut A. \<theerayuta@ecosoft.co.th\>
+- Saran Lim. \<<saranl@ecosoft.co.th>\>
 
 Maintainers
------------
+~~~~~~~~~~~
 
 .. |maintainer-TheerayutEncoder| image:: https://github.com/TheerayutEncoder.png?size=40px
     :target: https://github.com/TheerayutEncoder

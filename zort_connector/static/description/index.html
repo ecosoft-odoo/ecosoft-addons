@@ -370,42 +370,71 @@ ul.auto-toc {
 !! source digest: sha256:2754a3226afef950df69653d0f6fc76bae912560d48412ff2dda2914771afe2c
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <p><a class="reference external image-reference" href="https://odoo-community.org/page/development-status"><img alt="Alpha" src="https://img.shields.io/badge/maturity-Alpha-red.png" /></a> <a class="reference external image-reference" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.png" /></a> <a class="reference external image-reference" href="https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/zort_connector"><img alt="ecosoft-odoo/ecosoft-addons" src="https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github" /></a></p>
-<p>Zort Connector for Odoo</p>
-<p>Integrates Odoo with Zort e-commerce platform for bidirectional
-synchronization of orders, products, inventory, and returns.</p>
-<p><strong>5 Main Zort API Endpoints Used:</strong></p>
-<ol class="arabic simple">
-<li><strong>Add Product API</strong> - Create products in Zort from Odoo</li>
-<li><strong>Update Product API</strong> - Update product information in Zort</li>
-<li><strong>Update Stock API</strong> - Sync inventory quantities to Zort</li>
-<li><strong>Get Orders API</strong> - Import orders from Zort to Odoo</li>
-<li><strong>Get Return Orders API</strong> - Process return orders from Zort</li>
-</ol>
-<p><strong>Key Features</strong></p>
+<p>Connects Odoo with <a class="reference external" href="https://www.zortout.com/">Zort</a> (Thai multi-channel
+e-commerce platform) for bidirectional synchronization of orders, products,
+inventory, and returns.</p>
+<p><strong>Zort API endpoints used</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="5%" />
+<col width="40%" />
+<col width="55%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">#</th>
+<th class="head">Endpoint</th>
+<th class="head">Purpose</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>1</td>
+<td><tt class="docutils literal">/Order/GetOrders</tt></td>
+<td>Pull orders from Zort into Odoo</td>
+</tr>
+<tr><td>2</td>
+<td><tt class="docutils literal">/ReturnOrder/GetReturnOrders</tt></td>
+<td>Pull return orders from Zort</td>
+</tr>
+<tr><td>3</td>
+<td><tt class="docutils literal">/Product/AddProduct</tt></td>
+<td>Create a new product in Zort</td>
+</tr>
+<tr><td>4</td>
+<td><tt class="docutils literal">/Product/UpdateProduct</tt></td>
+<td>Push product name/price changes to Zort</td>
+</tr>
+<tr><td>5</td>
+<td><tt class="docutils literal">/Product/UpdateProductAvailableStockList</tt></td>
+<td>Push available-stock quantity to Zort</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key features</strong></p>
 <ul class="simple">
-<li><strong>Order Management</strong>: Automatic import every 10 minutes with status
-mapping (Pending→Draft, Waiting→Confirmed, Success→Delivered+Invoiced,
-Voided→Cancelled)</li>
-<li><strong>Product Sync</strong>: Create/update products in Zort with SKU matching</li>
-<li><strong>Stock Sync</strong>: Real-time inventory updates on picking validation</li>
-<li><strong>Returns Processing</strong>: Automatic return picking creation and credit
-notes</li>
-<li><strong>Multi-platform Support</strong>: Lazada, Shopee, Magento integration</li>
-<li><strong>Robust Logging</strong>: Complete API request/response tracking</li>
+<li><strong>Automatic order import</strong> - scheduled every 10 minutes; supports paginated
+results and a configurable look-back window (default 10 days).</li>
+<li><strong>Status-driven workflow</strong> - Zort status changes trigger matching Odoo actions:<ul>
+<li><em>Pending</em> → Sale Order stays draft</li>
+<li><em>Waiting</em> → Sale Order confirmed</li>
+<li><em>Success</em> → delivery validated + draft invoice created</li>
+<li><em>Voided</em> → Sale Order cancelled</li>
 </ul>
-<p><strong>Requirements</strong></p>
-<ul class="simple">
-<li>Odoo 18.0+</li>
-<li>Zort API credentials (Key, Secret, Store Name)</li>
-<li>Valid SKUs (default_code) on products</li>
+</li>
+<li><strong>Product &amp; stock push</strong> - create/update products in Zort from the product
+form; stock is pushed automatically on every non-Zort, non-internal picking
+validation.</li>
+<li><strong>Return order processing</strong> - Zort return orders are fetched every 10 minutes;
+a return picking is created on <em>Pending</em> status and validated (with a draft
+credit note) on <em>Success</em> status.</li>
+<li><strong>Multi-channel support</strong> - eCommerce channel records map Zort
+<tt class="docutils literal">saleschannel</tt> codes (Lazada, Shopee, Tiktok, …) to Odoo billing partners
+and control auto-customer-creation.</li>
+<li><strong>Robust sync logging</strong> - every sync run is recorded in <strong>Zort &gt; Sync Logs</strong>
+with per-page created/updated/failed counters and error messages.</li>
+<li><strong>Extensible hooks</strong> - key methods (<tt class="docutils literal">_dispatch_sync_page</tt>,
+<tt class="docutils literal">_dispatch_pending_orders_batch</tt>, <tt class="docutils literal">hook_process_sku</tt>) are designed to be
+overridden by add-on modules (e.g. an async queue-job extension).</li>
 </ul>
-<p><strong>Quick Setup</strong></p>
-<ol class="arabic simple">
-<li>Enable Zort Connector in Settings</li>
-<li>Configure API credentials</li>
-<li>Mark products “Sync with Zort”</li>
-<li>Scheduled actions handle automatic synchronization</li>
-</ol>
 <div class="admonition important">
 <p class="first admonition-title">Important</p>
 <p class="last">This is an alpha version, the data model and design can change at any time without warning.
@@ -415,17 +444,404 @@ Only for development or testing purpose, do not use in production.
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-1">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-2">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-3">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-4">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-5">Maintainers</a></li>
+<li><a class="reference internal" href="#configuration" id="toc-entry-1">Configuration</a></li>
+<li><a class="reference internal" href="#enable-the-connector" id="toc-entry-2">1. Enable the connector</a></li>
+<li><a class="reference internal" href="#configure-ecommerce-channels" id="toc-entry-3">2. Configure eCommerce channels</a></li>
+<li><a class="reference internal" href="#prepare-products" id="toc-entry-4">3. Prepare products</a></li>
+<li><a class="reference internal" href="#special-service-products" id="toc-entry-5">4. Special service products</a></li>
+<li><a class="reference internal" href="#system-parameters-advanced" id="toc-entry-6">5. System parameters (advanced)</a></li>
+<li><a class="reference internal" href="#scheduled-actions" id="toc-entry-7">6. Scheduled actions</a></li>
+<li><a class="reference internal" href="#usage" id="toc-entry-8">Usage</a></li>
+<li><a class="reference internal" href="#zort-menu" id="toc-entry-9">Zort menu</a></li>
+<li><a class="reference internal" href="#order-import" id="toc-entry-10">Order import</a></li>
+<li><a class="reference internal" href="#order-status-mapping" id="toc-entry-11">Order status mapping</a></li>
+<li><a class="reference internal" href="#order-validation" id="toc-entry-12">Order validation</a></li>
+<li><a class="reference internal" href="#product-operations" id="toc-entry-13">Product operations</a></li>
+<li><a class="reference internal" href="#stock-synchronization" id="toc-entry-14">Stock synchronization</a></li>
+<li><a class="reference internal" href="#return-orders" id="toc-entry-15">Return orders</a></li>
+<li><a class="reference internal" href="#sync-logs" id="toc-entry-16">Sync logs</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-17">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-18">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-19">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-20">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-21">Maintainers</a></li>
 </ul>
 </li>
 </ul>
 </div>
+<div class="section" id="configuration">
+<h1><a class="toc-backref" href="#toc-entry-1">Configuration</a></h1>
+</div>
+<div class="section" id="enable-the-connector">
+<h1><a class="toc-backref" href="#toc-entry-2">1. Enable the connector</a></h1>
+<p>Go to <strong>Settings → Sales → Integrations → Zort Connector</strong> and tick
+<strong>Zort Connector</strong>. The credential fields appear below the toggle:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Field</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Store Name</td>
+<td>Your store identifier on Zort (<tt class="docutils literal">storename</tt> request header)</td>
+</tr>
+<tr><td>API Key</td>
+<td>Zort API key (stored encrypted)</td>
+</tr>
+<tr><td>API Secret</td>
+<td>Zort API secret (stored encrypted)</td>
+</tr>
+<tr><td>Warehouse Code</td>
+<td>Zort warehouse code used for stock sync (default: <tt class="docutils literal">W0001</tt>)</td>
+</tr>
+<tr><td>Default Tax</td>
+<td>Tax applied to every order line imported from Zort</td>
+</tr>
+</tbody>
+</table>
+<p>Save the settings. Disabling the toggle clears all credential fields.</p>
+</div>
+<div class="section" id="configure-ecommerce-channels">
+<h1><a class="toc-backref" href="#toc-entry-3">2. Configure eCommerce channels</a></h1>
+<p>Go to <strong>Zort → Configuration → eCommerce Channels</strong> and create one record per
+sales channel that appears in the Zort <tt class="docutils literal">saleschannel</tt> field
+(e.g. <tt class="docutils literal">lazada</tt>, <tt class="docutils literal">shopee</tt>).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Field</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Name</td>
+<td>Display name (e.g. Lazada)</td>
+</tr>
+<tr><td>Code</td>
+<td>Must match the Zort <tt class="docutils literal">saleschannel</tt> value (lowercase)</td>
+</tr>
+<tr><td>Platform Customer</td>
+<td>Billing partner used for sale orders from this channel; falls back to
+the default marketplace customer if left empty</td>
+</tr>
+<tr><td>Auto Create Customer</td>
+<td>When enabled, an end-customer (<tt class="docutils literal">res.partner</tt>) is created from the
+order’s customer data; deduplication is done by phone or VAT number</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="prepare-products">
+<h1><a class="toc-backref" href="#toc-entry-4">3. Prepare products</a></h1>
+<p>For each product that must be synchronised with Zort:</p>
+<ol class="loweralpha simple">
+<li>Set a unique <strong>Internal Reference</strong> (SKU / <tt class="docutils literal">default_code</tt>).</li>
+<li>Open the product form and tick <strong>Sync with Zort</strong> (on the product variant).</li>
+<li>Use the <strong>Create on Zort</strong> button to push the product to Zort for the first
+time. After a successful push, a <strong>Zort Products</strong> entry is created
+automatically with the Zort-assigned product ID (<tt class="docutils literal">id_zort_product</tt>).</li>
+</ol>
+<p>If a product already exists in Zort, create the mapping manually via
+<strong>Zort → Products → Zort Products</strong> → New - fill in <em>Zort Product ID</em>, <em>Code</em>,
+and link to the Odoo product.</p>
+</div>
+<div class="section" id="special-service-products">
+<h1><a class="toc-backref" href="#toc-entry-5">4. Special service products</a></h1>
+<p>Three service products are required for fee lines on imported orders. They are
+created automatically on module installation:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Internal Reference</th>
+<th class="head">Purpose</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal">shipping_fee</tt></td>
+<td>Shipping cost line</td>
+</tr>
+<tr><td><tt class="docutils literal">zort_discount</tt></td>
+<td>Discount line (negative amount)</td>
+</tr>
+<tr><td><tt class="docutils literal">zort_voucher</tt></td>
+<td>Voucher / coupon line</td>
+</tr>
+</tbody>
+</table>
+<p>Do <strong>not</strong> delete or rename these products.</p>
+</div>
+<div class="section" id="system-parameters-advanced">
+<h1><a class="toc-backref" href="#toc-entry-6">5. System parameters (advanced)</a></h1>
+<p>The following <tt class="docutils literal">ir.config_parameter</tt> keys control sync behaviour and can be
+changed in <strong>Settings → Technical → Parameters → System Parameters</strong>:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="45%" />
+<col width="15%" />
+<col width="40%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Key</th>
+<th class="head">Default</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal">zort_connector.order_sync_days_back</tt></td>
+<td><tt class="docutils literal">10</tt></td>
+<td>Days to look back when no previous sync cursor exists</td>
+</tr>
+<tr><td><tt class="docutils literal">zort_connector.last_sync_datetime</tt></td>
+<td><em>(empty)</em></td>
+<td>Auto-updated after each successful sync run; clear to force a full re-sync</td>
+</tr>
+<tr><td><tt class="docutils literal">zort_connector.pending_order_batch_size</tt></td>
+<td><tt class="docutils literal">500</tt></td>
+<td>Number of <tt class="docutils literal">zort.order</tt> records processed per cron batch</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="scheduled-actions">
+<h1><a class="toc-backref" href="#toc-entry-7">6. Scheduled actions</a></h1>
+<p>Four scheduled actions are installed and run every <strong>10 minutes</strong> (all guarded
+by the <tt class="docutils literal">zort_connector_enabled</tt> company flag):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="45%" />
+<col width="55%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Scheduled Action</th>
+<th class="head">What it does</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Auto Sync Zort Order</td>
+<td>Fetches new/updated orders from Zort</td>
+</tr>
+<tr><td>Process Zort Orders to Sale Orders</td>
+<td>Converts pending <tt class="docutils literal">zort.order</tt> records into Odoo sale orders</td>
+</tr>
+<tr><td>Validate Zort - Sale Orders</td>
+<td>Validates draft sale orders against the original Zort data</td>
+</tr>
+<tr><td>Auto Sync Zort Return Order</td>
+<td>Fetches return orders and creates return pickings / credit notes</td>
+</tr>
+</tbody>
+</table>
+<p>The actions are created with <tt class="docutils literal"><span class="pre">noupdate=&quot;1&quot;</span></tt>; change their interval in
+<strong>Settings → Technical → Automation → Scheduled Actions</strong>.</p>
+</div>
+<div class="section" id="usage">
+<h1><a class="toc-backref" href="#toc-entry-8">Usage</a></h1>
+</div>
+<div class="section" id="zort-menu">
+<h1><a class="toc-backref" href="#toc-entry-9">Zort menu</a></h1>
+<p>After installation a top-level <strong>Zort</strong> menu is available to users in the
+<tt class="docutils literal">Zort User</tt> group. The menu contains:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Menu item</th>
+<th class="head">Contents</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Zort → Orders</td>
+<td>List of all imported <tt class="docutils literal">zort.order</tt> records</td>
+</tr>
+<tr><td>Zort → Sync Logs</td>
+<td>Per-page sync log with created/updated/failed counters</td>
+</tr>
+<tr><td>Products → Zort Products</td>
+<td>Zort ↔ Odoo product mapping table</td>
+</tr>
+<tr><td>Configuration → eCommerce Channels</td>
+<td>Channel settings (managers only)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="order-import">
+<h1><a class="toc-backref" href="#toc-entry-10">Order import</a></h1>
+<p>Orders are pulled from Zort automatically every 10 minutes by the
+<strong>Auto Sync Zort Order</strong> scheduled action.</p>
+<p>Each Zort order is stored as a <tt class="docutils literal">zort.order</tt> record with state <strong>New</strong>. A
+second cron (<strong>Process Zort Orders to Sale Orders</strong>) converts New records into
+Odoo sale orders in configurable batches (default 500).</p>
+<p>To trigger the import manually, open <strong>Zort → Orders</strong> and use the
+<strong>Sync Now</strong> action, or run the scheduled actions from
+<strong>Settings → Technical → Automation → Scheduled Actions</strong>.</p>
+</div>
+<div class="section" id="order-status-mapping">
+<h1><a class="toc-backref" href="#toc-entry-11">Order status mapping</a></h1>
+<p>When a <tt class="docutils literal">zort.order</tt> is updated by a subsequent sync run, the linked sale
+order is updated automatically:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Zort status</th>
+<th class="head">Odoo action</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Pending</td>
+<td>Sale order remains in Draft</td>
+</tr>
+<tr><td>Waiting</td>
+<td>Sale order is Confirmed</td>
+</tr>
+<tr><td>Success</td>
+<td>Delivery is validated; a draft invoice is created</td>
+</tr>
+<tr><td>Voided</td>
+<td>Sale order is Cancelled</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="order-validation">
+<h1><a class="toc-backref" href="#toc-entry-12">Order validation</a></h1>
+<p>A third cron (<strong>Validate Zort - Sale Orders</strong>) checks each draft sale order
+against the original Zort data:</p>
+<ul class="simple">
+<li><strong>Amount check</strong> - Odoo total must match the Zort <tt class="docutils literal">amount</tt> field.</li>
+<li><strong>Line item check</strong> - every Zort product ID must be present in the order
+lines and the count must match.</li>
+</ul>
+<p>If both checks pass, <tt class="docutils literal">validate_zort_order</tt> is set to <tt class="docutils literal">True</tt> and the order
+is confirmed. Mismatch details are written to the <strong>Validation Message</strong> field
+on the sale order.</p>
+<p>To fix a missing product line manually, open the sale order and click
+<strong>Update Zort Order Lines</strong> - the method adds any product lines present in
+Zort but absent in Odoo.</p>
+</div>
+<div class="section" id="product-operations">
+<h1><a class="toc-backref" href="#toc-entry-13">Product operations</a></h1>
+<p>Open a product variant form (<strong>Products → Products</strong>, switch to the variant).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Button</th>
+<th class="head">Action</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Create on Zort</td>
+<td>Calls <tt class="docutils literal">/Product/AddProduct</tt>; creates a <tt class="docutils literal">zort.product</tt> mapping record
+on success. Only available when <strong>Sync with Zort</strong> is ticked.</td>
+</tr>
+<tr><td>Update on Zort</td>
+<td>Calls <tt class="docutils literal">/Product/UpdateProduct</tt> with current name, prices, and UoM.
+Requires an existing <tt class="docutils literal">zort.product</tt> mapping.</td>
+</tr>
+<tr><td>Update Qty to Zort</td>
+<td>Pushes <tt class="docutils literal">qty_available</tt> to Zort via
+<tt class="docutils literal">/Product/UpdateProductAvailableStockList</tt>.</td>
+</tr>
+<tr><td>Fetch Image from Zort</td>
+<td>Downloads the product image from Zort and sets it on the Odoo product.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="stock-synchronization">
+<h1><a class="toc-backref" href="#toc-entry-14">Stock synchronization</a></h1>
+<p>When a delivery or receipt picking is validated, the connector automatically
+pushes the updated <tt class="docutils literal">qty_available</tt> of each Zort-linked product to Zort
+(<tt class="docutils literal">/Product/UpdateProductAvailableStockList</tt>).</p>
+<p>Pickings are <strong>skipped</strong> automatically if:</p>
+<ul class="simple">
+<li>The picking is an <strong>internal transfer</strong>.</li>
+<li>The picking is linked to a <strong>Zort sale order</strong> (stock is managed by Zort in
+that case).</li>
+<li>None of the move lines contain a product with a Zort mapping.</li>
+</ul>
+</div>
+<div class="section" id="return-orders">
+<h1><a class="toc-backref" href="#toc-entry-15">Return orders</a></h1>
+<p>The <strong>Auto Sync Zort Return Order</strong> scheduled action fetches return orders from
+Zort every 10 minutes (<tt class="docutils literal">/ReturnOrder/GetReturnOrders</tt>):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Zort return status</th>
+<th class="head">Odoo action</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Pending</td>
+<td>A return picking (incoming) is created from the original delivery,
+quantities are set from the Zort return lines, and the Zort return
+number is stored on the picking.</td>
+</tr>
+<tr><td>Success</td>
+<td>The existing return picking is validated; a draft credit note is created
+and linked to the original sale order.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="sync-logs">
+<h1><a class="toc-backref" href="#toc-entry-16">Sync logs</a></h1>
+<p>Every order sync run creates one <tt class="docutils literal">zort.sync.log</tt> record per page fetched.
+Open <strong>Zort → Sync Logs</strong> to see:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Field</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Sync From / To</td>
+<td>Date-time window of the sync run</td>
+</tr>
+<tr><td>Page / Total Pages</td>
+<td>Which page this log covers</td>
+</tr>
+<tr><td>State</td>
+<td>In Progress / Done / Failed</td>
+</tr>
+<tr><td>Created / Updated / Failed</td>
+<td>Per-page order counters</td>
+</tr>
+<tr><td>Error Message</td>
+<td>Details when a page fetch or upsert fails</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-1">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-17">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -433,22 +849,22 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-2">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-18">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-3">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-19">Authors</a></h2>
 <ul class="simple">
 <li>Ecosoft</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-4">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-20">Contributors</a></h2>
 <ul class="simple">
 <li>Theerayut A. &lt;<a class="reference external" href="mailto:theerayuta&#64;ecosoft.co.th">theerayuta&#64;ecosoft.co.th</a>&gt;</li>
-<li>Saran Lim. &lt;<a class="reference external" href="mailto:saranl&#64;ecosoft.co.th">saranl&#64;ecosoft.co.th</a>&gt;</li>
+<li>Saran Lim. &lt;&lt;<a class="reference external" href="mailto:saranl&#64;ecosoft.co.th">saranl&#64;ecosoft.co.th</a>&gt;&gt;</li>
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-5">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-21">Maintainers</a></h2>
 <p>Current maintainers:</p>
 <p><a class="reference external image-reference" href="https://github.com/TheerayutEncoder"><img alt="TheerayutEncoder" src="https://github.com/TheerayutEncoder.png?size=40px" /></a> <a class="reference external image-reference" href="https://github.com/Saran440"><img alt="Saran440" src="https://github.com/Saran440.png?size=40px" /></a></p>
 <p>This module is part of the <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/zort_connector">ecosoft-odoo/ecosoft-addons</a> project on GitHub.</p>
