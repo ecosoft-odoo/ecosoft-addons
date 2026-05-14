@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <record id="view_api_log_list" model="ir.ui.view">
         <field name="name">view.api.log.list</field>
@@ -44,6 +43,9 @@
                             <field name="model" />
                             <field name="route" />
                             <field name="function_name" />
+                            <field name="res_model" />
+                            <field name="res_id" />
+                            <field name="callback_url" />
                         </group>
                         <group name="main_right">
                             <field name="log_type" />

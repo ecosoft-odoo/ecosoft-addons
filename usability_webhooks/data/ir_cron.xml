@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <odoo noupdate="1">
     <record id="autovacuum_job" model="ir.cron">
         <field name="name">API: Auto-vacuum API logs</field>
