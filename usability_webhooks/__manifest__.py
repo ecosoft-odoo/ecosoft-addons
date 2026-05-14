@@ -14,5 +14,6 @@
         "data/config_parameter.xml",
         "data/ir_cron.xml",
         "views/api_log.xml",
+        "views/webhook_outbound_rule.xml",
     ],
 }

@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ====================
 REST API for Webhook
 ====================
@@ -17,7 +13,7 @@ REST API for Webhook
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
@@ -26,295 +22,421 @@ REST API for Webhook
 
 |badge1| |badge2| |badge3|
 
-This module provides a standard webhook framework for Odoo with full request/response logging.
+This module provides a standard webhook framework for Odoo with full
+request/response logging and config-driven outbound push notifications.
 
-**Features**
+**Inbound (External → Odoo)**
 
-- 5 REST API routes: ``create_data``, ``update_data``, ``create_update_data``, ``search_data``, ``call_function``
+- 5 REST API routes: ``create_data``, ``update_data``,
+  ``create_update_data``, ``search_data``, ``call_function``
 - Session-based and API Key authentication
-- Automatic API log creation per request, with configurable per-route toggle
-- Request and response **preview** (first N characters, configurable) stored directly on the log record
+- Friendly relational field format: ``many2one``, ``many2many``,
+  ``one2many`` resolved by name or id
+- ``auto_create`` support for missing related records
+- Automatic API log creation per request, with configurable per-route
+  toggle
+- Request and response **preview** (first N characters, configurable)
+  stored on the log record
 - Request and response **size** (character count) displayed on each log
-- For payloads exceeding the preview limit, the full payload is stored as a JSON attachment accessible via the **Full Log** button
-- Autovacuum cron to purge old logs, with optional chunk-based deletion for large datasets
+- Full payload stored as JSON attachment (accessible via **Full Log**
+  button) when preview limit exceeded
+- Autovacuum cron to purge old logs, with optional chunk-based deletion
+
+**Outbound (Odoo → External)**
+
+- ``webhook.outbound.rule`` - config-driven rules: which model + domain
+  → which endpoint
+- ``webhook.outbound.mixin`` - add to any model with a single
+  ``_inherit`` line; no per-model code required
+- **Trigger domain**: full Odoo domain expression evaluated after
+  ``write()``; webhook fires only when a record transitions into
+  matching the domain
+- **Endpoint source**: static URL per rule, or per-record
+  ``callback_url`` passed by the external system at create time
+- **Payload fields**: JSON list supporting ``field{sub1,sub2}``
+  expansion for relational fields - same syntax as ``search_data``
+- Outbound calls logged in API Logs (``log_type = send``) with
+  success/failed state
 
 **Table of contents**
 
 .. contents::
    :local:
 
+Configuration
+=============
+
+System Parameters
+-----------------
+
+Go to *Settings > Technical > Parameters > System Parameters* to adjust
+the following keys:
+
++---------------------------------------+----------+-----------------------------+
+| Key                                   | Default  | Description                 |
++=======================================+==========+=============================+
+| ``webhook.preview_limit``             | ``2000`` | Maximum characters stored   |
+|                                       |          | in the preview fields.      |
+|                                       |          | Payloads longer than this   |
+|                                       |          | are also saved as a full    |
+|                                       |          | JSON attachment.            |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.create_data_log``           | ``True`` | Enable logging for          |
+|                                       |          | ``/api/create_data``        |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.update_data_log``           | ``True`` | Enable logging for          |
+|                                       |          | ``/api/update_data``        |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.create_update_data_log``    | ``True`` | Enable logging for          |
+|                                       |          | ``/api/create_update_data`` |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.search_data_log``           | ``True`` | Enable logging for          |
+|                                       |          | ``/api/search_data``        |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.call_function_log``         | ``True`` | Enable logging for          |
+|                                       |          | ``/api/call_function``      |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.rollback_state_failed``     | ``1``    | Roll back the transaction   |
+|                                       |          | when the API response is    |
+|                                       |          | not successful              |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.rollback_except``           | ``1``    | Roll back the transaction   |
+|                                       |          | when an unhandled exception |
+|                                       |          | occurs                      |
++---------------------------------------+----------+-----------------------------+
+| ``webhook.ignore_checkcompany_model`` | ``[]``   | JSON list of model names    |
+|                                       |          | excluded from               |
+|                                       |          | company-scoped record       |
+|                                       |          | lookup                      |
++---------------------------------------+----------+-----------------------------+
+
+Outbound Webhook Rules
+----------------------
+
+Go to *Settings > Technical > API Configuration > Outbound Webhook
+Rules* to configure outbound push rules.
+
++--------------------------+-------------------------------------------+
+| Field                    | Description                               |
++==========================+===========================================+
+| **Model**                | The Odoo model to watch (e.g.             |
+|                          | ``sale.order``)                           |
++--------------------------+-------------------------------------------+
+| **Trigger Domain**       | Odoo domain evaluated after ``write()``.  |
+|                          | Webhook fires when a record transitions   |
+|                          | into matching the domain. Uses the domain |
+|                          | widget - select a model first to get      |
+|                          | field suggestions.                        |
++--------------------------+-------------------------------------------+
+| **Endpoint Source**      | ``Static URL`` - always POST to the       |
+|                          | configured URL. ``Record Callback URL`` - |
+|                          | use the ``callback_url`` stored from the  |
+|                          | inbound request.                          |
++--------------------------+-------------------------------------------+
+| **Endpoint URL**         | Required when Endpoint Source is          |
+|                          | ``Static URL``.                           |
++--------------------------+-------------------------------------------+
+| **Payload Fields**       | JSON list of field names to include.      |
+|                          | Supports ``field{sub1,sub2}`` for         |
+|                          | relational expansion. Leave empty to send |
+|                          | ``{"id": <record_id>}`` only.             |
++--------------------------+-------------------------------------------+
+| **Authorization Header** | Optional ``Authorization`` header value   |
+|                          | sent with every outbound request, e.g.    |
+|                          | ``Bearer <token>``.                       |
++--------------------------+-------------------------------------------+
+
 Usage
 =====
 
-**API Logs**
+Inbound (External → Odoo)
+-------------------------
 
-Every API call can be logged under *Settings > Technical > API Configuration > API Logs*.
-Each log record shows:
+API Logs
+~~~~~~~~
 
-- **Request Preview** / **Response Preview** — first N characters of the payload (N is configurable, default 2,000)
-- **Request Size** / **Response Size** — total character count of the payload
-- **Full Log** button — appears when the payload exceeds the preview limit; opens the full JSON attachment
+Every API call is logged under *Settings > Technical > API Configuration
+> API Logs*. Each log record shows:
 
-**System Parameters**
+- **Request Preview** / **Response Preview** - first N characters of the
+  payload
+- **Request Size** / **Response Size** - total character count
+- **Full Log** button - opens the full JSON attachment when payload
+  exceeds the preview limit
+- **Callback URL** - URL stored from the inbound request for later
+  outbound push
 
-The following keys can be changed under *Settings > Technical > Parameters > System Parameters*:
+Authentication
+~~~~~~~~~~~~~~
 
-.. list-table::
-   :header-rows: 1
-   :widths: 40 15 45
+Authenticate via ``/web/session/authenticate`` before calling any route:
 
-   * - Key
-     - Default
-     - Description
-   * - ``webhook.preview_limit``
-     - ``2000``
-     - Maximum characters stored in the preview fields. Payloads longer than this value are also saved as a full JSON attachment.
-   * - ``webhook.create_data_log``
-     - ``True``
-     - Enable logging for ``/api/create_data``
-   * - ``webhook.update_data_log``
-     - ``True``
-     - Enable logging for ``/api/update_data``
-   * - ``webhook.create_update_data_log``
-     - ``True``
-     - Enable logging for ``/api/create_update_data``
-   * - ``webhook.search_data_log``
-     - ``True``
-     - Enable logging for ``/api/search_data``
-   * - ``webhook.call_function_log``
-     - ``True``
-     - Enable logging for ``/api/call_function``
-   * - ``webhook.rollback_state_failed``
-     - ``1``
-     - Roll back the transaction when the API response is not successful
-   * - ``webhook.rollback_except``
-     - ``1``
-     - Roll back the transaction when an unhandled exception occurs
-   * - ``webhook.ignore_checkcompany_model``
-     - ``[]``
-     - JSON list of model names excluded from company-scoped record lookup
-
-----
-
-Before sending a REST API request to Odoo, an initial call to authenticate the API is necessary.
-You can achieve this by calling the ``/web/session/authenticate`` route.
-
-The authentication format requires a header with ``Content-type`` set to ``application/json``,
-and the body should include:
-
-.. code-block:: python
+.. code:: json
 
    {
-      "jsonrpc": "2.0",
-      "method": "call",
-      "params": {
-         "db": "<db_name>",
-         "login": "<username>",
-         "password": "<password>"
-      }
+     "jsonrpc": "2.0",
+     "method": "call",
+     "params": {
+       "db": "<db_name>",
+       "login": "<username>",
+       "password": "<password>"
+     }
    }
 
-**Alternative Authentication Method (API Key)**
+**Alternative - API Key:** send ``Authorization: Bearer <api_key>`` on
+every request. No session call needed.
 
-As an alternative to session-based authentication, you can use an **API Key** for your requests. This approach bypasses the need for an initial authentication call to ``/web/session/authenticate``.
+Relational Field Format
+~~~~~~~~~~~~~~~~~~~~~~~
 
-To use this method, you must send a header with ``Authorization`` set to ``Bearer <api_key>`` for every API route call.
++---------------+-------------------------------------------------+-----------------------------------------------+
+| Field type    | Format                                          | Example                                       |
++===============+=================================================+===============================================+
+| ``many2one``  | ``{"<lookup_field>": "<value>"}``               | ``{"name": "Customer A"}`` or ``{"id": 5}``   |
++---------------+-------------------------------------------------+-----------------------------------------------+
+| ``many2many`` | ``{"mode": "add"|"replace", "records": [...]}`` | ``{"records": [{"name": "Tag1"}]}``           |
+|               | (``mode`` defaults to ``"replace"``)            |                                               |
++---------------+-------------------------------------------------+-----------------------------------------------+
+| ``one2many``  | ``[{<field>: <value>, ...}, ...]``              | ``[{"product_id": {"name": "A"}, "qty": 1}]`` |
++---------------+-------------------------------------------------+-----------------------------------------------+
 
-.. code-block:: http
+Multiple ``many2many`` items sharing the same lookup field are batched
+into a single DB query.
 
-   Authorization: Bearer <api_key>
+API Routes
+~~~~~~~~~~
 
+1. ``/api/create_data`` - create a new record
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Relational Field Format**
+Pass optional ``callback_url`` to enable outbound push when the record's
+state changes later.
 
-All relational fields follow a consistent pattern based on cardinality:
+.. code:: json
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 40 40
+   {
+     "params": {
+       "model": "<model name>",
+       "vals": {
+         "callback_url": "https://your-system/webhook",
+         "payload": {
+           "<field1>": "<value1>",
+           "<many2one_field_id>": {"name": "<value>"},
+           "<many2many_field_ids>": {"mode": "replace", "records": [{"name": "<val1>"}]},
+           "<one2many_field_ids>": [
+             {"<field>": "<value>", "<nested_m2o_id>": {"name": "<value>"}}
+           ]
+         },
+         "auto_create": {
+           "<many2one_field_id>": {"name": "<value>"}
+         },
+         "result_field": ["<field1>"]
+       }
+     }
+   }
 
-   * - Field type
-     - Format
-     - Example
-   * - ``many2one``
-     - ``{"<lookup_field>": "<value>"}``
-     - ``{"name": "Customer A"}`` or ``{"id": 5}``
-   * - ``many2many``
-     - ``{"mode": "add"|"replace", "records": [{"<lookup_field>": "<value>"}]}``
-       (``mode`` optional, defaults to ``"replace"``)
-     - ``{"records": [{"name": "Tag1"}]}`` or ``{"mode": "add", "records": [...]}``
-   * - ``one2many``
-     - ``[{<field>: <value>, ...}, ...]``
-     - ``[{"product_id": {"name": "A"}, "qty": 1}]``
+2. ``/api/create_update_data`` - update if found, create if not
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The lookup field can be any indexed field on the related model (``name``, ``id``, ``ref``, etc.).
-Multiple ``many2many`` items sharing the same lookup field are batched into a single DB query.
+.. code:: json
 
+   {
+     "params": {
+       "model": "<model name>",
+       "vals": {
+         "search_key": {"<key_field>": "<value>"},
+         "payload": {
+           "<field1>": "<value1>",
+           "<many2one_field_id>": {"name": "<value>"}
+         },
+         "result_field": ["<field1>"]
+       }
+     }
+   }
 
-**API Routes**
+3. ``/api/update_data`` - update an existing record
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Following successful authentication, you can proceed with 5 API routes:
+.. code:: json
 
-1. ``/api/create_data``: This route allows the creation of new data only.
+   {
+     "params": {
+       "model": "<model name>",
+       "vals": {
+         "search_key": {"<key_field>": "<value>"},
+         "payload": {
+           "<field1>": "<value1>",
+           "<many2one_field_id>": {"id": 5},
+           "<many2many_field_ids>": {"mode": "add", "records": [{"name": "<val1>"}]}
+         },
+         "result_field": ["<field1>"]
+       }
+     }
+   }
 
-   .. code-block:: python
+4. ``/api/search_data`` - query records
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-      {
-         "params": {
-            "model": "<model name>",
-            "vals": {
-               "payload": {
-                  "<field1>": "<value1>",
-                  "<many2one_field_id>": {"name": "<value>"},
-                  "<many2many_field_ids>": {"mode": "replace", "records": [{"name": "<val1>"}, {"name": "<val2>"}]},
-                  "<one2many_field_ids>": [
-                     {
-                        "<field>": "<value>",
-                        "<nested_m2o_id>": {"name": "<value>"}
-                     }
-                  ]
-               },
-               "auto_create": {
-                  "<many2one_field_id>": {"name": "<value>", ...}
-               },
-               "result_field": ["<field1>", ...]  # optional: extra fields to return
-            }
+Use ``field{subfield1,subfield2}`` to expand relational fields inline.
+
+.. code:: json
+
+   {
+     "params": {
+       "model": "<model name>",
+       "vals": {
+         "payload": {
+           "search_field": [
+             "<field1>",
+             "<m2o_field>{<subfield1>,<subfield2>}",
+             "<o2m_field>{<subfield1>}"
+           ],
+           "search_domain": "[('<field>', '<operator>', '<value>')]",
+           "limit": 10,
+           "order": "<field1> asc, <field2> desc"
          }
-      }
+       }
+     }
+   }
 
-2. ``/api/create_update_data``: This route facilitates updating data.
-   If the data does not exist, it will automatically create it.
+5. ``/api/call_function`` - call a method on a record
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   .. code-block:: python
+- ``method`` *(str)*: method name
+- ``parameter`` *(dict, optional)*: keyword arguments
+- ``context`` *(dict, optional)*: merged into ``env.context`` before the
+  call
 
-      {
-         "params": {
-            "model": "<model name>",
-            "vals": {
-               "search_key": {
-                  "<key_field>": "<value>"
-               },
-               "payload": {
-                  "<field1>": "<value1>",
-                  "<many2one_field_id>": {"name": "<value>"},
-                  "<many2many_field_ids>": {"records": [{"name": "<val1>"}]}
-               },
-               "result_field": ["<field1>", ...]  # optional
-            }
+.. code:: json
+
+   {
+     "params": {
+       "model": "account.move",
+       "vals": {
+         "search_key": {"id": 26},
+         "payload": {
+           "method": "action_post",
+           "context": {"lang": "th_TH"}
          }
-      }
+       }
+     }
+   }
 
-3. ``/api/update_data``: This route allows updating existing data.
+Attaching Files
+~~~~~~~~~~~~~~~
 
-   .. code-block:: python
+Add ``attachment_ids`` at any payload level:
 
-      {
-         "params": {
-            "model": "<model name>",
-            "vals": {
-               "search_key": {
-                  "<key_field>": "<value>"
-               },
-               "payload": {
-                  "<field1>": "<value1>",
-                  "<many2one_field_id>": {"id": 5},
-                  "<many2many_field_ids>": {"mode": "add", "records": [{"name": "<val1>"}]}
-               },
-               "result_field": ["<field1>", ...]  # optional
-            }
+.. code:: json
+
+   "attachment_ids": [{"name": "<filename>", "datas": "<base64>"}]
+
+--------------
+
+Outbound (Odoo → External)
+--------------------------
+
+When Odoo performs an action (confirm, validate, etc.), the outbound
+webhook automatically POSTs updated record data back to the external
+system - no per-model code required.
+
+Step 1 - Add mixin to the target model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In any private addon, add one ``_inherit`` line:
+
+.. code:: python
+
+   from odoo import models
+
+   class SaleOrder(models.Model):
+       _name = "sale.order"
+       _inherit = ["sale.order", "webhook.outbound.mixin"]
+
+All outbound behaviour is driven by rules configured in the UI.
+
+Step 2 - Configure an Outbound Webhook Rule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Go to *Settings > Technical > API Configuration > Outbound Webhook
+Rules*. See ``CONFIGURE.md`` for the full field reference.
+
+**Trigger domain examples:**
+
+.. code:: python
+
+   # Simple
+   [("state", "=", "sale")]
+
+   # Multiple conditions
+   [("state", "=", "done"), ("amount_total", ">", 100)]
+
+   # Multiple accepted values
+   [("state", "in", ["done", "validated"])]
+
+The webhook fires only when a field in the domain is being written
+**and** the record matches the full domain after the write. This
+prevents re-triggering when unrelated fields are edited on an
+already-matching record.
+
+Payload Fields - relational expansion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``field{sub1,sub2}`` syntax (same as ``search_data``) to expand
+relational fields:
+
+.. code:: json
+
+   ["name", "state", "currency_id{id,name,code}", "order_line{product_id,qty_done,price_unit}"]
+
+Result posted to the external system:
+
+.. code:: json
+
+   {
+     "name": "SO001",
+     "state": "sale",
+     "currency_id": [{"id": 3, "name": "Thai Baht", "code": "THB"}],
+     "order_line": [
+       {"product_id": 5, "qty_done": 2.0, "price_unit": 500.0}
+     ]
+   }
+
+``many2one`` fields expand to a list with one item (consistent with
+``search_data`` behaviour).
+
+Per-record Callback URL
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Pass ``callback_url`` in the inbound ``create_data`` request. Odoo
+stores it linked to the created record. When the outbound rule fires
+with *Endpoint Source = Record Callback URL*, the system looks up that
+URL and POSTs to it.
+
+.. code:: json
+
+   {
+     "params": {
+       "model": "sale.order",
+       "vals": {
+         "callback_url": "https://ext-system/webhook/so-status",
+         "payload": {
+           "partner_id": {"name": "ABC Co."},
+           "order_line": [{"product_id": {"name": "Product A"}, "product_uom_qty": 1}]
          }
-      }
+       }
+     }
+   }
 
-4. ``/api/search_data``: This route allows you to search for the value of a desired field in a model
-   by using a search domain to find the desired recordset. You can also limit and order the resulting data.
+When the SO is confirmed → Odoo automatically POSTs to
+``https://ext-system/webhook/so-status``.
 
-   .. code-block:: python
+Outbound Logs
+~~~~~~~~~~~~~
 
-      {
-         "params": {
-            "model": "<model name>",
-            "vals": {
-               "payload": {
-                  "search_field": ["<field1>", "<field2>", "<field3>{<subfield1>, <subfield2>}", ...],
-                  "search_domain": "[('<field>', '<operator>', '<value>')]",
-                  "limit": 1,
-                  "order": "<field1> , <field2> desc, ..."
-               }
-            }
-         }
-      }
-
-5. ``/api/call_function``: This route allows you to call a function on a model object based on the provided input.
-
-   **Parameters**:
-      - **name** (*str*): The name of the model to perform the function on.
-      - **method** (*str*): The name of the function to call.
-      - **parameter** (*dict*, optional): Keyword arguments to pass to the function.
-        Use named keys so order does not matter and optional parameters can be omitted.
-      - **context** (*dict*, optional): Odoo context values merged into ``env.context``
-        before the method is called (e.g. ``lang``, ``force_company``, custom flags).
-
-   .. code-block:: python
-
-      {
-         "params": {
-            "model": "<model name>",
-            "vals": {
-               "search_key": {
-                  "<key_field>": "<value>"
-               },
-               "payload": {
-                  "method": "<method>",
-                  "parameter": {"<key>": "<value>", ...},
-                  "context": {"lang": "th_TH", "<key>": "<value>", ...}
-               }
-            }
-         }
-      }
-
-   **Example — confirm an invoice and set language context**:
-
-   .. code-block:: python
-
-      {
-         "params": {
-            "model": "account.move",
-            "vals": {
-               "search_key": {"id": 26},
-               "payload": {
-                  "method": "action_post",
-                  "context": {"lang": "th_TH"}
-               }
-            }
-         }
-      }
-
-**Note**:
-If you want to attach a file to a record, you can add the key "attachment_ids" at any level of the payload.
-
-   **Example Request with Attachment**:
-
-   .. code-block:: python
-
-      {
-         "params": {
-            "model": "<model name>",
-            "vals": {
-               "search_key": {
-                  "<key_field>": "value"
-               },
-               "payload": {
-                  "attachment_ids": [
-                     {
-                        "name": "<file_name>",
-                        "datas": "<base64_encoded_data>"
-                     }
-                  ],
-                  ...
-               }
-            }
-         }
-      }
+All outbound calls appear in *API Logs* with **Log Type = Send**. Failed
+calls are marked ``state = failed`` with the error in the response
+preview.
 
 Bug Tracker
 ===========
@@ -330,18 +452,18 @@ Credits
 =======
 
 Authors
-~~~~~~~
+-------
 
 * Ecosoft
 
 Contributors
-~~~~~~~~~~~~
+------------
 
-* Kitti Upariphutthiphong <kittiu@ecosoft.co.th>
-* Saran Lim. <saranl@ecosoft.co.th>
+- Kitti Upariphutthiphong kittiu@ecosoft.co.th
+- Saran Lim. saranl@ecosoft.co.th
 
 Maintainers
-~~~~~~~~~~~
+-----------
 
 This module is part of the `ecosoft-odoo/ecosoft-addons <https://github.com/ecosoft-odoo/ecosoft-addons/tree/18.0/usability_webhooks>`_ project on GitHub.
 

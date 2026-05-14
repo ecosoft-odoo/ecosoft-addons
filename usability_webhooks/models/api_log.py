@@ -19,6 +19,9 @@ class APILog(models.Model):
     _order = "id desc"
 
     model = fields.Char()
+    res_model = fields.Char(string="Record Model")
+    res_id = fields.Integer(string="Record ID")
+    callback_url = fields.Char(string="Callback URL")
     route = fields.Char()
     function_name = fields.Char()
     log_type = fields.Selection(

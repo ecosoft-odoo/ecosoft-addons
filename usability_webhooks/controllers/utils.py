@@ -309,6 +309,26 @@ class WebhookUtils(models.AbstractModel):
             self.env[model].env.registry.clear_cache()
         return result
 
+    @api.model
+    def _build_record_payload(self, rec, fields_spec):
+        """Build payload dict for a single record using field{sub1,sub2} syntax.
+        Same expansion logic as search_data.
+
+        fields_spec examples:
+            ["name", "state"]
+            ["name", "currency_id{id,name,code}", "order_line{product_id,qty_done}"]
+        Returns {} with id only when fields_spec is empty.
+        """
+        if not fields_spec:
+            return {"id": rec.id}
+        filtered_values = [x for x in fields_spec if "{" in x]
+        plain_fields = [x.split("{")[0] for x in fields_spec]
+        result_dict = self._search_subfield(filtered_values) if filtered_values else {}
+        result = rec.read(plain_fields)
+        if result_dict and result:
+            result = self._update_result_with_2many(result, result_dict, rec)
+        return result[0] if result else {"id": rec.id}
+
     def _search_subfield(self, filtered_values):
         result_dict = {}
         # Regular expression pattern to match 'field_name{value1, value2}'

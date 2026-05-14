@@ -45,6 +45,7 @@ class WebhookController(http.Controller):
             if rollback_except:
                 request.env.cr.rollback()
 
+        log = None
         if vals.get("is_create_log"):
             log = request.env["api.log"].create(
                 {
@@ -55,7 +56,39 @@ class WebhookController(http.Controller):
                 }
             )
             log._save_payload(data_str, json.dumps(res, ensure_ascii=False))
+        self._link_callback_url(model, vals, res, log)
         return res
+
+    def _link_callback_url(self, model, vals, res, log=None):
+        """Store callback_url on api.log linked to the created/updated record.
+        This enables outbound webhooks to find the correct endpoint per record.
+        """
+        callback_url = vals.get("callback_url")
+        if not callback_url:
+            return
+        res_id = None
+        result = res.get("result")
+        if isinstance(result, dict):
+            res_id = result.get("id")
+        if not res_id:
+            return
+        linkage = {"res_model": model, "res_id": res_id, "callback_url": callback_url}
+        if log:
+            log.write(linkage)
+        else:
+            request.env["api.log"].create(
+                {
+                    "model": model,
+                    "log_type": "receive",
+                    "state": "done" if res.get("is_success") else "failed",
+                    **linkage,
+                }
+            )
+        rec = request.env[model].sudo().browse(res_id)
+        if "callback_url" in rec._fields:
+            rec.with_context(_webhook_outbound_dispatching=True).write(
+                {"callback_url": callback_url}
+            )
 
     def _set_create_logs(self, param, vals):
         ICP = request.env["ir.config_parameter"]
