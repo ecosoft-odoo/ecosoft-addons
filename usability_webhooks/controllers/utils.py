@@ -56,6 +56,8 @@ class WebhookUtils(models.AbstractModel):
             for line_field, line_data in data_dict.items():
                 if isinstance(line_data, list) and line_field in obj:
                     for i, obj_line in enumerate(obj[line_field]):
+                        if i >= len(line_data):
+                            break
                         line_data_dict = line_data[i]
                         add_attachments(obj_line, line_data_dict, file_attach)
 
