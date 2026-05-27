@@ -179,16 +179,34 @@ class ProductProduct(models.Model):
         )
 
         if response.get("error"):
-            _logger.error("Error updating stock in Zort: %s", response.get("error"))
-            return self._add_lognote_and_reload(
-                title="Error",
-                message="Failed to update stock on Zort: {}".format(
-                    response.get("error")
-                ),
-                data=data,
+            _logger.error(
+                "Error updating stock in Zort: %s",
+                response.get("error"),
             )
 
-        _logger.info("Stock updated successfully on Zort: %s", response)
-        return self._add_lognote_and_reload(
-            title="Success", message="Stock updated successfully on Zort.", data=data
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": "ZORT",
+                    "message": "Failed to update stock.",
+                    "type": "danger",
+                    "sticky": False,
+                },
+            }
+
+        _logger.info(
+            "Stock updated successfully on Zort: %s",
+            response,
         )
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "ZORT",
+                "message": "Stock updated successfully.",
+                "type": "success",
+                "sticky": False,
+            },
+        }
