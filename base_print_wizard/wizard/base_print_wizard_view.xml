@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_print_wizard_base" model="ir.ui.view">
+        <field name="name">Base Print Wizard</field>
+        <field name="model">base.print.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <div>
+                    <group name="criteria">
+                        <group>
+                            <field name="active_model" invisible="1" />
+                            <field name="available_doctype_ids" invisible="1" />
+                            <field
+                                name="doctype"
+                                options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                        </group>
+                        <group />
+                    </group>
+                    <footer>
+                        <button
+                            name="action_print"
+                            type="object"
+                            string="Print"
+                            class="btn-primary"
+                        />
+                        <button
+                            string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"
+                        />
+                    </footer>
+                </div>
+            </form>
+        </field>
+    </record>
+</odoo>
