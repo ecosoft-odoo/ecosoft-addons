@@ -48,6 +48,11 @@ msgid "Action Needed"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__active
+msgid "Active"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__activity_ids
 msgid "Activities"
 msgstr ""
@@ -68,6 +73,11 @@ msgid "Activity Type Icon"
 msgstr ""
 
 #. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid "Archived"
+msgstr ""
+
+#. module: usability_webhooks
 #. odoo-python
 #: code:addons/usability_webhooks/models/api_log.py:0
 msgid "Attachment"
@@ -79,12 +89,34 @@ msgid "Attachment Count"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__auth_header
+msgid "Auth Header"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,help:usability_webhooks.field_webhook_outbound_rule__auth_header
+msgid "Authorization header value, e.g. 'Bearer <token>'"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__callback_url
+msgid "Callback URL"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_mixin__callback_url
+msgid "Callback Url"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__create_uid
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__create_uid
 msgid "Created by"
 msgstr ""
 
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__create_date
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__create_date
 msgid "Created on"
 msgstr ""
 
@@ -95,6 +127,7 @@ msgstr ""
 
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__display_name
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__display_name
 msgid "Display Name"
 msgstr ""
 
@@ -108,6 +141,21 @@ msgstr ""
 #: model:ir.model.fields.selection,name:usability_webhooks.selection__api_log__state__draft
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_search
 msgid "Draft"
+msgstr ""
+
+#. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid "Endpoint"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__endpoint_source
+msgid "Endpoint Source"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__endpoint_url
+msgid "Endpoint Url"
 msgstr ""
 
 #. module: usability_webhooks
@@ -158,6 +206,7 @@ msgstr ""
 
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__id
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__id
 msgid "ID"
 msgstr ""
 
@@ -192,12 +241,22 @@ msgid "Is Follower"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields,help:usability_webhooks.field_webhook_outbound_rule__payload_fields
+msgid ""
+"JSON list of field specs. Supports field{sub1,sub2} syntax.\n"
+"Example: [\"name\", \"state\", \"currency_id{id,name,code}\"]\n"
+"Leave empty to send id only."
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__write_uid
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__write_uid
 msgid "Last Updated by"
 msgstr ""
 
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__write_date
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__write_date
 msgid "Last Updated on"
 msgstr ""
 
@@ -225,13 +284,24 @@ msgstr ""
 
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__model
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__model_id
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_search
 msgid "Model"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__model_name
+msgid "Model Name"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__my_activity_date_deadline
 msgid "My Activity Deadline"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__name
+msgid "Name"
 msgstr ""
 
 #. module: usability_webhooks
@@ -247,6 +317,16 @@ msgstr ""
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__activity_type_id
 msgid "Next Activity Type"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__note
+msgid "Note"
+msgstr ""
+
+#. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid "Notes"
 msgstr ""
 
 #. module: usability_webhooks
@@ -270,6 +350,34 @@ msgid "Number of messages with delivery error"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields,help:usability_webhooks.field_webhook_outbound_rule__trigger_domain
+msgid ""
+"Odoo domain evaluated after write. Webhook fires when a record transitions "
+"into matching this domain."
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model,name:usability_webhooks.model_webhook_outbound_mixin
+msgid "Outbound Webhook Mixin"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model,name:usability_webhooks.model_webhook_outbound_service
+msgid "Outbound Webhook Push Service"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model,name:usability_webhooks.model_webhook_outbound_rule
+msgid "Outbound Webhook Rule"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.actions.act_window,name:usability_webhooks.action_webhook_outbound_rules
+#: model:ir.ui.menu,name:usability_webhooks.menu_action_webhook_outbound_rules
+msgid "Outbound Webhook Rules"
+msgstr ""
+
+#. module: usability_webhooks
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_form
 msgid "Output"
 msgstr ""
@@ -281,9 +389,34 @@ msgid "Parameter 'search_key' in 'vals' not found!"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__payload_fields
+msgid "Payload Fields"
+msgstr ""
+
+#. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid "Payload Fields (JSON list — supports field{sub1,sub2} syntax)"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields.selection,name:usability_webhooks.selection__api_log__log_type__receive
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_search
 msgid "Receive"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields.selection,name:usability_webhooks.selection__webhook_outbound_rule__endpoint_source__record
+msgid "Record Callback URL"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__res_id
+msgid "Record ID"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_api_log__res_model
+msgid "Record Model"
 msgstr ""
 
 #. module: usability_webhooks
@@ -347,6 +480,18 @@ msgid "State"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields.selection,name:usability_webhooks.selection__webhook_outbound_rule__endpoint_source__static
+msgid "Static URL"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,help:usability_webhooks.field_webhook_outbound_rule__endpoint_source
+msgid ""
+"Static: always POST to endpoint_url.\n"
+"Record Callback: use callback_url stored in api.log for this record."
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,help:usability_webhooks.field_api_log__activity_state
 msgid ""
 "Status based on activities\n"
@@ -356,8 +501,24 @@ msgid ""
 msgstr ""
 
 #. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid "Trigger"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__trigger_domain
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid "Trigger Domain"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,help:usability_webhooks.field_api_log__activity_exception_decoration
 msgid "Type of the exception activity on record."
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,help:usability_webhooks.field_webhook_outbound_rule__endpoint_url
+msgid "Used when endpoint_source is 'static'"
 msgstr ""
 
 #. module: usability_webhooks
@@ -373,6 +534,13 @@ msgstr ""
 #. module: usability_webhooks
 #: model:ir.model.fields,help:usability_webhooks.field_api_log__website_message_ids
 msgid "Website communication history"
+msgstr ""
+
+#. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid ""
+"[\"name\", \"state\", \"currency_id{id,name,code}\", "
+"\"order_line{product_id,qty_done}\"]"
 msgstr ""
 
 #. module: usability_webhooks
