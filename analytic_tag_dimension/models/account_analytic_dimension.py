@@ -1,0 +1,121 @@
+# Copyright 2017 PESOL (http://pesol.es) - Angel Moya (angel.moya@pesol.es)
+# Copyright 2020 Tecnativa - Carlos Dauden
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+from psycopg2 import sql
+from psycopg2.extras import Json
+
+from odoo import Command, api, fields, models
+from odoo.exceptions import ValidationError
+
+
+class AccountAnalyticDimension(models.Model):
+    _name = "account.analytic.dimension"
+    _description = "Account Analytic Dimension"
+
+    name = fields.Char(required=True)
+    code = fields.Char(required=True)
+    analytic_tag_ids = fields.One2many(
+        comodel_name="account.analytic.tag",
+        inverse_name="analytic_dimension_id",
+        string="Analytic Tags",
+    )
+
+    @api.constrains("code")
+    def _check_code(self):
+        for dimension in self:
+            if " " in dimension.code:
+                raise ValidationError(self.env._("Code can't contain spaces!"))
+
+    @api.model
+    def get_model_names(self):
+        return [
+            "account.move.line",
+            "account.analytic.line",
+            "account.invoice.report",
+        ]
+
+    def get_field_name(self, code=False):
+        return f"x_dimension_{code or self.code}".lower()
+
+    def _convert_dict_query(self, field_vals):
+        val_query = []
+        for key, val in field_vals.items():
+            if key != "field_description":
+                val_query.append(f"{key} = '{val}'")
+            else:
+                json_value = Json({"en_US": val})
+                val_query.append(f"{key} = {json_value}")
+        vals = ", ".join(val_query)
+        return vals
+
+    def _update_invoice_report(self, field_to_update, value):
+        self._cr.execute(
+            sql.SQL(
+                f"""
+                    UPDATE {field_to_update._table}
+                    SET {value}
+                    WHERE id={field_to_update.id}
+                """
+            )
+        )
+        field_to_update._invalidate_cache()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super().create(vals_list)
+        _models = (
+            self.env["ir.model"]
+            .sudo()
+            .search([("model", "in", self.get_model_names())], order="id")
+        )
+        field_id_value = [
+            Command.create(
+                {
+                    "name": self.get_field_name(v["code"]),
+                    "field_description": v.get("name"),
+                    "ttype": "many2one",
+                    "relation": "account.analytic.tag",
+                },
+            )
+            for v in vals_list
+        ]
+        _models.write({"field_id": field_id_value})
+        return res
+
+    def write(self, vals):
+        field_vals = {}
+
+        if "name" in vals:
+            field_vals["field_description"] = vals["name"]
+        if "code" in vals:
+            field_vals["name"] = self.get_field_name(vals["code"])
+
+        if field_vals:
+            model_names = self.get_model_names()
+            for dimension in self:
+                fields_to_update = self.env["ir.model.fields"].search(
+                    [
+                        ("model", "in", model_names),
+                        ("name", "=", dimension.get_field_name()),
+                    ],
+                    order="id",
+                )
+                # To avoid 'Can only rename one field at a time!'
+                for field_to_update in fields_to_update:
+                    if field_to_update.model == "account.invoice.report":
+                        value = self._convert_dict_query(field_vals)
+                        self._update_invoice_report(field_to_update, value)
+                    else:
+                        field_to_update.write(field_vals)
+        return super().write(vals)
+
+    def unlink(self):
+        """Clean created fields before unlinking."""
+        models = self.env["ir.model"].search([("model", "in", self.get_model_names())])
+        for record in self:
+            field_name = self.get_field_name(record.code)
+            self.env["ir.model.fields"].search(
+                [("model_id", "in", models.ids), ("name", "=", field_name)]
+            ).unlink()
+        return super().unlink()
