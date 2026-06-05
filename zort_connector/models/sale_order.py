@@ -339,7 +339,7 @@ class SaleOrder(models.Model):
 
         # Add voucher_amount if exists
         voucher_amount = zort_order.get("voucheramount", 0.0)
-        if voucher_amount > 0:
+        if voucher_amount != 0:
             order_lines.append(self._add_voucher_line(voucher_amount))
 
         return order_lines
