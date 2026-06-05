@@ -43,6 +43,10 @@ class RequestDocument(models.Model):
     def _create_expense(self):
         self.ensure_one()
         sheet = self.expense_sheet_ids.with_context(allow_edit=1)
+        # Make sure sheet must state draft
+        if sheet.state != "draft":
+            return
+
         # Change to submit
         sheet.action_submit_sheet()
         # Check config
