@@ -217,6 +217,12 @@ msgid "Messages"
 msgstr ""
 
 #. module: usability_webhooks
+#: code:addons/usability_webhooks/controllers/utils.py:0
+#, python-format
+msgid "Missing 'method' in payload"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__model
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_search
 msgid "Model"
