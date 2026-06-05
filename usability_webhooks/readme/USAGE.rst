@@ -18,21 +18,43 @@ and the body should include:
 
 **Alternative Authentication Method (API Key)**
 
-As an alternative to session-based authentication, you can use an **API Key** for your requests. This approach bypasses the need for an initial authentication call to ``/web/session/authenticate``.
-
-To use this method, you must send a header with ``Authorization`` set to ``Bearer <api_key>`` for every API route call.
+As an alternative to session-based authentication, you can use an **API Key** for your requests.
+To use this method, send a header with ``Authorization`` set to ``Bearer <api_key>`` for every API route call.
 
 .. code-block:: http
 
    Authorization: Bearer <api_key>
 
 
-**API Routes**
+**Relational Field Format**
 
-Following successful authentication, you can proceed with 5 API routes:
+All relational fields follow a consistent pattern based on cardinality:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Field type
+     - Format
+     - Example
+   * - ``many2one``
+     - ``{"<lookup_field>": "<value>"}``
+     - ``{"name": "Customer A"}`` or ``{"id": 5}``
+   * - ``many2many``
+     - ``{"mode": "add"|"replace", "records": [{"<lookup_field>": "<value>"}]}``
+       (``mode`` optional, defaults to ``"replace"``)
+     - ``{"records": [{"name": "Tag1"}]}`` or ``{"mode": "add", "records": [...]}``
+   * - ``one2many``
+     - ``[{<field>: <value>, ...}, ...]``
+     - ``[{"product_id": {"name": "A"}, "qty": 1}]``
+
+The lookup field can be any indexed field on the related model (``name``, ``id``, ``ref``, etc.).
+Multiple ``many2many`` items sharing the same lookup field are batched into a single DB query.
+
+
+Following successful authentication, you can proceed with five API routes:
 
 1. ``/api/create_data``: This route allows the creation of new data only.
-   The format for creating data should be in the following structure:
 
    .. code-block:: python
 
@@ -41,17 +63,26 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "payload": {
-                  "field1": "value1",
-                  ...
+                  "<field1>": "<value1>",
+                  "<many2one_field_id>": {"name": "<value>"},
+                  "<many2many_field_ids>": {"mode": "replace", "records": [{"name": "<val1>"}, {"name": "<val2>"}]},
+                  "<one2many_field_ids>": [
+                     {
+                        "<field>": "<value>",
+                        "<nested_m2o_id>": {"name": "<value>"}
+                     }
+                  ]
                },
-               "result_field": ["field1", ...]  # optional
+               "auto_create": {
+                  "<many2one_field_id>": {"name": "<value>", ...}
+               },
+               "result_field": ["<field1>", ...]
             }
          }
       }
 
 2. ``/api/create_update_data``: This route facilitates updating data.
    If the data does not exist, it will automatically create it.
-   The format follows that of ``create_data``, but it requires a unique key in the field to update the values.
 
    .. code-block:: python
 
@@ -60,19 +91,19 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "search_key": {
-                  "<key_field>": "value",  # can be ID or name search string
+                  "<key_field>": "<value>"
                },
                "payload": {
-                  "field1": "value1",
-                  ...
+                  "<field1>": "<value1>",
+                  "<many2one_field_id>": {"name": "<value>"},
+                  "<many2many_field_ids>": {"records": [{"name": "<val1>"}]}
                },
-               "result_field": ["field1", ...]  # optional
+               "result_field": ["<field1>", ...]
             }
          }
       }
 
-3. ``/api/update_data``: This route allows updating existing data,
-   using a unique key in the field to find the desired data and update values in that recordset.
+3. ``/api/update_data``: This route allows updating existing data.
 
    .. code-block:: python
 
@@ -81,11 +112,12 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "search_key": {
-                  "<key_field>": "value",  # can be ID or name search string
+                  "<key_field>": "<value>"
                },
                "payload": {
-                  "field1": "value1",
-                  ...
+                  "<field1>": "<value1>",
+                  "<many2one_field_id>": {"id": 5},
+                  "<many2many_field_ids>": {"mode": "add", "records": [{"name": "<val1>"}]}
                }
             }
          }
@@ -115,7 +147,10 @@ Following successful authentication, you can proceed with 5 API routes:
    **Parameters**:
       - **name** (*str*): The name of the model to perform the function on.
       - **method** (*str*): The name of the function to call.
-      - **parameter** (*dict*): A dictionary containing the arguments to pass to the function (if any).
+      - **parameter** (*dict*, optional): Keyword arguments to pass to the function.
+        Use named keys so order does not matter and optional parameters can be omitted.
+      - **context** (*dict*, optional): Odoo context values merged into ``env.context``
+        before the method is called (e.g. ``lang``, ``force_company``, custom flags).
 
    .. code-block:: python
 
@@ -124,11 +159,29 @@ Following successful authentication, you can proceed with 5 API routes:
             "model": "<model name>",
             "vals": {
                "search_key": {
-                  "<key_field>": "value",  # can be ID or name search string
+                  "<key_field>": "<value>"
                },
                "payload": {
                   "method": "<method>",
-                  "parameter": {"<key>": "<value>", ...}
+                  "parameter": {"<key>": "<value>", ...},
+                  "context": {"lang": "th_TH", "<key>": "<value>", ...}
+               }
+            }
+         }
+      }
+
+   **Example — confirm an invoice and set language context**:
+
+   .. code-block:: python
+
+      {
+         "params": {
+            "model": "account.move",
+            "vals": {
+               "search_key": {"id": 26},
+               "payload": {
+                  "method": "action_post",
+                  "context": {"lang": "th_TH"}
                }
             }
          }
@@ -146,7 +199,7 @@ If you want to attach a file to a record, you can add the key "attachment_ids" a
             "model": "<model name>",
             "vals": {
                "search_key": {
-                  "<key_field>": "value",  # can be ID or name search string
+                  "<key_field>": "value"
                },
                "payload": {
                   "attachment_ids": [
