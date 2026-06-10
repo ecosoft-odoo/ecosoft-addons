@@ -60,7 +60,7 @@ class WebhookController(http.Controller):
     def update_session_auth(self):
         # Check session first. if no session, use API Key
         if request.session.uid:
-            request.update_env(user=request.session.uid)
+            request.uid = request.session.uid
         else:
             request.env["ir.http"]._auth_method_bearer()
 
