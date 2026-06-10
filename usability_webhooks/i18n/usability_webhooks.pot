@@ -140,6 +140,11 @@ msgid "Group By"
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model,name:usability_webhooks.model_ir_http
+msgid "HTTP Routing"
+msgstr ""
+
+#. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__has_message
 msgid "Has Message"
 msgstr ""
@@ -214,6 +219,12 @@ msgstr ""
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__message_ids
 msgid "Messages"
+msgstr ""
+
+#. module: usability_webhooks
+#: code:addons/usability_webhooks/models/ir_http.py:0
+#, python-format
+msgid "Missing \"Authorization\" or Sec-headers for interactive usage"
 msgstr ""
 
 #. module: usability_webhooks
@@ -327,6 +338,12 @@ msgstr ""
 #: model:ir.model.fields.selection,name:usability_webhooks.selection__api_log__log_type__send
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_search
 msgid "Send"
+msgstr ""
+
+#. module: usability_webhooks
+#: code:addons/usability_webhooks/models/ir_http.py:0
+#, python-format
+msgid "Session user does not match the used apikey"
 msgstr ""
 
 #. module: usability_webhooks
