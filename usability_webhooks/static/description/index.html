@@ -412,7 +412,14 @@ and the body should include:</p>
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
 </pre>
-<p>Following successful authentication, you can proceed with five API routes:</p>
+<p><strong>Alternative Authentication Method (API Key)</strong></p>
+<p>As an alternative to session-based authentication, you can use an <strong>API Key</strong> for your requests. This approach bypasses the need for an initial authentication call to <tt class="docutils literal">/web/session/authenticate</tt>.</p>
+<p>To use this method, you must send a header with <tt class="docutils literal">Authorization</tt> set to <tt class="docutils literal">Bearer &lt;api_key&gt;</tt> for every API route call.</p>
+<pre class="code http literal-block">
+<span class="err">Authorization: Bearer &lt;api_key&gt;</span>
+</pre>
+<p><strong>API Routes</strong></p>
+<p>Following successful authentication, you can proceed with 5 API routes:</p>
 <ol class="arabic">
 <li><p class="first"><tt class="docutils literal">/api/create_data</tt>: This route allows the creation of new data only.
 The format for creating data should be in the following structure:</p>
