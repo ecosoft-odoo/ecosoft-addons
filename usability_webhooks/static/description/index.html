@@ -413,65 +413,105 @@ and the body should include:</p>
 </span><span class="p">}</span>
 </pre>
 <p><strong>Alternative Authentication Method (API Key)</strong></p>
-<p>As an alternative to session-based authentication, you can use an <strong>API Key</strong> for your requests. This approach bypasses the need for an initial authentication call to <tt class="docutils literal">/web/session/authenticate</tt>.</p>
-<p>To use this method, you must send a header with <tt class="docutils literal">Authorization</tt> set to <tt class="docutils literal">Bearer &lt;api_key&gt;</tt> for every API route call.</p>
+<p>As an alternative to session-based authentication, you can use an <strong>API Key</strong> for your requests.
+To use this method, send a header with <tt class="docutils literal">Authorization</tt> set to <tt class="docutils literal">Bearer &lt;api_key&gt;</tt> for every API route call.</p>
 <pre class="code http literal-block">
 <span class="err">Authorization: Bearer &lt;api_key&gt;</span>
 </pre>
-<p><strong>API Routes</strong></p>
-<p>Following successful authentication, you can proceed with 5 API routes:</p>
+<p><strong>Relational Field Format</strong></p>
+<p>All relational fields follow a consistent pattern based on cardinality:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="40%" />
+<col width="40%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Field type</th>
+<th class="head">Format</th>
+<th class="head">Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal">many2one</tt></td>
+<td><tt class="docutils literal"><span class="pre">{&quot;&lt;lookup_field&gt;&quot;:</span> <span class="pre">&quot;&lt;value&gt;&quot;}</span></tt></td>
+<td><tt class="docutils literal">{&quot;name&quot;: &quot;Customer A&quot;}</tt> or <tt class="docutils literal">{&quot;id&quot;: 5}</tt></td>
+</tr>
+<tr><td><tt class="docutils literal">many2many</tt></td>
+<td><tt class="docutils literal">{&quot;mode&quot;: <span class="pre">&quot;add&quot;|&quot;replace&quot;,</span> &quot;records&quot;: <span class="pre">[{&quot;&lt;lookup_field&gt;&quot;:</span> <span class="pre">&quot;&lt;value&gt;&quot;}]}</span></tt>
+(<tt class="docutils literal">mode</tt> optional, defaults to <tt class="docutils literal">&quot;replace&quot;</tt>)</td>
+<td><tt class="docutils literal">{&quot;records&quot;: <span class="pre">[{&quot;name&quot;:</span> <span class="pre">&quot;Tag1&quot;}]}</span></tt> or <tt class="docutils literal">{&quot;mode&quot;: &quot;add&quot;, &quot;records&quot;: <span class="pre">[...]}</span></tt></td>
+</tr>
+<tr><td><tt class="docutils literal">one2many</tt></td>
+<td><tt class="docutils literal"><span class="pre">[{&lt;field&gt;:</span> &lt;value&gt;, <span class="pre">...},</span> <span class="pre">...]</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">[{&quot;product_id&quot;:</span> {&quot;name&quot;: <span class="pre">&quot;A&quot;},</span> &quot;qty&quot;: 1}]</tt></td>
+</tr>
+</tbody>
+</table>
+<p>The lookup field can be any indexed field on the related model (<tt class="docutils literal">name</tt>, <tt class="docutils literal">id</tt>, <tt class="docutils literal">ref</tt>, etc.).
+Multiple <tt class="docutils literal">many2many</tt> items sharing the same lookup field are batched into a single DB query.</p>
+<p>Following successful authentication, you can proceed with five API routes:</p>
 <ol class="arabic">
-<li><p class="first"><tt class="docutils literal">/api/create_data</tt>: This route allows the creation of new data only.
-The format for creating data should be in the following structure:</p>
+<li><p class="first"><tt class="docutils literal">/api/create_data</tt>: This route allows the creation of new data only.</p>
 <pre class="code python literal-block">
 <span class="p">{</span><span class="w">
 </span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-</span>            <span class="o">...</span><span class="w">
+</span>            <span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value1&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;&lt;many2one_field_id&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">},</span><span class="w">
+</span>            <span class="s2">&quot;&lt;many2many_field_ids&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;replace&quot;</span><span class="p">,</span> <span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;val1&gt;&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;val2&gt;&quot;</span><span class="p">}]},</span><span class="w">
+</span>            <span class="s2">&quot;&lt;one2many_field_ids&gt;&quot;</span><span class="p">:</span> <span class="p">[</span><span class="w">
+</span>               <span class="p">{</span><span class="w">
+</span>                  <span class="s2">&quot;&lt;field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>                  <span class="s2">&quot;&lt;nested_m2o_id&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">}</span><span class="w">
+</span>               <span class="p">}</span><span class="w">
+</span>            <span class="p">]</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
-</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
+</span>         <span class="s2">&quot;auto_create&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;&lt;many2one_field_id&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span><span class="w">
+</span>         <span class="p">},</span><span class="w">
+</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
 </pre>
 </li>
 <li><p class="first"><tt class="docutils literal">/api/create_update_data</tt>: This route facilitates updating data.
-If the data does not exist, it will automatically create it.
-The format follows that of <tt class="docutils literal">create_data</tt>, but it requires a unique key in the field to update the values.</p>
+If the data does not exist, it will automatically create it.</p>
 <pre class="code python literal-block">
 <span class="p">{</span><span class="w">
 </span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-</span>            <span class="o">...</span><span class="w">
+</span>            <span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value1&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;&lt;many2one_field_id&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">},</span><span class="w">
+</span>            <span class="s2">&quot;&lt;many2many_field_ids&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;val1&gt;&quot;</span><span class="p">}]}</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
-</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># optional</span><span class="w">
+</span>         <span class="s2">&quot;result_field&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
 </span><span class="p">}</span>
 </pre>
 </li>
-<li><p class="first"><tt class="docutils literal">/api/update_data</tt>: This route allows updating existing data,
-using a unique key in the field to find the desired data and update values in that recordset.</p>
+<li><p class="first"><tt class="docutils literal">/api/update_data</tt>: This route allows updating existing data.</p>
 <pre class="code python literal-block">
 <span class="p">{</span><span class="w">
 </span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;field1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w">
-</span>            <span class="o">...</span><span class="w">
+</span>            <span class="s2">&quot;&lt;field1&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value1&gt;&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;&lt;many2one_field_id&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span><span class="w">
+</span>            <span class="s2">&quot;&lt;many2many_field_ids&gt;&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;val1&gt;&quot;</span><span class="p">}]}</span><span class="w">
 </span>         <span class="p">}</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
@@ -502,7 +542,10 @@ by using a search domain to find the desired recordset. You can also limit and o
 <dd><ul class="first last simple">
 <li><strong>name</strong> (<em>str</em>): The name of the model to perform the function on.</li>
 <li><strong>method</strong> (<em>str</em>): The name of the function to call.</li>
-<li><strong>parameter</strong> (<em>dict</em>): A dictionary containing the arguments to pass to the function (if any).</li>
+<li><strong>parameter</strong> (<em>dict</em>, optional): Keyword arguments to pass to the function.
+Use named keys so order does not matter and optional parameters can be omitted.</li>
+<li><strong>context</strong> (<em>dict</em>, optional): Odoo context values merged into <tt class="docutils literal">env.context</tt>
+before the method is called (e.g. <tt class="docutils literal">lang</tt>, <tt class="docutils literal">force_company</tt>, custom flags).</li>
 </ul>
 </dd>
 </dl>
@@ -512,11 +555,27 @@ by using a search domain to find the desired recordset. You can also limit and o
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;method&gt;&quot;</span><span class="p">,</span><span class="w">
-</span>            <span class="s2">&quot;parameter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;&lt;key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span><span class="w">
+</span>            <span class="s2">&quot;parameter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;&lt;key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span><span class="w">
+</span>            <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;lang&quot;</span><span class="p">:</span> <span class="s2">&quot;th_TH&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;key&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;value&gt;&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span><span class="w">
+</span>         <span class="p">}</span><span class="w">
+</span>      <span class="p">}</span><span class="w">
+</span>   <span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+<p><strong>Example — confirm an invoice and set language context</strong>:</p>
+<pre class="code python literal-block">
+<span class="p">{</span><span class="w">
+</span>   <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;account.move&quot;</span><span class="p">,</span><span class="w">
+</span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">26</span><span class="p">},</span><span class="w">
+</span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
+</span>            <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;action_post&quot;</span><span class="p">,</span><span class="w">
+</span>            <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;lang&quot;</span><span class="p">:</span> <span class="s2">&quot;th_TH&quot;</span><span class="p">}</span><span class="w">
 </span>         <span class="p">}</span><span class="w">
 </span>      <span class="p">}</span><span class="w">
 </span>   <span class="p">}</span><span class="w">
@@ -534,7 +593,7 @@ If you want to attach a file to a record, you can add the key “attachment_ids�
 </span>      <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;model name&gt;&quot;</span><span class="p">,</span><span class="w">
 </span>      <span class="s2">&quot;vals&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>         <span class="s2">&quot;search_key&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
-</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>  <span class="c1"># can be ID or name search string</span><span class="w">
+</span>            <span class="s2">&quot;&lt;key_field&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="w">
 </span>         <span class="p">},</span><span class="w">
 </span>         <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="p">{</span><span class="w">
 </span>            <span class="s2">&quot;attachment_ids&quot;</span><span class="p">:</span> <span class="p">[</span><span class="w">
