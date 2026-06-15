@@ -5,6 +5,8 @@ import ast
 import json
 import traceback
 
+from werkzeug.exceptions import BadRequest
+
 from odoo import http
 from odoo.http import request
 
@@ -18,37 +20,75 @@ class WebhookController(http.Controller):
         return getattr(request.env["webhook.utils"], function)(model, vals)
 
     def _create_api_logs(self, model, vals, function):
-        # Add logs
-        data_dict = {
-            "data": json.dumps(vals),
-            "model": model,
-            "route": f"/api/{function}",
-            "function_name": function,
-        }
-
         ICP = request.env["ir.config_parameter"]
         rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
         rollback_except = ICP.sudo().get_param("webhook.rollback_except")
+
+        data_str = json.dumps(vals)
+        state = "draft"
+        res = {}
+
         try:
             res = self._call_function_api(model, vals, function)
-            state = "done" if res["is_success"] else "failed"
-            data_dict.update({"result": res, "state": state})
+            state = "done" if res.get("is_success") else "failed"
             # Not success, rollback all data (if config in system parameter)
-            if not res["is_success"] and rollback_state_failed:
+            if not res.get("is_success") and rollback_state_failed:
                 request.env.cr.rollback()
         except Exception:
             res = {
                 "is_success": False,
                 "messages": traceback.format_exc(),
             }
-            data_dict.update({"result": res, "state": "failed"})
+            state = "failed"
             # Error from odoo exception,
             # rollback all data (if config in system parameter)
             if rollback_except:
                 request.env.cr.rollback()
-        if vals["is_create_log"]:
-            request.env["api.log"].create(data_dict)
+
+        log = None
+        if vals.get("is_create_log"):
+            log = request.env["api.log"].create(
+                {
+                    "model": model,
+                    "route": f"/api/{function}",
+                    "function_name": function,
+                    "state": state,
+                }
+            )
+            log._save_payload(data_str, json.dumps(res, ensure_ascii=False))
+        self._link_callback_url(model, vals, res, log)
         return res
+
+    def _link_callback_url(self, model, vals, res, log=None):
+        """Store callback_url on api.log linked to the created/updated record.
+        This enables outbound webhooks to find the correct endpoint per record.
+        """
+        callback_url = vals.get("callback_url")
+        if not callback_url:
+            return
+        res_id = None
+        result = res.get("result")
+        if isinstance(result, dict):
+            res_id = result.get("id")
+        if not res_id:
+            return
+        linkage = {"res_model": model, "res_id": res_id, "callback_url": callback_url}
+        if log:
+            log.write(linkage)
+        else:
+            request.env["api.log"].create(
+                {
+                    "model": model,
+                    "log_type": "receive",
+                    "state": "done" if res.get("is_success") else "failed",
+                    **linkage,
+                }
+            )
+        rec = request.env[model].sudo().browse(res_id)
+        if "callback_url" in rec._fields:
+            rec.with_context(_webhook_outbound_dispatching=True).write(
+                {"callback_url": callback_url}
+            )
 
     def _set_create_logs(self, param, vals):
         ICP = request.env["ir.config_parameter"]
@@ -62,6 +102,17 @@ class WebhookController(http.Controller):
         if request.session.uid:
             request.uid = request.session.uid
         else:
+            # NOTE: header send only x-api-key instead of Authorization: Bearer <key>
+            # If it not standard, i will remove later
+            access_token = request.httprequest.headers.get("x-api-key")
+            if access_token:
+                user_id = request.env["res.users.apikeys"]._check_credentials(
+                    scope="rpc", key=access_token
+                )
+                if not user_id:
+                    raise BadRequest("Access token invalid")
+                request.uid = user_id
+                return
             request.env["ir.http"]._auth_method_bearer()
 
     @http.route("/api/create_data", type="json", auth="none")

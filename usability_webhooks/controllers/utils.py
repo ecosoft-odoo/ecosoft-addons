@@ -56,6 +56,8 @@ class WebhookUtils(models.AbstractModel):
             for line_field, line_data in data_dict.items():
                 if isinstance(line_data, list) and line_field in obj:
                     for i, obj_line in enumerate(obj[line_field]):
+                        if i >= len(line_data):
+                            break
                         line_data_dict = line_data[i]
                         add_attachments(obj_line, line_data_dict, file_attach)
 
@@ -166,7 +168,7 @@ class WebhookUtils(models.AbstractModel):
             "messages": _("Record created successfully"),
         }
         # Clear cache
-        rec.clear_caches()
+        self.clear_caches()
         return res
 
     def _search_object(self, model, vals):
@@ -180,7 +182,7 @@ class WebhookUtils(models.AbstractModel):
         ]
 
         # search record to update
-        return self.env[model].search(search_domain)
+        return self.env[model].with_context(prefetch_fields=True).search(search_domain)
 
     @api.model
     def friendly_update_data(self, model, vals):
@@ -304,6 +306,26 @@ class WebhookUtils(models.AbstractModel):
         for model in set(model_list):
             self.env[model].clear_caches()
         return result
+
+    @api.model
+    def _build_record_payload(self, rec, fields_spec):
+        """Build payload dict for a single record using field{sub1,sub2} syntax.
+        Same expansion logic as search_data.
+
+        fields_spec examples:
+            ["name", "state"]
+            ["name", "currency_id{id,name,code}", "order_line{product_id,qty_done}"]
+        Returns {} with id only when fields_spec is empty.
+        """
+        if not fields_spec:
+            return {"id": rec.id}
+        filtered_values = [x for x in fields_spec if "{" in x]
+        plain_fields = [x.split("{")[0] for x in fields_spec]
+        result_dict = self._search_subfield(filtered_values) if filtered_values else {}
+        result = rec.read(plain_fields)
+        if result_dict and result:
+            result = self._update_result_with_2many(result, result_dict, rec)
+        return result[0] if result else {"id": rec.id}
 
     def _search_subfield(self, filtered_values):
         result_dict = {}
@@ -448,7 +470,7 @@ class WebhookUtils(models.AbstractModel):
 
             {"mode": "replace", "records": [{"lookup_field": value}, ...]}
             {"mode": "add",     "records": [{"lookup_field": value}, ...]}
-            {"records": [...]}  # mode omitted -> defaults to "replace"
+            {"records": [...]}  # mode omitted → defaults to "replace"
 
         ``mode`` is optional, defaults to ``"replace"``. Each record item must
         contain exactly one key-value pair specifying the lookup field and its value.
@@ -499,7 +521,7 @@ class WebhookUtils(models.AbstractModel):
         """Resolve relational field values in rec_dict to ORM-ready IDs/commands.
 
         - many2one  : ``{"lookup_field": value}`` -> integer ID
-        - many2many : ``{"mode": ..., "records": [...]}`` -> [(4/6, ...)] commands
+        - many2many : ``[{"lookup_field": val}, ...]`` -> [(4/6, ...)] commands
         - other fields are passed through unchanged.
         """
         final_dict = {}
@@ -531,7 +553,8 @@ class WebhookUtils(models.AbstractModel):
         """Return True if val resolves a record purely by database id.
 
         many2one : ``{"id": 5}``
-        many2many: replace-mode where every record item uses ``"id"`` as the lookup key.
+        many2many: ``[{"id": 1}, {"id": 2}]`` or replace-mode where every
+                   record item uses ``"id"`` as the lookup key.
         """
         if ftype == "many2one":
             return isinstance(val, dict) and list(val) == ["id"]
@@ -686,7 +709,8 @@ class WebhookUtils(models.AbstractModel):
                     Criteria used to search for the target record.
                 - payload : dict
                     - method (str): The name of the method to call on the record.
-                    - parameter (dict, optional): Arguments to pass to the method.
+                    - parameter (dict, optional):
+                        Keyword arguments to pass to the method.
                     - context (dict, optional): Context to use when calling the method.
 
         Returns

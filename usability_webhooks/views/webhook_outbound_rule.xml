@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_webhook_outbound_rule_tree" model="ir.ui.view">
+        <field name="name">view.webhook.outbound.rule.tree</field>
+        <field name="model">webhook.outbound.rule</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="model_name" />
+                <field name="trigger_domain" />
+                <field name="endpoint_source" />
+                <field name="endpoint_url" optional="show" />
+                <field name="active" optional="hide" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_webhook_outbound_rule_form" model="ir.ui.view">
+        <field name="name">view.webhook.outbound.rule.form</field>
+        <field name="model">webhook.outbound.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="bg-danger"
+                        attrs="{'invisible': [('active', '=', True)]}"
+                    />
+                    <group>
+                        <group string="Trigger">
+                            <field name="name" />
+                            <field name="active" />
+                            <field name="model_id" />
+                            <field name="model_name" invisible="1" readonly="1" />
+                        </group>
+                        <group string="Endpoint">
+                            <field name="endpoint_source" />
+                            <field
+                                name="endpoint_url"
+                                attrs="{'invisible': [('endpoint_source', '!=', 'static')], 'required': [('endpoint_source', '=', 'static')]}"
+                            />
+                            <field name="auth_header" />
+                        </group>
+                    </group>
+                    <group string="Trigger Domain">
+                        <field
+                            name="trigger_domain"
+                            widget="domain"
+                            options="{'model': 'model_name'}"
+                            nolabel="1"
+                            colspan="2"
+                        />
+                    </group>
+                    <group
+                        string="Payload Fields (JSON list — supports field{sub1,sub2} syntax)"
+                    >
+                        <div colspan="2">
+                            <field
+                                name="payload_fields"
+                                nolabel="1"
+                                placeholder='["name", "state", "currency_id{id,name,code}", "order_line{product_id,qty_done}"]'
+                            />
+                        </div>
+                    </group>
+                    <group string="Notes">
+                        <div colspan="2">
+                            <field name="note" nolabel="1" />
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_webhook_outbound_rules" model="ir.actions.act_window">
+        <field name="name">Outbound Webhook Rules</field>
+        <field name="res_model">webhook.outbound.rule</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="menu_action_webhook_outbound_rules"
+        parent="usability_webhooks.menu_action_api_configuration"
+        name="Outbound Webhook Rules"
+        action="action_webhook_outbound_rules"
+        sequence="20"
+    />
+</odoo>
