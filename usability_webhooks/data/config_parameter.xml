@@ -32,4 +32,8 @@
         <field name="key">webhook.ignore_checkcompany_model</field>
         <field name="value">[]</field>
     </record>
+    <record id="webhook_preview_limit" model="ir.config_parameter">
+        <field name="key">webhook.preview_limit</field>
+        <field name="value">2000</field>
+    </record>
 </odoo>

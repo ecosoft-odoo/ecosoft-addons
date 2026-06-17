@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ====================
 REST API for Webhook
 ====================
@@ -17,7 +13,7 @@ REST API for Webhook
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
@@ -26,18 +22,91 @@ REST API for Webhook
 
 |badge1| |badge2| |badge3|
 
-This module is base webhooks standard and keep all log that interface
+This module provides a standard webhook framework for Odoo with full
+request/response logging and config-driven outbound push notifications.
 
-Step to see logs:
+**Inbound (External → Odoo)**
 
-1. Go to Settings > Technical > API Configuration > API Logs
-2. this table will keep all log that interface '/api/create_data' or '/api/create_update_data'
-3. Users can used this table for test API by click 'Update API'
+* 5 REST API routes: ``create_data``, ``update_data``, ``create_update_data``,
+  ``search_data``, ``call_function``
+* Session-based and API Key authentication
+* Friendly relational field format: ``many2one``, ``many2many``, ``one2many``
+  resolved by name or id
+* ``auto_create`` support for missing related records
+* Automatic API log creation per request, with configurable per-route toggle
+* Request and response **preview** (first N characters, configurable) stored on
+  the log record
+* Request and response **size** (character count) displayed on each log
+* Full payload stored as JSON attachment (accessible via **Full Log** button)
+  when preview limit exceeded
+* Autovacuum cron to purge old logs, with optional chunk-based deletion
+
+**Outbound (Odoo → External)**
+
+* ``webhook.outbound.rule`` - config-driven rules: which model + domain → which
+  endpoint
+* ``webhook.outbound.mixin`` - add to any model with a single ``_inherit`` line;
+  no per-model code required
+* **Trigger domain**: full Odoo domain expression evaluated after ``write()``;
+  webhook fires only when a record transitions into matching the domain
+* **Endpoint source**: static URL per rule, or per-record ``callback_url`` passed
+  by the external system at create time
+* **Payload fields**: JSON list supporting ``field{sub1,sub2}`` expansion for
+  relational fields - same syntax as ``search_data``
+* Outbound calls logged in API Logs (``log_type = send``) with success/failed
+  state
 
 **Table of contents**
 
 .. contents::
    :local:
+
+Configuration
+=============
+
+**System Parameters**
+
+Go to *Settings > Technical > Parameters > System Parameters* to adjust the
+following keys:
+
+* ``webhook.preview_limit`` (default ``2000``) - Maximum characters stored in the
+  preview fields. Payloads longer than this are also saved as a full JSON
+  attachment.
+* ``webhook.create_data_log`` (default ``True``) - Enable logging for
+  ``/api/create_data``
+* ``webhook.update_data_log`` (default ``True``) - Enable logging for
+  ``/api/update_data``
+* ``webhook.create_update_data_log`` (default ``True``) - Enable logging for
+  ``/api/create_update_data``
+* ``webhook.search_data_log`` (default ``True``) - Enable logging for
+  ``/api/search_data``
+* ``webhook.call_function_log`` (default ``True``) - Enable logging for
+  ``/api/call_function``
+* ``webhook.rollback_state_failed`` (default ``1``) - Roll back the transaction
+  when the API response is not successful
+* ``webhook.rollback_except`` (default ``1``) - Roll back the transaction when an
+  unhandled exception occurs
+* ``webhook.ignore_checkcompany_model`` (default ``[]``) - JSON list of model
+  names excluded from company-scoped record lookup
+
+**Outbound Webhook Rules**
+
+Go to *Settings > Technical > API Configuration > Outbound Webhook Rules* to
+configure outbound push rules.
+
+* **Model** - The Odoo model to watch (e.g. ``sale.order``)
+* **Trigger Domain** - Odoo domain evaluated after ``write()``. Webhook fires when
+  a record transitions into matching the domain. Uses the domain widget - select a
+  model first to get field suggestions.
+* **Endpoint Source** - ``Static URL`` - always POST to the configured URL.
+  ``Record Callback URL`` - use the ``callback_url`` stored from the inbound
+  request.
+* **Endpoint URL** - Required when Endpoint Source is ``Static URL``.
+* **Payload Fields** - JSON list of field names to include. Supports
+  ``field{sub1,sub2}`` for relational expansion. Leave empty to send
+  ``{"id": <record_id>}`` only.
+* **Authorization Header** - Optional ``Authorization`` header value sent with
+  every outbound request, e.g. ``Bearer <token>``.
 
 Usage
 =====
