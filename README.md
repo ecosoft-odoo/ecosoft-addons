@@ -22,6 +22,7 @@ Available addons
 addon | version | maintainers | summary
 --- | --- | --- | ---
 [account_asset_disable_create](account_asset_disable_create/) | 15.0.1.0.0 |  | Account Asset disable create
+[account_asset_from_expense](account_asset_from_expense/) | 15.0.1.0.0 |  | Assets from Expenses
 [account_asset_product](account_asset_product/) | 15.0.1.0.0 |  | Account Asset Product
 [account_financial_report_extension](account_financial_report_extension/) | 15.0.1.0.0 |  | Account Financial Report Extension
 [account_move_reconcile_no_cancel](account_move_reconcile_no_cancel/) | 15.0.1.0.0 |  | Account Move Reconcile No Cancel

@@ -9,6 +9,7 @@ setuptools.setup(
     version=version,
     install_requires=[
         'odoo-addon-account_asset_disable_create>=15.0dev,<15.1dev',
+        'odoo-addon-account_asset_from_expense>=15.0dev,<15.1dev',
         'odoo-addon-account_asset_product>=15.0dev,<15.1dev',
         'odoo-addon-account_financial_report_extension>=15.0dev,<15.1dev',
         'odoo-addon-account_move_reconcile_no_cancel>=15.0dev,<15.1dev',
