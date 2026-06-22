@@ -23,6 +23,9 @@ class AccountPayment(models.Model):
         copy=False,
         help="This field support replacement payment",
     )
+    is_etax_configured = fields.Boolean(
+        related="company_id.is_etax_configured",
+    )
 
     def _hook_update_data(self, code_api, result):
         res = super()._hook_update_data(code_api, result)

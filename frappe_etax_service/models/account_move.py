@@ -30,6 +30,9 @@ class AccountMove(models.Model):
         copy=False,
         help="Currently this field only support invoice and not payment",
     )
+    is_etax_configured = fields.Boolean(
+        related="company_id.is_etax_configured",
+    )
 
     @api.onchange("is_credit_payment_entry", "create_purpose")
     def _onchange_ref(self):
