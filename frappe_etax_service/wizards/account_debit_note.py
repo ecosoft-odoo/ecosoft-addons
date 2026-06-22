@@ -30,6 +30,10 @@ class AccountDebitNote(models.TransientModel):
 
     @api.depends("move_ids")
     def _compute_debit_note_doctype_code_ids(self):
+        if self.move_ids and not any(self.move_ids.mapped("is_etax_configured")):
+            for rec in self:
+                rec.debit_note_doctype_code_ids = False
+            return
         codes = (
             self.env["etax.doctype"]
             .search([("move_type", "=", "out_invoice_debit")])

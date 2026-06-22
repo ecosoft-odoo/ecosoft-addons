@@ -12,36 +12,44 @@
             >
                 <block title="Ecosoft e-Tax Services" id="ecosoft_etax_services">
                     <setting
-                        id="frappe_server_url"
-                        help="URL of the Frappe e-Tax Service."
+                        id="is_etax_configured"
+                        help="Enable e-Tax integration for this company."
                     >
-                        <field
-                            name="frappe_server_url"
-                            placeholder="Paste your frappe server URL"
-                        />
+                        <field name="is_etax_configured" />
                     </setting>
-                    <setting
-                        id="frappe_auth_token"
-                        help="Authentication token for Frappe e-Tax Service. Format: [api_key]:[api_secret]"
-                    >
-                        <field
-                            name="frappe_auth_token"
-                            password="True"
-                            placeholder="Paste your frappe token"
-                        />
-                    </setting>
-                    <setting
-                        id="frappe_send_email"
-                        help="Allow to send an email to partner after sign etax."
-                    >
-                        <field name="is_send_etax_email" />
-                    </setting>
-                    <setting
-                        id="frappe_replacement_lock_date"
-                        help="e-Tax Replacement not allowed after this date of next invoice month. For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000."
-                    >
-                        <field name="replacement_lock_date" />
-                    </setting>
+                    <div invisible="not is_etax_configured">
+                        <setting
+                            id="frappe_server_url"
+                            help="URL of the Frappe e-Tax Service."
+                        >
+                            <field
+                                name="frappe_server_url"
+                                placeholder="Paste your frappe server URL"
+                            />
+                        </setting>
+                        <setting
+                            id="frappe_auth_token"
+                            help="Authentication token for Frappe e-Tax Service. Format: [api_key]:[api_secret]"
+                        >
+                            <field
+                                name="frappe_auth_token"
+                                password="True"
+                                placeholder="Paste your frappe token"
+                            />
+                        </setting>
+                        <setting
+                            id="frappe_send_email"
+                            help="Allow to send an email to partner after sign etax."
+                        >
+                            <field name="is_send_etax_email" />
+                        </setting>
+                        <setting
+                            id="frappe_replacement_lock_date"
+                            help="e-Tax Replacement not allowed after this date of next invoice month. For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000."
+                        >
+                            <field name="replacement_lock_date" />
+                        </setting>
+                    </div>
                 </block>
             </xpath>
         </field>

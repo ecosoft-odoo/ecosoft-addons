@@ -69,7 +69,7 @@
                     name="button_etax_invoices"
                     type="object"
                     class="btn-info"
-                    invisible="move_type not in ('out_invoice','out_refund','out_invoice_debit') or etax_status in ['success', 'processing'] or state != 'posted'"
+                    invisible="move_type not in ('out_invoice','out_refund','out_invoice_debit') or etax_status in ['success', 'processing'] or state != 'posted' or not is_etax_configured"
                 />
                 <button
                     name="action_open_replacement_wizard"
@@ -79,7 +79,11 @@
                 />
             </xpath>
             <xpath expr="//page[@id='other_tab_entry']" position="after">
-                <page id="frappe_etax_service" string="e-Tax Info">
+                <page
+                    id="frappe_etax_service"
+                    string="e-Tax Info"
+                    invisible="not is_etax_configured"
+                >
                     <group>
                         <group string="e-Tax">
                             <field
