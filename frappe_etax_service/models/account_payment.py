@@ -1,7 +1,7 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -23,6 +23,22 @@ class AccountPayment(models.Model):
         copy=False,
         help="This field support replacement payment",
     )
+    is_etax_configured = fields.Boolean(
+        related="company_id.is_etax_configured",
+    )
+    enable_etax = fields.Boolean(
+        compute="_compute_enable_etax",
+        store=True,
+    )
+
+    @api.depends("etax_status", "state", "is_etax_configured")
+    def _compute_enable_etax(self):
+        for rec in self:
+            rec.enable_etax = (
+                rec.etax_status not in ("success", "processing")
+                and rec.state == "paid"
+                and rec.company_id.is_etax_configured
+            )
 
     def _hook_update_data(self, code_api, result):
         res = super()._hook_update_data(code_api, result)

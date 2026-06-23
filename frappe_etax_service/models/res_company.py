@@ -11,3 +11,6 @@ class ResCompany(models.Model):
     frappe_auth_token = fields.Char()
     is_send_etax_email = fields.Boolean(string="Send Email")
     replacement_lock_date = fields.Integer()
+    is_etax_configured = fields.Boolean(
+        string="Enable e-Tax",
+    )

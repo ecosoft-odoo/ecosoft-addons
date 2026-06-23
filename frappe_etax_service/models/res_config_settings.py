@@ -24,6 +24,10 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.replacement_lock_date",
         readonly=False,
     )
+    is_etax_configured = fields.Boolean(
+        related="company_id.is_etax_configured",
+        readonly=False,
+    )
 
     @api.onchange("replacement_lock_date")
     def _onchange_replacement_lock_date(self):
