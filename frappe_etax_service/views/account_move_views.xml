@@ -69,7 +69,7 @@
                     name="button_etax_invoices"
                     type="object"
                     class="btn-info"
-                    invisible="move_type not in ('out_invoice','out_refund','out_invoice_debit') or etax_status in ['success', 'processing'] or state != 'posted' or not is_etax_configured"
+                    invisible="not enable_etax"
                 />
                 <button
                     name="action_open_replacement_wizard"

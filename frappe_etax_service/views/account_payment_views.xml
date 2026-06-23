@@ -57,7 +57,7 @@
                     name="button_etax_invoices"
                     type="object"
                     class="btn-info"
-                    invisible="etax_status in ['success', 'processing'] or state != 'paid' or not is_etax_configured"
+                    invisible="not enable_etax"
                 />
                 <button
                     name="action_open_replacement_wizard"
