@@ -33,6 +33,20 @@ class AccountMove(models.Model):
     is_etax_configured = fields.Boolean(
         related="company_id.is_etax_configured",
     )
+    enable_etax = fields.Boolean(
+        compute="_compute_enable_etax",
+        store=True,
+    )
+
+    @api.depends("move_type", "etax_status", "state", "is_etax_configured")
+    def _compute_enable_etax(self):
+        for rec in self:
+            rec.enable_etax = (
+                rec.move_type in ("out_invoice", "out_refund", "out_invoice_debit")
+                and rec.etax_status not in ("success", "processing")
+                and rec.state == "posted"
+                and rec.company_id.is_etax_configured
+            )
 
     @api.onchange("is_credit_payment_entry", "create_purpose")
     def _onchange_ref(self):
