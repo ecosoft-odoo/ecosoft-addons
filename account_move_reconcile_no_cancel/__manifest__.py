@@ -3,7 +3,7 @@
 
 {
     "name": "Account Move Reconcile No Cancel",
-    "version": "15.0.1.0.0",
+    "version": "15.0.1.0.1",
     "category": "Finance",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "author": "Ecosoft, Odoo Community Association (OCA)",
