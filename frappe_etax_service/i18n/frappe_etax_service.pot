@@ -340,6 +340,27 @@ msgid "Ecosoft e-Tax Services"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__enable_etax
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__enable_etax
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__enable_etax
+msgid "Enable Etax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__is_etax_configured
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__is_etax_configured
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__is_etax_configured
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__is_etax_configured
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__is_etax_configured
+msgid "Enable e-Tax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid "Enable e-Tax integration for this company."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_move__etax_status__error
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__account_payment__etax_status__error
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_service_mixin__etax_status__error
