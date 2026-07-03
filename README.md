@@ -44,7 +44,7 @@ addon | version | maintainers | summary
 [request_document_purchase_request](request_document_purchase_request/) | 15.0.2.0.1 |  | Request Document - Purchase Request
 [request_document_tier_validation](request_document_tier_validation/) | 15.0.2.0.0 |  | Request Document - Tier Validation
 [stock_account_visible_valuation](stock_account_visible_valuation/) | 15.0.1.0.0 |  | Stock Account - Visible Valuation
-[usability_webhooks](usability_webhooks/) | 15.0.3.0.0 |  | REST API for Webhook
+[usability_webhooks](usability_webhooks/) | 15.0.3.0.1 |  | REST API for Webhook
 [usability_webhooks_queue_job](usability_webhooks_queue_job/) | 15.0.1.0.0 |  | REST API - Job Queue
 
 [//]: # (end addons)
