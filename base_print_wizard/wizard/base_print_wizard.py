@@ -23,6 +23,18 @@ class BasePrintWizard(models.TransientModel):
         default=lambda self: self._get_doctype_default(),
         required=True,
     )
+    copy_qty = fields.Integer(
+        string="Copies",
+        default=1,
+        required=True,
+    )
+    copy_type = fields.Selection(
+        selection=[
+            ("original", "Original"),
+            ("copy", "Copy"),
+        ],
+        string="Type",
+    )
 
     @api.depends("active_model")
     def _compute_available_doctype_ids(self):
@@ -66,7 +78,18 @@ class BasePrintWizard(models.TransientModel):
         objs = self.env[model].browse(active_ids)
         return objs
 
+    def _get_report_context(self):
+        """Return extra context dict forwarded to the report action.
+        Override to add module-specific keys.
+        """
+        return {
+            "copy_qty": self.copy_qty,
+            "copy_type": self.copy_type,
+        }
+
     def action_print(self):
         self.ensure_one()
         objs = self._get_action_report()
-        return self.doctype.report_action(objs)
+        return self.doctype.with_context(**self._get_report_context()).report_action(
+            objs
+        )
