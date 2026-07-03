@@ -52,14 +52,12 @@
                             colspan="2"
                         />
                     </group>
-                    <group
-                        string="Payload Fields (JSON list — supports field{sub1,sub2} syntax)"
-                    >
+                    <group string="Payload Fields">
                         <div colspan="2">
                             <field
                                 name="payload_fields"
                                 nolabel="1"
-                                placeholder='["name", "state", "currency_id{id,name,code}", "order_line{product_id,qty_done}"]'
+                                placeholder='{"request_code": "{name}", "data": {"id": "{id}", "order_line": [{"product": "{product_id.name}", "qty": "{product_uom_qty}"}]}}'
                             />
                         </div>
                     </group>

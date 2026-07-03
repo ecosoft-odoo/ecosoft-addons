@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ====================
 REST API for Webhook
 ====================
@@ -17,7 +13,7 @@ REST API for Webhook
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
@@ -120,35 +116,35 @@ Outbound Webhook Rules
 Go to *Settings > Technical > API Configuration > Outbound Webhook
 Rules* to configure outbound push rules.
 
-+--------------------------+-------------------------------------------+
-| Field                    | Description                               |
-+==========================+===========================================+
-| **Model**                | The Odoo model to watch (e.g.             |
-|                          | ``sale.order``)                           |
-+--------------------------+-------------------------------------------+
-| **Trigger Domain**       | Odoo domain evaluated after ``write()``.  |
-|                          | Webhook fires when a record transitions   |
-|                          | into matching the domain. Uses the domain |
-|                          | widget - select a model first to get      |
-|                          | field suggestions.                        |
-+--------------------------+-------------------------------------------+
-| **Endpoint Source**      | ``Static URL`` - always POST to the       |
-|                          | configured URL. ``Record Callback URL`` - |
-|                          | use the ``callback_url`` stored from the  |
-|                          | inbound request.                          |
-+--------------------------+-------------------------------------------+
-| **Endpoint URL**         | Required when Endpoint Source is          |
-|                          | ``Static URL``.                           |
-+--------------------------+-------------------------------------------+
-| **Payload Fields**       | JSON list of field names to include.      |
-|                          | Supports ``field{sub1,sub2}`` for         |
-|                          | relational expansion. Leave empty to send |
-|                          | ``{"id": <record_id>}`` only.             |
-+--------------------------+-------------------------------------------+
-| **Authorization Header** | Optional ``Authorization`` header value   |
-|                          | sent with every outbound request, e.g.    |
-|                          | ``Bearer <token>``.                       |
-+--------------------------+-------------------------------------------+
++--------------------------+-------------------------------------------------------+
+| Field                    | Description                                           |
++==========================+=======================================================+
+| **Model**                | The Odoo model to watch (e.g. ``sale.order``)         |
++--------------------------+-------------------------------------------------------+
+| **Trigger Domain**       | Odoo domain evaluated after ``write()``. Webhook      |
+|                          | fires when a record transitions into matching the     |
+|                          | domain. Uses the domain widget - select a model first |
+|                          | to get field suggestions.                             |
++--------------------------+-------------------------------------------------------+
+| **Endpoint Source**      | ``Static URL`` - always POST to the configured URL.   |
+|                          | ``Record Callback URL`` - use the ``callback_url``    |
+|                          | stored from the inbound request.                      |
++--------------------------+-------------------------------------------------------+
+| **Endpoint URL**         | Required when Endpoint Source is ``Static URL``.      |
++--------------------------+-------------------------------------------------------+
+| **Payload Fields**       | A JSON object. Static values are sent as-is;          |
+|                          | ``{field.path}`` templates are resolved from the      |
+|                          | record (dotted paths supported, e.g.                  |
+|                          | ``{partner_id.name}``), recursively at any nesting    |
+|                          | level. A one2many/many2many field can be expanded     |
+|                          | into a list of objects: give the key matching the     |
+|                          | field name a one-item array as value, e.g.            |
+|                          | ``"order_line": [{"product": "{product_id.name}"}]``. |
+|                          | Leave empty to send ``{"id": <record_id>}`` only.     |
++--------------------------+-------------------------------------------------------+
+| **Authorization Header** | Optional ``Authorization`` header value sent with     |
+|                          | every outbound request, e.g. ``Bearer <token>``.      |
++--------------------------+-------------------------------------------------------+
 
 Usage
 =====
@@ -383,31 +379,85 @@ The webhook fires only when a field in the domain is being written
 prevents re-triggering when unrelated fields are edited on an
 already-matching record.
 
-Payload Fields - relational expansion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Payload Fields
+~~~~~~~~~~~~~~
 
-Use ``field{sub1,sub2}`` syntax (same as ``search_data``) to expand
-relational fields:
+``payload_fields`` is always a JSON object. Two kinds of values are
+supported:
+
+- **Static value** (string, number, bool, nested object/array) - sent
+  as-is
+- **``{field.path}`` template** - resolved from the triggering record
+  (dotted paths supported, e.g. ``{partner_id.name}``), returning the
+  raw value at the end of the path. Templates are resolved recursively,
+  so they can appear nested inside objects/arrays at any depth. A
+  ``many2one`` field must be followed by an explicit subfield (e.g.
+  ``{partner_id.name}``) - ``{partner_id}`` alone returns the record
+  itself, not its name.
 
 .. code:: json
 
-   ["name", "state", "currency_id{id,name,code}", "order_line{product_id,qty_done,price_unit}"]
+   {
+     "request_code": "{name}",
+     "app": "MyApp",
+     "data": {"id": "{id}", "state": "{state}", "partner": "{partner_id.name}"}
+   }
 
 Result posted to the external system:
 
 .. code:: json
 
    {
-     "name": "SO001",
-     "state": "sale",
-     "currency_id": [{"id": 3, "name": "Thai Baht", "code": "THB"}],
-     "order_line": [
-       {"product_id": 5, "qty_done": 2.0, "price_unit": 500.0}
-     ]
+     "request_code": "SO001",
+     "app": "MyApp",
+     "data": {"id": 3, "state": "sale", "partner": "ABC Co."}
    }
 
-``many2one`` fields expand to a list with one item (consistent with
-``search_data`` behaviour).
+Leave ``payload_fields`` empty to send ``{"id": <record_id>}`` only.
+
+Expanding one2many/many2many fields (line items)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To send a list of objects (e.g. sale order lines), use a key matching
+the field name, with a **one-item array** as its value - that single
+item is the per-line template, applied once for every related record:
+
+.. code:: json
+
+   {
+     "request_code": "{name}",
+     "data": {
+       "id": "{id}",
+       "state": "{state}",
+       "order_line": [
+         {
+           "product": "{product_id.name}",
+           "qty": "{product_uom_qty}",
+           "price": "{price_unit}"
+         }
+       ]
+     }
+   }
+
+Result posted to the external system:
+
+.. code:: json
+
+   {
+     "request_code": "SO001",
+     "data": {
+       "id": 3,
+       "state": "sale",
+       "order_line": [
+         {"product": "Product A", "qty": 2.0, "price": 500.0},
+         {"product": "Product B", "qty": 1.0, "price": 300.0}
+       ]
+     }
+   }
+
+This only triggers when the key is an actual one2many/many2many field on
+the model and the array has exactly one item - any other array is sent
+as a literal value.
 
 Per-record Callback URL
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -465,6 +515,7 @@ Contributors
 
 - Kitti Upariphutthiphong kittiu@ecosoft.co.th
 - Saran Lim. saranl@ecosoft.co.th
+- NakrobS nakrobs@ecosoft.co.th
 
 Maintainers
 -----------

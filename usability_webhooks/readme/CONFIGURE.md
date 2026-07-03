@@ -24,5 +24,5 @@ Go to *Settings > Technical > API Configuration > Outbound Webhook Rules* to con
 | **Trigger Domain** | Odoo domain evaluated after `write()`. Webhook fires when a record transitions into matching the domain. Uses the domain widget - select a model first to get field suggestions. |
 | **Endpoint Source** | `Static URL` - always POST to the configured URL. `Record Callback URL` - use the `callback_url` stored from the inbound request. |
 | **Endpoint URL** | Required when Endpoint Source is `Static URL`. |
-| **Payload Fields** | JSON list of field names to include. Supports `field{sub1,sub2}` for relational expansion. Leave empty to send `{"id": <record_id>}` only. |
+| **Payload Fields** | A JSON object. Static values are sent as-is; `{field.path}` templates are resolved from the record (dotted paths supported, e.g. `{partner_id.name}`), recursively at any nesting level. A one2many/many2many field can be expanded into a list of objects: give the key matching the field name a one-item array as value, e.g. `"order_line": [{"product": "{product_id.name}"}]`. Leave empty to send `{"id": <record_id>}` only. |
 | **Authorization Header** | Optional `Authorization` header value sent with every outbound request, e.g. `Bearer <token>`. |
