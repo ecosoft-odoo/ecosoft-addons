@@ -16,7 +16,7 @@ class WebhookOutboundService(models.AbstractModel):
     _description = "Outbound Webhook Push Service"
 
     @api.model
-    def _push(self, url, payload, rule):
+    def _push(self, rec, url, payload, rule):
         headers = {"Content-Type": "application/json"}
         if rule.auth_header:
             headers["Authorization"] = rule.auth_header
@@ -46,6 +46,8 @@ class WebhookOutboundService(models.AbstractModel):
             .create(
                 {
                     "model": rule.model_name,
+                    "res_model": rec._name,
+                    "res_id": rec.id,
                     "route": url,
                     "function_name": rule.name,
                     "log_type": "send",
@@ -54,3 +56,4 @@ class WebhookOutboundService(models.AbstractModel):
             )
         )
         log._save_payload(payload_str, result_str)
+        return log

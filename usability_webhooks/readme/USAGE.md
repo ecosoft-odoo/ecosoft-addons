@@ -195,28 +195,75 @@ Go to *Settings > Technical > API Configuration > Outbound Webhook Rules*. See `
 
 The webhook fires only when a field in the domain is being written **and** the record matches the full domain after the write. This prevents re-triggering when unrelated fields are edited on an already-matching record.
 
-### Payload Fields - relational expansion
+### Payload Fields
 
-Use `field{sub1,sub2}` syntax (same as `search_data`) to expand relational fields:
+`payload_fields` is always a JSON object. Two kinds of values are supported:
+
+- **Static value** (string, number, bool, nested object/array) - sent as-is
+- **`{field.path}` template** - resolved from the triggering record (dotted paths supported, e.g. `{partner_id.name}`), returning the raw value at the end of the path. Templates are resolved recursively, so they can appear nested inside objects/arrays at any depth. A `many2one` field must be followed by an explicit subfield (e.g. `{partner_id.name}`) - `{partner_id}` alone returns the record itself, not its name.
 
 ```json
-["name", "state", "currency_id{id,name,code}", "order_line{product_id,qty_done,price_unit}"]
+{
+  "request_code": "{name}",
+  "app": "MyApp",
+  "data": {"id": "{id}", "state": "{state}", "partner": "{partner_id.name}"}
+}
 ```
 
 Result posted to the external system:
 
 ```json
 {
-  "name": "SO001",
-  "state": "sale",
-  "currency_id": [{"id": 3, "name": "Thai Baht", "code": "THB"}],
-  "order_line": [
-    {"product_id": 5, "qty_done": 2.0, "price_unit": 500.0}
-  ]
+  "request_code": "SO001",
+  "app": "MyApp",
+  "data": {"id": 3, "state": "sale", "partner": "ABC Co."}
 }
 ```
 
-`many2one` fields expand to a list with one item (consistent with `search_data` behaviour).
+Leave `payload_fields` empty to send `{"id": <record_id>}` only.
+
+#### Expanding one2many/many2many fields (line items)
+
+To send a list of objects (e.g. sale order lines), use a key matching the
+field name, with a **one-item array** as its value - that single item is
+the per-line template, applied once for every related record:
+
+```json
+{
+  "request_code": "{name}",
+  "data": {
+    "id": "{id}",
+    "state": "{state}",
+    "order_line": [
+      {
+        "product": "{product_id.name}",
+        "qty": "{product_uom_qty}",
+        "price": "{price_unit}"
+      }
+    ]
+  }
+}
+```
+
+Result posted to the external system:
+
+```json
+{
+  "request_code": "SO001",
+  "data": {
+    "id": 3,
+    "state": "sale",
+    "order_line": [
+      {"product": "Product A", "qty": 2.0, "price": 500.0},
+      {"product": "Product B", "qty": 1.0, "price": 300.0}
+    ]
+  }
+}
+```
+
+This only triggers when the key is an actual one2many/many2many field on
+the model and the array has exactly one item - any other array is sent
+as a literal value.
 
 ### Per-record Callback URL
 

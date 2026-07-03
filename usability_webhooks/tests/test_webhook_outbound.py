@@ -1,6 +1,7 @@
 # Copyright 2026 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import json
 from unittest.mock import MagicMock, patch
 
 from odoo_test_helper import FakeModelLoader
@@ -318,11 +319,138 @@ class TestWebhookOutbound(TransactionCase):
             log.write({"state": "done"})
 
         mock_post.assert_called_once()
-        import json
-
         sent_payload = json.loads(mock_post.call_args[1]["data"].decode())
         self.assertIn("id", sent_payload)
         self.assertEqual(sent_payload["id"], log.id)
 
         self.rule_static.payload_fields = False
+        self.rule_callback.active = True
+
+    def test_13_outbound_object_format_payload(self):
+        """payload_fields as a JSON object -> static values kept as-is,
+        {field.path} templates resolved recursively at any nesting level."""
+        self.rule_callback.active = False
+        self.rule_static.payload_fields = json.dumps(
+            {
+                "request_code": "{function_name}",
+                "app": "MyApp",
+                "data": {"id": "{id}", "state": "{state}"},
+            }
+        )
+        log = self._new_log(state="draft", function_name="SO001")
+
+        with patch(REQUESTS_PATH, return_value=self._mock_ok_response()) as mock_post:
+            log.write({"state": "done"})
+
+        mock_post.assert_called_once()
+        sent_payload = json.loads(mock_post.call_args[1]["data"].decode())
+        self.assertEqual(sent_payload["request_code"], "SO001")
+        self.assertEqual(sent_payload["app"], "MyApp")
+        self.assertEqual(sent_payload["data"], {"id": log.id, "state": "done"})
+
+        self.rule_static.payload_fields = False
+        self.rule_callback.active = True
+
+    def test_13b_outbound_object_format_rejects_list(self):
+        """payload_fields as a JSON array (old list format)
+        is no longer supported -> payload falls back to id only."""
+        self.rule_callback.active = False
+        self.rule_static.payload_fields = json.dumps(["name", "state"])
+        log = self._new_log(state="draft")
+
+        with patch(REQUESTS_PATH, return_value=self._mock_ok_response()) as mock_post:
+            log.write({"state": "done"})
+
+        mock_post.assert_called_once()
+        sent_payload = json.loads(mock_post.call_args[1]["data"].decode())
+        self.assertEqual(sent_payload, {"id": log.id})
+
+        self.rule_static.payload_fields = False
+        self.rule_callback.active = True
+
+    def test_14_resolve_field_value_scalar_and_related(self):
+        """_resolve_field_value returns the raw value at the end of
+        the path. A many2one field must be followed by an explicit
+        subfield (e.g. '.name') to get anything other than the record
+        itself. Plain strings pass through unchanged."""
+        be = self.env.ref("base.be")
+        self.partner.country_id = be
+        mixin = self.env["api.log"]
+
+        self.assertEqual(
+            mixin._resolve_field_value(self.partner, "{name}"), self.partner.name
+        )
+        self.assertEqual(
+            mixin._resolve_field_value(self.partner, "{country_id.name}"), be.name
+        )
+        self.assertEqual(mixin._resolve_field_value(self.partner, "{country_id}"), be)
+        self.assertEqual(
+            mixin._resolve_field_value(self.partner, "static-value"), "static-value"
+        )
+
+    def test_14c_resolve_field_value_multirecord_no_crash(self):
+        """A {field.path} template that crosses a multi-record
+        one2many/many2many field must not raise - Odoo's 'Expected
+        singleton' error is caught and resolved to None instead of
+        propagating and rolling back the triggering write()."""
+        cat_a = self.env["res.partner.category"].create({"name": "Cat A"})
+        cat_b = self.env["res.partner.category"].create({"name": "Cat B"})
+        self.partner.category_id = [(6, 0, [cat_a.id, cat_b.id])]
+        mixin = self.env["api.log"]
+
+        self.assertIsNone(
+            mixin._resolve_field_value(self.partner, "{category_id.name}")
+        )
+
+    def test_14d_expand_one2many_list_of_object(self):
+        """A one-item array value under a key matching a
+        one2many/many2many field expands into one resolved object
+        per related record, using that item as a per-record template."""
+        cat_a = self.env["res.partner.category"].create({"name": "Cat A"})
+        cat_b = self.env["res.partner.category"].create({"name": "Cat B"})
+        self.partner.category_id = [(6, 0, [cat_a.id, cat_b.id])]
+        mixin = self.env["api.log"]
+
+        result = mixin._resolve_dict_entry(
+            self.partner, "category_id", [{"cat_name": "{name}"}]
+        )
+
+        self.assertCountEqual(
+            result,
+            [
+                {"cat_name": cat_a.name},
+                {"cat_name": cat_b.name},
+            ],
+        )
+
+    def test_14e_non_relational_key_array_stays_literal(self):
+        """A one-item array under a key that is NOT a one2many/many2many
+        field on the record is left untouched (no false expansion)."""
+        mixin = self.env["api.log"]
+
+        self.assertEqual(
+            mixin._resolve_dict_entry(self.partner, "custom_tag", ["vip"]), ["vip"]
+        )
+        # 'email' is a real field but not one2many/many2many -> literal too
+        self.assertEqual(
+            mixin._resolve_dict_entry(self.partner, "email", ["static"]), ["static"]
+        )
+
+    def test_15_webhook_last_state_tracked_on_record(self):
+        """After dispatch, webhook_last_state/webhook_last_sent_date
+        reflect success or failure on the triggering record."""
+        self.rule_callback.active = False
+
+        log_ok = self._new_log(state="draft")
+        with patch(REQUESTS_PATH, return_value=self._mock_ok_response()):
+            log_ok.write({"state": "done"})
+        self.assertEqual(log_ok.webhook_last_state, "done")
+        self.assertTrue(log_ok.webhook_last_sent_date)
+
+        log_fail = self._new_log(state="draft")
+        with patch(REQUESTS_PATH, side_effect=Exception("Connection refused")):
+            log_fail.write({"state": "done"})
+        self.assertEqual(log_fail.webhook_last_state, "failed")
+        self.assertTrue(log_fail.webhook_last_sent_date)
+
         self.rule_callback.active = True
