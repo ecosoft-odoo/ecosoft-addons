@@ -9,6 +9,7 @@ from werkzeug.exceptions import BadRequest
 
 from odoo import http
 from odoo.http import request
+from odoo.tools import json_default
 
 
 class WebhookController(http.Controller):
@@ -55,7 +56,10 @@ class WebhookController(http.Controller):
                     "state": state,
                 }
             )
-            log._save_payload(data_str, json.dumps(res, ensure_ascii=False))
+            log._save_payload(
+                data_str,
+                json.dumps(res, ensure_ascii=False, default=json_default),
+            )
         self._link_callback_url(model, vals, res, log)
         return res
 
