@@ -15,10 +15,7 @@
                                 options="{'no_create': True, 'no_create_edit': True}"
                             />
                         </group>
-                        <group>
-                            <field name="copy_qty" />
-                            <field name="copy_type" />
-                        </group>
+                        <group />
                     </group>
                     <footer>
                         <button

@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 =================
 Base Print Wizard
 =================
@@ -17,7 +13,7 @@ Base Print Wizard
 .. |badge1| image:: https://img.shields.io/badge/maturity-Alpha-red.png
     :target: https://odoo-community.org/page/development-status
     :alt: Alpha
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
@@ -35,17 +31,23 @@ Key features:
   ``ir.actions.report`` records flagged ``show_in_wizard = True`` for
   the active model.
 - **Domain filtering** - each report can define a ``domain_form`` so it
-  only appears when the selected records match the domain (e.g. only
+  only appears when every selected record matches the domain (e.g. only
   confirmed orders).
+- **Access-aware and validated** - reports respect their configured
+  groups, and the selected report is validated again on the server
+  before printing.
 - **Auto-select** - when exactly one report qualifies, it is
   pre-selected and the user can print immediately without choosing.
 - **Extensible** - subclass ``base.print.wizard`` to add extra fields
-  (print mode, date range, etc.) and override ``action_print()`` to pass
-  context to the report.
+  (print mode, date range, etc.) and override ``_get_report_context()``
+  to pass context to the report.
+- **Optional copy options** - inherit ``base.print.copy.mixin`` when a
+  specialized wizard needs copy quantity and Original/Copy type fields.
 
 Use Pattern 1 (direct binding) when you only need to choose among
 multiple reports. Use Pattern 2 (subclass) when the wizard itself needs
-extra options that influence how the report renders. See ``USAGE.md``
+extra options that influence how the report renders. The copy mixin is
+optional and does not add fields to the base wizard. See ``USAGE.md``
 for step-by-step instructions.
 
 .. IMPORTANT::
@@ -57,9 +59,6 @@ for step-by-step instructions.
 
 .. contents::
    :local:
-
-Usage
-=====
 
 Usage
 =====
@@ -77,7 +76,7 @@ print.
 
    <record id="action_report_my_document" model="ir.actions.report">
        <field name="show_in_wizard" eval="True" />
-       <!-- optional: only show when record matches this domain -->
+       <!-- optional: only show when every selected record matches this domain -->
        <field name="domain_form">[('state', '=', 'confirm')]</field>
    </record>
 
@@ -97,9 +96,10 @@ print.
    </record>
 
 The wizard lists all reports flagged ``show_in_wizard = True`` for that
-model. If ``domain_form`` is set, the report only appears when active
-records match the domain. When only one report qualifies, it is
-auto-selected and the user can click Print immediately.
+model. If ``domain_form`` is set, the report only appears when every
+active record matches the domain. Reports restricted to groups are only
+shown to users in one of those groups. When only one report qualifies,
+it is auto-selected and the user can click Print immediately.
 
 --------------
 
@@ -108,6 +108,10 @@ Pattern 2 - Subclass for extra wizard fields
 
 Best for: single fixed report with extra options (e.g. print mode, date
 range).
+
+The fixed report must still have ``show_in_wizard = True``, use the same
+model as the active records, and satisfy its ``domain_form`` when one is
+configured.
 
 **Step 1:** Create a child TransientModel
 
@@ -128,13 +132,13 @@ range).
 
        @api.model
        def _get_doctype_default(self):
-           # Pin to a specific report - skip the dynamic selection logic
+           # Pin the default selection. The report must still be available for the records.
            return self.env.ref("my_module.action_report_my_document")
 
-       def action_print(self):
-           self.ensure_one()
-           objs = self._get_action_report()
-           return self.doctype.with_context(print_mode=self.print_mode).report_action(objs)
+       def _get_report_context(self):
+           res = super()._get_report_context()
+           res["print_mode"] = self.print_mode
+           return res
 
 **Step 2:** Extend the base view to show the extra field
 
@@ -144,6 +148,7 @@ range).
        <field name="name">my.document.print.wizard.form</field>
        <field name="model">my.document.print.wizard</field>
        <field name="inherit_id" ref="base_print_wizard.view_print_wizard_base" />
+       <field name="mode">primary</field>
        <field name="arch" type="xml">
            <!-- Replace doctype field with your custom field -->
            <field name="doctype" position="replace">
@@ -181,6 +186,60 @@ Add ``base_print_wizard`` to your module's ``depends`` list:
 
 --------------
 
+Optional copy options
+---------------------
+
+Add the copy fields only to wizards that need them by inheriting the
+optional mixin:
+
+.. code:: python
+
+   from odoo import models
+
+
+   class MyDocumentPrintWizard(models.TransientModel):
+       _name = "my.document.print.wizard"
+       _inherit = ["base.print.wizard", "base.print.copy.mixin"]
+
+       def _get_report_context(self):
+           res = super()._get_report_context()
+           res.update(self._get_copy_report_context())
+           return res
+
+Add ``copy_qty`` and ``copy_type`` to the specialized wizard view. The
+mixin validates that the copy quantity is greater than zero, but does
+not add fields to the base wizard view.
+
+.. code:: xml
+
+   <record id="view_my_document_print_wizard_form" model="ir.ui.view">
+       <field name="name">my.document.print.wizard.form</field>
+       <field name="model">my.document.print.wizard</field>
+       <field name="inherit_id" ref="base_print_wizard.view_print_wizard_base" />
+       <field name="mode">primary</field>
+       <field name="arch" type="xml">
+           <xpath expr="//group[@name='criteria']/group[last()]" position="inside">
+               <field name="copy_qty" />
+               <field name="copy_type" />
+           </xpath>
+       </field>
+   </record>
+
+Validation behavior
+-------------------
+
+- A report must have ``show_in_wizard = True`` and its ``model`` must
+  match the active model.
+- Every selected record must match ``domain_form``; mixed selections do
+  not expose a partially applicable report.
+- Reports restricted with ``groups_id`` are only available to members of
+  those groups.
+- ``domain_form`` syntax is validated when the report action is saved.
+- The selected report is validated again by ``action_print()`` to
+  prevent bypassing the form-view domain through RPC or custom code.
+
+--------------
+
 Override reference
 ------------------
 
@@ -195,8 +254,11 @@ Override reference
 | ``_get_action_report()``        | Change which records are passed to |
 |                                 | the report                         |
 +---------------------------------+------------------------------------+
-| ``action_print()``              | Pass extra context to              |
+| ``_get_report_context()``       | Pass extra context to              |
 |                                 | ``report_action()``                |
++---------------------------------+------------------------------------+
+| ``_validate_report()``          | Add server-side report validation  |
+|                                 | rules                              |
 +---------------------------------+------------------------------------+
 
 Bug Tracker

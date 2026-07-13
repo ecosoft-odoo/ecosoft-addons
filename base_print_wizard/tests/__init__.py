@@ -1,4 +1,3 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from . import base_print_wizard
-from . import print_copy_mixin
+from . import test_base_print_wizard
