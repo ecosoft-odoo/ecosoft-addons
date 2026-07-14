@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import api, fields, models
-from odoo.tools.safe_eval import safe_eval
+from odoo.exceptions import UserError
 
 
 class BasePrintWizard(models.TransientModel):
@@ -40,17 +40,21 @@ class BasePrintWizard(models.TransientModel):
         active_ids = self.env.context.get("active_ids", [])
         if not active_model:
             return []
-        records = self.env[active_model].browse(active_ids)
+        if active_model not in self.env:
+            return []
+        records = self.env[active_model].browse(active_ids).exists()
         all_reports = self.env["ir.actions.report"].search(
             [("model", "=", active_model), ("show_in_wizard", "=", True)]
         )
         valid_ids = []
         for report in all_reports:
+            if report.groups_id and not (report.groups_id & self.env.user.groups_id):
+                continue
             if not report.domain_form:
                 valid_ids.append(report.id)
-            elif active_ids:
-                domain = safe_eval(report.domain_form)
-                if records.filtered_domain(domain):
+            elif records:
+                domain = report._get_wizard_domain()
+                if records.filtered_domain(domain) == records:
                     valid_ids.append(report.id)
         return valid_ids
 
@@ -61,12 +65,43 @@ class BasePrintWizard(models.TransientModel):
         return ids[0] if len(ids) == 1 else False
 
     def _get_action_report(self):
-        active_ids = self._context.get("active_ids", False)
-        model = self._context.get("active_model") or self.active_model
-        objs = self.env[model].browse(active_ids)
-        return objs
+        active_ids = self.env.context.get("active_ids", False)
+        model = self.env.context.get("active_model") or self.active_model
+        if not model or model not in self.env:
+            raise UserError(
+                self.env._("No valid active model was provided for printing.")
+            )
+        return self.env[model].browse(active_ids).exists()
+
+    def _get_report_context(self):
+        """Return extra context dict forwarded to the report action.
+        Override to add module-specific keys.
+        """
+        return {}
+
+    def _validate_report(self):
+        """Ensure the selected report is valid outside the form-view domain too."""
+        self.ensure_one()
+        active_model = self.env.context.get("active_model") or self.active_model
+        if not active_model or active_model not in self.env:
+            raise UserError(
+                self.env._("No valid active model was provided for printing.")
+            )
+        if self.doctype.model != active_model:
+            raise UserError(
+                self.env._("The selected report does not match the active model.")
+            )
+        if self.doctype.id not in self._get_available_report_ids():
+            raise UserError(
+                self.env._(
+                    "The selected report is not available for all selected records."
+                )
+            )
 
     def action_print(self):
         self.ensure_one()
+        self._validate_report()
         objs = self._get_action_report()
-        return self.doctype.report_action(objs)
+        return self.doctype.with_context(**self._get_report_context()).report_action(
+            objs
+        )

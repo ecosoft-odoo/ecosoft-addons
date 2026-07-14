@@ -12,7 +12,7 @@
     "depends": ["base"],
     "data": [
         "security/ir.model.access.csv",
-        "models/ir_actions_report_view.xml",
+        "views/ir_actions_report_view.xml",
         "wizard/base_print_wizard_view.xml",
     ],
     "installable": True,
