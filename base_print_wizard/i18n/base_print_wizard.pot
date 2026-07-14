@@ -34,6 +34,22 @@ msgid "Cancel"
 msgstr ""
 
 #. module: base_print_wizard
+#: model:ir.model.fields,field_description:base_print_wizard.field_base_print_copy_mixin__copy_qty
+msgid "Copies"
+msgstr ""
+
+#. module: base_print_wizard
+#. odoo-python
+#: code:addons/base_print_wizard/wizard/print_copy_mixin.py:0
+msgid "Copies must be greater than zero."
+msgstr ""
+
+#. module: base_print_wizard
+#: model:ir.model.fields.selection,name:base_print_wizard.selection__base_print_copy_mixin__copy_type__copy
+msgid "Copy"
+msgstr ""
+
+#. module: base_print_wizard
 #: model:ir.model.fields,field_description:base_print_wizard.field_base_print_wizard__create_uid
 msgid "Created by"
 msgstr ""
@@ -56,8 +72,8 @@ msgstr ""
 #. module: base_print_wizard
 #: model:ir.model.fields,help:base_print_wizard.field_ir_actions_report__domain_form
 msgid ""
-"Domain evaluated against active records to determine if this report appears "
-"in the print wizard. Leave empty to always show."
+"Domain evaluated against every active record to determine if this report "
+"appears in the print wizard. Leave empty to always show."
 msgstr ""
 
 #. module: base_print_wizard
@@ -73,6 +89,12 @@ msgid ""
 msgstr ""
 
 #. module: base_print_wizard
+#. odoo-python
+#: code:addons/base_print_wizard/models/ir_actions_report.py:0
+msgid "Invalid Wizard Domain on report %(report)s: %(error)s"
+msgstr ""
+
+#. module: base_print_wizard
 #: model:ir.model.fields,field_description:base_print_wizard.field_base_print_wizard__write_uid
 msgid "Last Updated by"
 msgstr ""
@@ -83,8 +105,24 @@ msgid "Last Updated on"
 msgstr ""
 
 #. module: base_print_wizard
+#. odoo-python
+#: code:addons/base_print_wizard/wizard/base_print_wizard.py:0
+msgid "No valid active model was provided for printing."
+msgstr ""
+
+#. module: base_print_wizard
+#: model:ir.model.fields.selection,name:base_print_wizard.selection__base_print_copy_mixin__copy_type__original
+msgid "Original"
+msgstr ""
+
+#. module: base_print_wizard
 #: model_terms:ir.ui.view,arch_db:base_print_wizard.view_print_wizard_base
 msgid "Print"
+msgstr ""
+
+#. module: base_print_wizard
+#: model:ir.model,name:base_print_wizard.model_base_print_copy_mixin
+msgid "Print Copy Options Mixin"
 msgstr ""
 
 #. module: base_print_wizard
@@ -95,6 +133,23 @@ msgstr ""
 #. module: base_print_wizard
 #: model:ir.model.fields,field_description:base_print_wizard.field_ir_actions_report__show_in_wizard
 msgid "Show in Print Wizard"
+msgstr ""
+
+#. module: base_print_wizard
+#. odoo-python
+#: code:addons/base_print_wizard/wizard/base_print_wizard.py:0
+msgid "The selected report does not match the active model."
+msgstr ""
+
+#. module: base_print_wizard
+#. odoo-python
+#: code:addons/base_print_wizard/wizard/base_print_wizard.py:0
+msgid "The selected report is not available for all selected records."
+msgstr ""
+
+#. module: base_print_wizard
+#: model:ir.model.fields,field_description:base_print_wizard.field_base_print_copy_mixin__copy_type
+msgid "Type"
 msgstr ""
 
 #. module: base_print_wizard
