@@ -29,8 +29,13 @@ class WebhookOutboundRule(models.Model):
     )
     endpoint_url = fields.Char(help="Used when endpoint_source is 'static'")
     payload_fields = fields.Text(
-        help="JSON list of field specs. Supports field{sub1,sub2} syntax.\n"
-        'Example: ["name", "state", "currency_id{id,name,code}"]\n'
+        help="JSON object. Static values are sent as-is; '{field.path}' "
+        "templates are resolved from the record, recursively at any nesting "
+        "level.\nA one2many/many2many field can be expanded into a list of "
+        "objects: give a key matching the field name a one-item array as "
+        'value, e.g. "order_line": [{"product": "{product_id.name}"}].\n'
+        'Example: {"request_code": "{name}", '
+        '"data": {"id": "{id}", "state": "{state}"}}\n'
         "Leave empty to send id only.",
     )
     auth_header = fields.Char(
