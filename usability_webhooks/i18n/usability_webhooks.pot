@@ -160,6 +160,7 @@ msgstr ""
 
 #. module: usability_webhooks
 #: model:ir.model.fields.selection,name:usability_webhooks.selection__api_log__state__failed
+#: model:ir.model.fields.selection,name:usability_webhooks.selection__webhook_outbound_mixin__webhook_last_state__failed
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_api_log_search
 msgid "Failed"
 msgstr ""
@@ -243,8 +244,9 @@ msgstr ""
 #. module: usability_webhooks
 #: model:ir.model.fields,help:usability_webhooks.field_webhook_outbound_rule__payload_fields
 msgid ""
-"JSON list of field specs. Supports field{sub1,sub2} syntax.\n"
-"Example: [\"name\", \"state\", \"currency_id{id,name,code}\"]\n"
+"JSON object. Static values are sent as-is; '{field.path}' templates are resolved from the record, recursively at any nesting level.\n"
+"A one2many/many2many field can be expanded into a list of objects: give a key matching the field name a one-item array as value, e.g. \"order_line\": [{\"product\": \"{product_id.name}\"}].\n"
+"Example: {\"request_code\": \"{name}\", \"data\": {\"id\": \"{id}\", \"state\": \"{state}\"}}\n"
 "Leave empty to send id only."
 msgstr ""
 
@@ -258,6 +260,16 @@ msgstr ""
 #: model:ir.model.fields,field_description:usability_webhooks.field_api_log__write_date
 #: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__write_date
 msgid "Last Updated on"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_mixin__webhook_last_sent_date
+msgid "Last Webhook Sent On"
+msgstr ""
+
+#. module: usability_webhooks
+#: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_mixin__webhook_last_state
+msgid "Last Webhook Status"
 msgstr ""
 
 #. module: usability_webhooks
@@ -390,12 +402,8 @@ msgstr ""
 
 #. module: usability_webhooks
 #: model:ir.model.fields,field_description:usability_webhooks.field_webhook_outbound_rule__payload_fields
-msgid "Payload Fields"
-msgstr ""
-
-#. module: usability_webhooks
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
-msgid "Payload Fields (JSON list — supports field{sub1,sub2} syntax)"
+msgid "Payload Fields"
 msgstr ""
 
 #. module: usability_webhooks
@@ -501,6 +509,11 @@ msgid ""
 msgstr ""
 
 #. module: usability_webhooks
+#: model:ir.model.fields.selection,name:usability_webhooks.selection__webhook_outbound_mixin__webhook_last_state__done
+msgid "Success"
+msgstr ""
+
+#. module: usability_webhooks
 #: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
 msgid "Trigger"
 msgstr ""
@@ -537,14 +550,14 @@ msgid "Website communication history"
 msgstr ""
 
 #. module: usability_webhooks
-#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
-msgid ""
-"[\"name\", \"state\", \"currency_id{id,name,code}\", "
-"\"order_line{product_id,qty_done}\"]"
-msgstr ""
-
-#. module: usability_webhooks
 #. odoo-python
 #: code:addons/usability_webhooks/controllers/utils.py:0
 msgid "many2many field '%(key)s': 'mode' must be 'add' or 'replace'"
+msgstr ""
+
+#. module: usability_webhooks
+#: model_terms:ir.ui.view,arch_db:usability_webhooks.view_webhook_outbound_rule_form
+msgid ""
+"{\"request_code\": \"{name}\", \"data\": {\"id\": \"{id}\", \"order_line\": "
+"[{\"product\": \"{product_id.name}\", \"qty\": \"{product_uom_qty}\"}]}}"
 msgstr ""
