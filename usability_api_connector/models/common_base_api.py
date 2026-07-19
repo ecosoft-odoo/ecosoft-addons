@@ -90,12 +90,30 @@ class CommonBaseApi(models.AbstractModel):
         """Hook called after a failed API call. Override to handle failure."""
         return
 
-    def _truncate_text(self, text, limit=1000):
-        """Helper: truncate text for safe storage"""
+    def _get_latest_api_log(self):
+        """Return the most recent API log of this record, ordered by call
+        date with id as tie-breaker for logs created within the same second."""
+        self.ensure_one()
+        return self.api_log_ids.sorted(
+            key=lambda log: (log.create_date, log.id), reverse=True
+        )[:1]
+
+    def _truncate_text(self, text, limit=None):
+        """Helper: truncate text for safe storage.
+
+        The limit comes from the ``api_connector.log_limit`` system
+        parameter (0 = keep full text, the default) unless explicitly
+        passed by the caller."""
         if not text:
             return text
         text = str(text)
-        return text[:limit]
+        if limit is None:
+            limit = int(
+                self.env["ir.config_parameter"]
+                .sudo()
+                .get_param("api_connector.log_limit", "0")
+            )
+        return text[:limit] if limit > 0 else text
 
     def _get_header_globals_dict(self, auth_token):
         return {"auth_token": auth_token, "rec": self, "env": self.env}
