@@ -38,7 +38,7 @@ addon | version | maintainers | summary
 [mrp_price_difference](mrp_price_difference/) | 15.0.1.0.0 |  | MRP Price Difference
 [mrp_stock_analytic](mrp_stock_analytic/) | 15.0.1.0.0 |  | Analytic for manufacturing and stock
 [product_readonly](product_readonly/) | 15.0.1.0.0 |  | Product Template - Readonly
-[request_document](request_document/) | 15.0.2.0.0 |  | Request Document
+[request_document](request_document/) | 15.0.2.1.0 |  | Request Document
 [request_document_exception](request_document_exception/) | 15.0.2.0.0 |  | Request Document - Exception
 [request_document_expense](request_document_expense/) | 15.0.2.0.4 |  | Request Document - Expense
 [request_document_purchase_request](request_document_purchase_request/) | 15.0.2.0.1 |  | Request Document - Purchase Request
