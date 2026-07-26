@@ -3,7 +3,7 @@
 
 {
     "name": "Usability - API Connector",
-    "version": "18.0.1.1.1",
+    "version": "18.0.1.1.2",
     "license": "AGPL-3",
     "category": "Tools",
     "author": "Ecosoft, Odoo Community Association (OCA)",
