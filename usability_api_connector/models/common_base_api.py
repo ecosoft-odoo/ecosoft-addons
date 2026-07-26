@@ -128,16 +128,6 @@ class CommonBaseApi(models.AbstractModel):
             ),
         }
 
-    def _eval_config_value(self, value):
-        """Evaluate a config field as a Python expression
-        if valid, else return as-is."""
-        if not value:
-            return value
-        try:
-            return safe_eval(value, globals_dict=self._get_payload_globals_dict())
-        except SyntaxError:
-            return value
-
     def get_login(self, api_data, ssl_context):
         """
         Handle authentication for REST and XMLRPC
@@ -157,7 +147,7 @@ class CommonBaseApi(models.AbstractModel):
                 },
             }
             response = requests.post(
-                f"{self._eval_config_value(api_data.endpoint_url)}/web/session/authenticate",
+                f"{api_data.endpoint_url}/web/session/authenticate",
                 json=payload,
                 timeout=10,
                 verify=not api_data.disable_ssl,
@@ -174,7 +164,7 @@ class CommonBaseApi(models.AbstractModel):
 
         elif api_data.api_type == "xmlrpc":
             common = xmlrpc.client.ServerProxy(
-                f"{self._eval_config_value(api_data.endpoint_url)}/xmlrpc/2/common",
+                f"{api_data.endpoint_url}/xmlrpc/2/common",
                 context=ssl_context,
             )
             token = common.authenticate(
@@ -250,9 +240,7 @@ class CommonBaseApi(models.AbstractModel):
             if params:
                 kwargs["params"] = params
         try:
-            url = (
-                f"{self._eval_config_value(api_data.endpoint_url)}{api_data.route_path}"
-            )
+            url = f"{api_data.endpoint_url}{api_data.route_path}"
             result = requests.request(
                 method=method,
                 url=url,
@@ -271,7 +259,7 @@ class CommonBaseApi(models.AbstractModel):
         if api_data.api_type == "xmlrpc":
             route = api_data.route_path or "/xmlrpc/2/object"
             models = xmlrpc.client.ServerProxy(
-                f"{self._eval_config_value(api_data.endpoint_url)}{route}",
+                f"{api_data.endpoint_url}{route}",
                 context=ssl_context,
             )
             try:
@@ -351,9 +339,7 @@ class CommonBaseApi(models.AbstractModel):
 
         try:
             payload = self._get_data_payload_callback(result)
-            requests.post(
-                self._eval_config_value(api_data.callback_url), json=payload, timeout=10
-            )
+            requests.post(api_data.callback_url, json=payload, timeout=10)
             self.write({"callback_status": "success"})
         except Exception:
             _logger.exception("Callback URL failed")
@@ -499,7 +485,7 @@ class CommonBaseApi(models.AbstractModel):
 
             if api_data.auth_required:
                 if api_data.auth_method == "static_token":
-                    auth_token = self._eval_config_value(api_data.auth_token)
+                    auth_token = api_data.auth_token
                     if not auth_token:
                         raise ValidationError(
                             self.env._("Static token is required but not set.")
