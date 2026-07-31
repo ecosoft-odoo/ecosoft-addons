@@ -454,3 +454,94 @@ class TestWebhookOutbound(TransactionCase):
         self.assertTrue(log_fail.webhook_last_sent_date)
 
         self.rule_callback.active = True
+
+    # ----- payload template format tests -----
+
+    def test_16_format_label_returns_selection_label(self):
+        """'{field:label}' sends the translated label, not the raw value."""
+        mixin = self.env["api.log"]
+        self.partner.type = "invoice"
+
+        labels = dict(self.partner._fields["type"]._description_selection(self.env))
+        self.assertEqual(
+            mixin._resolve_field_value(self.partner, "{type:label}"),
+            labels["invoice"],
+        )
+        # without the format, the raw value is still sent
+        self.assertEqual(mixin._resolve_field_value(self.partner, "{type}"), "invoice")
+
+    def test_17_format_join_crosses_x2many(self):
+        """'{path:join}' traverses a x2many and joins every value."""
+        mixin = self.env["api.log"]
+        cat_a = self.env["res.partner.category"].create({"name": "Join A"})
+        cat_b = self.env["res.partner.category"].create({"name": "Join B"})
+        self.partner.category_id = [(6, 0, (cat_a + cat_b).ids)]
+
+        self.assertEqual(
+            mixin._resolve_field_value(self.partner, "{category_id.name:join}"),
+            f"{cat_a.name}, {cat_b.name}",
+        )
+        # the plain form cannot traverse it
+        self.assertIsNone(
+            mixin._resolve_field_value(self.partner, "{category_id.name}")
+        )
+
+    def test_18_format_date_and_text(self):
+        """':date' keeps the date part only, ':text' converts html to text."""
+        mixin = self.env["api.log"]
+        self.partner.comment = "<p>Hello <b>world</b></p>"
+
+        self.assertEqual(
+            mixin._resolve_field_value(self.partner, "{create_date:date}"),
+            str(self.partner.create_date.date()),
+        )
+        # html2plaintext keeps markdown-like markers for <b>/<strong>/<em>
+        self.assertEqual(
+            mixin._resolve_field_value(self.partner, "{comment:text}"), "Hello *world*"
+        )
+
+    def test_19_format_empty_value(self):
+        """A path resolving to nothing returns an empty string, not None."""
+        mixin = self.env["api.log"]
+        self.partner.comment = False
+
+        self.assertEqual(mixin._resolve_field_value(self.partner, "{comment:text}"), "")
+
+    # ----- payload method call tests -----
+
+    def test_20_method_call_with_and_without_args(self):
+        """'{@_webhook_method}' calls the method on the record."""
+        mixin = self.env["api.log"]
+        log = self._new_log(function_name="my-function")
+
+        self.assertEqual(
+            mixin._resolve_field_value(log, "{@_webhook_echo}"), "my-function"
+        )
+        self.assertEqual(
+            mixin._resolve_field_value(log, "{@_webhook_echo(one, two)}"), "one|two"
+        )
+
+    def test_21_method_call_guarded(self):
+        """Only '_webhook_*' methods are callable, and a raising method is
+        swallowed into None instead of blocking the write()."""
+        mixin = self.env["api.log"]
+        log = self._new_log()
+
+        # not a '_webhook_*' name -> not a template at all, passes through
+        self.assertEqual(mixin._resolve_field_value(log, "{@unlink}"), "{@unlink}")
+        # unknown '_webhook_*' method -> None
+        self.assertIsNone(mixin._resolve_field_value(log, "{@_webhook_missing}"))
+        # method raising -> None
+        self.assertIsNone(mixin._resolve_field_value(log, "{@_webhook_boom}"))
+
+    def test_22_method_call_inside_payload(self):
+        """Method templates resolve at any nesting level of the payload."""
+        mixin = self.env["api.log"]
+        log = self._new_log(function_name="nested")
+
+        payload = mixin._resolve_payload_value(
+            log, {"data": {"key": "{@_webhook_echo}", "state": "{state:label}"}}
+        )
+        self.assertEqual(payload["data"]["key"], "nested")
+        labels = dict(log._fields["state"]._description_selection(self.env))
+        self.assertEqual(payload["data"]["state"], labels[log.state])
