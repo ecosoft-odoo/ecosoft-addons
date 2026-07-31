@@ -7,3 +7,9 @@ from odoo import models
 class APILogOutboundTester(models.Model):
     _name = "api.log"
     _inherit = ["api.log", "webhook.outbound.mixin"]
+
+    def _webhook_echo(self, *args):
+        return "|".join(args) if args else self.function_name
+
+    def _webhook_boom(self):
+        raise ValueError("boom")

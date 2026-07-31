@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ====================
 REST API for Webhook
 ====================
@@ -17,7 +13,7 @@ REST API for Webhook
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
@@ -149,6 +145,43 @@ Rules* to configure outbound push rules.
 | **Authorization Header** | Optional ``Authorization`` header value sent with     |
 |                          | every outbound request, e.g. ``Bearer <token>``.      |
 +--------------------------+-------------------------------------------------------+
+
+Payload templates
+~~~~~~~~~~~~~~~~~
+
++------------------------------------+----------------------------------------+
+| Template                           | Result                                 |
++====================================+========================================+
+| ``{field.path}``                   | The raw value. A path crossing a       |
+|                                    | multi-record one2many/many2many cannot |
+|                                    | be traversed - use ``:join`` instead.  |
++------------------------------------+----------------------------------------+
+| ``{field.path:label}``             | Selection value replaced by its        |
+|                                    | translated label, e.g. ``sale`` ->     |
+|                                    | ``Sales Order``.                       |
++------------------------------------+----------------------------------------+
+| ``{field.path:join}``              | Every value along the path, comma      |
+|                                    | separated. Traverses x2many fields,    |
+|                                    | e.g.                                   |
+|                                    | ``{order_line.product_id.name:join}``. |
++------------------------------------+----------------------------------------+
+| ``{field.path:date}``              | Date part only of a datetime field,    |
+|                                    | e.g. ``2026-07-31``.                   |
++------------------------------------+----------------------------------------+
+| ``{field.path:text}``              | Html field converted to plain text.    |
++------------------------------------+----------------------------------------+
+| ``{@_webhook_method}``             | Calls ``_webhook_method()`` on the     |
+|                                    | record and sends what it returns.      |
++------------------------------------+----------------------------------------+
+| ``{@_webhook_method(arg1, arg2)}`` | Same, with arguments passed as plain   |
+|                                    | strings.                               |
++------------------------------------+----------------------------------------+
+
+Only methods named ``_webhook_*`` can be called. Define them on the
+model that inherits ``webhook.outbound.mixin``, for example to look up a
+value in another model. Anything that fails to resolve is logged and
+sent as ``null``, so a bad template never blocks the ``write()`` that
+triggered the webhook.
 
 Usage
 =====

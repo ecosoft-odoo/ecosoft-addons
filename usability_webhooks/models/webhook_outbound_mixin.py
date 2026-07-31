@@ -6,9 +6,14 @@ import logging
 import re
 
 from odoo import fields, models
+from odoo.tools import html2plaintext
 from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
+
+PATH_RE = re.compile(r"\{([\w.]+)\}")
+FORMAT_RE = re.compile(r"\{([\w.]+):(\w+)\}")
+CALL_RE = re.compile(r"\{@(_webhook_\w+)(?:\((.*)\))?\}")
 
 
 class WebhookOutboundMixin(models.AbstractModel):
@@ -126,27 +131,46 @@ class WebhookOutboundMixin(models.AbstractModel):
         return log.callback_url or None
 
     def _resolve_field_value(self, rec, val):
-        """If val is '{field.path}', traverse
-        the dotted path on rec and return its raw value as-is. To get
-        a related record's name, the path must end in an explicit
-        field, e.g. '{partner_id.name}' - '{partner_id}' alone
-        returns the record itself, not its display_name.
-        Plain strings pass through unchanged.
+        """Resolve one payload template. Three forms are supported, any
+        other string passes through unchanged:
 
-        A path that crosses a multi-record one2many/many2many field
-        (e.g. '{order_line.name}' with several lines) cannot be
-        traversed further and would raise inside Odoo - that error is
-        caught here and logged instead of propagating, so a bad
-        template never blocks the triggering write().
+        '{field.path}'
+            Traverse the dotted path on rec and return its raw value as-is.
+            To get a related record's name, the path must end in an explicit
+            field, e.g. '{partner_id.name}' - '{partner_id}' alone returns
+            the record itself, not its display_name. A path crossing a
+            multi-record one2many/many2many cannot be traversed further, use
+            the ':join' format for that.
+
+        '{field.path:format}'
+            Same traversal, then a conversion. See _format_payload_values
+            for the available formats.
+
+        '{@_webhook_method}' / '{@_webhook_method(arg1, arg2)}'
+            Call a method of rec and send what it returns. Only methods
+            named '_webhook_*' can be called, arguments are passed as
+            plain strings.
+
+        Anything raised while resolving is logged and turned into None, so a
+        bad template never blocks the triggering write().
         """
         if not isinstance(val, str):
             return val
-        m = re.fullmatch(r"\{([\w.]+)\}", val.strip())
-        if not m:
+        val = val.strip()
+        call = CALL_RE.fullmatch(val)
+        if call:
+            return self._resolve_method_value(rec, call.group(1), call.group(2))
+        fmt_match = FORMAT_RE.fullmatch(val)
+        path_match = PATH_RE.fullmatch(val)
+        if not fmt_match and not path_match:
             return val
         try:
+            if fmt_match:
+                return self._resolve_formatted_value(
+                    rec, fmt_match.group(1), fmt_match.group(2)
+                )
             obj = rec
-            for part in m.group(1).split("."):
+            for part in path_match.group(1).split("."):
                 obj = getattr(obj, part, False)
             return obj
         except Exception:
@@ -157,6 +181,55 @@ class WebhookOutboundMixin(models.AbstractModel):
                 rec.id,
             )
             return None
+
+    def _resolve_method_value(self, rec, method_name, raw_args):
+        args = [arg.strip() for arg in raw_args.split(",")] if raw_args else []
+        method = getattr(rec, method_name, None)
+        if not callable(method):
+            _logger.warning(
+                "webhook payload: '%s' is not a method of %s", method_name, rec._name
+            )
+            return None
+        try:
+            return method(*args)
+        except Exception:
+            _logger.warning(
+                "webhook payload method '%s' failed on %s(%s)",
+                method_name,
+                rec._name,
+                rec.id,
+            )
+            return None
+
+    def _resolve_formatted_value(self, rec, path, fmt):
+        """Traverse `path` with mapped() - so it can cross a x2many field -
+        then convert the collected values with `fmt`.
+        """
+        parts = path.split(".")
+        records = rec
+        for part in parts[:-1]:
+            records = records.mapped(part)
+        field = records._fields[parts[-1]]
+        values = [val for val in records.mapped(parts[-1]) if val or val == 0]
+        values = self._format_payload_values(field, values, fmt)
+        if fmt == "join" or len(values) > 1:
+            return ", ".join(str(val) for val in values)
+        return values[0] if values else ""
+
+    def _format_payload_values(self, field, values, fmt):
+        """label: selection value -> its translated label
+        join:  keep every value, comma separated
+        date:  datetime -> date part only
+        text:  html -> plain text
+        """
+        if fmt == "label":
+            labels = dict(field._description_selection(self.env))
+            return [labels.get(val, val) for val in values]
+        if fmt == "date":
+            return [fields.Date.to_string(fields.Date.to_date(val)) for val in values]
+        if fmt == "text":
+            return [html2plaintext(val) for val in values]
+        return values
 
     def _resolve_payload_value(self, rec, val):
         """Recursively resolve '{field.path}' templates inside a JSON
