@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="product_product_form_view_image_url" model="ir.ui.view">
+        <field name="name">product.product.form.image.url</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_information']/.." position="before">
+                <group string="Product Image" name="product_image_url_group">
+                    <field
+                        name="image_url"
+                        placeholder="https://example.com/image.jpg"
+                    />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
