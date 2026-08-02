@@ -1,6 +1,6 @@
 [project]
 name = "odoo-addons-ecosoft-odoo-ecosoft-addons"
-version = "18.0.20260714.0"
+version = "18.0.20260802.0"
 dependencies = [
     "odoo-addon-analytic_tag_dimension==18.0.*",
     "odoo-addon-base_hide_action_delete==18.0.*",
@@ -8,6 +8,7 @@ dependencies = [
     "odoo-addon-base_tier_validation_multi==18.0.*",
     "odoo-addon-frappe_etax_service==18.0.*",
     "odoo-addon-frappe_etax_service_queue==18.0.*",
+    "odoo-addon-product_image_url==18.0.*",
     "odoo-addon-request_document==18.0.*",
     "odoo-addon-request_document_exception==18.0.*",
     "odoo-addon-request_document_expense==18.0.*",
