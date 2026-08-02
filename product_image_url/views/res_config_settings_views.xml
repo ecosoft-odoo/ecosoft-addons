@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_product_image_url" model="ir.ui.view">
+        <field name="name">res.config.settings.form.product.image.url</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="product.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <block id="product_general_settings" position="after">
+                <block title="Product Images" id="product_image_url_settings">
+                    <setting
+                        id="product_image_url_max_size_setting"
+                        string="Maximum Image Size from URL"
+                        help="Limit the width and height of product images downloaded from a URL. Existing images are not modified."
+                    >
+                        <field name="product_image_url_max_size" />
+                    </setting>
+                </block>
+            </block>
+        </field>
+    </record>
+</odoo>
