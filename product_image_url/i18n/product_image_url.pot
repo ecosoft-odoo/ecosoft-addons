@@ -1,0 +1,166 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* product_image_url
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: product_image_url
+#: model:ir.model.fields.selection,name:product_image_url.selection__res_config_settings__product_image_url_max_size__1024
+msgid "1024 px"
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model.fields.selection,name:product_image_url.selection__res_config_settings__product_image_url_max_size__1920
+msgid "1920 px"
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model.fields.selection,name:product_image_url.selection__res_config_settings__product_image_url_max_size__512
+msgid "512 px"
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model,name:product_image_url.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "Could not download the product image."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "Could not download the product image: %s"
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model.fields,help:product_image_url.field_product_product__image_url
+#: model:ir.model.fields,help:product_image_url.field_product_template__image_url
+msgid ""
+"HTTP or HTTPS URL used to download the product image into Odoo. Changing the"
+" URL downloads and replaces the stored image."
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model.fields,field_description:product_image_url.field_product_product__image_url
+#: model:ir.model.fields,field_description:product_image_url.field_product_template__image_url
+msgid "Image URL"
+msgstr ""
+
+#. module: product_image_url
+#: model_terms:ir.ui.view,arch_db:product_image_url.res_config_settings_view_form_product_image_url
+msgid ""
+"Limit the width and height of product images downloaded from a URL. Existing"
+" images are not modified."
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model.fields,field_description:product_image_url.field_res_config_settings__product_image_url_max_size
+msgid "Maximum Image Size"
+msgstr ""
+
+#. module: product_image_url
+#: model_terms:ir.ui.view,arch_db:product_image_url.res_config_settings_view_form_product_image_url
+msgid "Maximum Image Size from URL"
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model.fields,help:product_image_url.field_res_config_settings__product_image_url_max_size
+msgid ""
+"Maximum width and height for product images downloaded from a URL. Existing "
+"product images are not modified."
+msgstr ""
+
+#. module: product_image_url
+#: model:ir.model,name:product_image_url.model_product_template
+msgid "Product"
+msgstr ""
+
+#. module: product_image_url
+#: model_terms:ir.ui.view,arch_db:product_image_url.product_product_form_view_image_url
+#: model_terms:ir.ui.view,arch_db:product_image_url.product_template_form_view_image_url
+msgid "Product Image"
+msgstr ""
+
+#. module: product_image_url
+#: model_terms:ir.ui.view,arch_db:product_image_url.res_config_settings_view_form_product_image_url
+msgid "Product Images"
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The URL did not return an image (Content-Type: %s)."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image URL has too many redirects."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image URL host could not be resolved."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image URL is not valid."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image URL must point to a public host."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image URL must use HTTP or HTTPS."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image is larger than the allowed %s MB."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image server returned an invalid redirect."
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "The image server returned an invalid response."
+msgstr ""
+
+#. module: product_image_url
+#: model_terms:ir.ui.view,arch_db:product_image_url.product_product_form_view_image_url
+#: model_terms:ir.ui.view,arch_db:product_image_url.product_template_form_view_image_url
+msgid "https://example.com/image.jpg"
+msgstr ""
+
+#. module: product_image_url
+#. odoo-python
+#: code:addons/product_image_url/models/product_template.py:0
+msgid "unknown"
+msgstr ""
