@@ -1,11 +1,19 @@
-**1. API Connection**
+**1. Frappe Connection**
 
-Go to **Invoicing -> Configurations -> Settings**, section **Ecosoft e-Tax Services**:
+#. Go to **Invoicing -> Configurations -> e-Tax Service -> Frappe Connections**.
+#. Create a connection for the company:
 
-* **Frappe Server URL** - URL of the Frappe server where the e-Tax Service is installed.
-* **Frappe Auth Token** - Token generated from the Frappe server.
+   * **Frappe Server URL** - Base URL of the Frappe server where the e-Tax
+     Service is installed. Do not include the API route.
+   * **Frappe Auth Token** - Token generated from the Frappe server in
+     ``api_key:api_secret`` format.
 
-Contact your e-Tax Service provider for these values.
+#. Go to **Invoicing -> Configurations -> Settings**, section
+   **Ecosoft e-Tax Services**.
+#. Enable e-Tax and select the **Frappe e-Tax Connection** for the company.
+
+The connection is selected per company and shared by every Frappe e-Tax API
+operation. Contact your e-Tax Service provider for the URL and token.
 
 **2. Document Type Code (etax.doctype.code)**
 

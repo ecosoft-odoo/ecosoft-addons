@@ -7,12 +7,8 @@ from odoo import api, fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
-    frappe_server_url = fields.Char(
-        related="company_id.frappe_server_url",
-        readonly=False,
-    )
-    frappe_auth_token = fields.Char(
-        related="company_id.frappe_auth_token",
+    frappe_etax_connection_id = fields.Many2one(
+        related="company_id.frappe_etax_connection_id",
         readonly=False,
     )
     is_send_etax_email = fields.Boolean(
