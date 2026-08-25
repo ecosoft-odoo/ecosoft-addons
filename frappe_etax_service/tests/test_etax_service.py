@@ -1,11 +1,109 @@
 # Copyright 2025 Ecosoft Co., Ltd (http://ecosoft.co.th/)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+from odoo.exceptions import ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import TransactionCase
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+
+REQUESTS_PATH = "odoo.addons.usability_api_connector.models.common_base_api.requests"
+
+
+class TestFrappeEtaxConnection(TransactionCase):
+    def test_connection_normalizes_server_url(self):
+        connection = self.env["frappe.etax.connection"].create(
+            {
+                "name": "Normalized Connection",
+                "server_url": " https://etax.example.com/ ",
+                "auth_token": "api-key:api-secret",
+            }
+        )
+
+        self.assertEqual(connection.server_url, "https://etax.example.com")
+
+    def test_connection_validates_url_and_token(self):
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self.env["frappe.etax.connection"].create(
+                {
+                    "name": "Invalid URL",
+                    "server_url": "etax.example.com",
+                    "auth_token": "api-key:api-secret",
+                }
+            )
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self.env["frappe.etax.connection"].create(
+                {
+                    "name": "Invalid Token",
+                    "server_url": "https://etax.example.com",
+                    "auth_token": "missing-secret-separator",
+                }
+            )
+
+    def test_company_requires_its_own_connection_when_enabled(self):
+        company = self.env["res.company"].create({"name": "e-Tax Company"})
+        other_company = self.env["res.company"].create({"name": "Other Company"})
+        connection = self.env["frappe.etax.connection"].create(
+            {
+                "name": "Other Company Connection",
+                "company_id": other_company.id,
+                "server_url": "https://etax.example.com",
+                "auth_token": "api-key:api-secret",
+            }
+        )
+
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            company.is_etax_configured = True
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            company.frappe_etax_connection_id = connection
+
+    def test_api_operation_uses_company_connection(self):
+        connection = self.env["frappe.etax.connection"].create(
+            {
+                "name": "API Test Connection",
+                "server_url": "https://etax.example.com/",
+                "auth_token": "test-key:test-secret",
+            }
+        )
+        self.env.company.write(
+            {
+                "frappe_etax_connection_id": connection.id,
+                "is_etax_configured": True,
+            }
+        )
+        api_config = self.env.ref("frappe_etax_service.api_etax_invoice_frappe")
+        invoice = self.env["account.move"].new(
+            {
+                "move_type": "out_invoice",
+                "company_id": self.env.company.id,
+            }
+        )
+        response = MagicMock()
+
+        self.assertFalse(api_config.endpoint_url)
+        self.assertFalse(api_config.auth_required)
+        self.assertFalse(api_config.auth_token)
+
+        with patch(f"{REQUESTS_PATH}.request", return_value=response) as request:
+            result = invoice._execute_rest_api(
+                api_config,
+                False,
+                payload={"doc_data": {"value": 1}},
+            )
+
+        self.assertEqual(result, response)
+        request.assert_called_once_with(
+            method="POST",
+            url=(
+                "https://etax.example.com/"
+                "api/method/etax_inet.api.etax.sign_etax_document"
+            ),
+            headers={"Authorization": "token test-key:test-secret"},
+            timeout=30,
+            data={"doc_data": '{"value": 1}'},
+        )
 
 
 @tagged("post_install", "-at_install")
@@ -13,6 +111,19 @@ class TestETax(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.frappe_connection = cls.env["frappe.etax.connection"].create(
+            {
+                "name": "Test Frappe Connection",
+                "server_url": "https://etax.example.com/",
+                "auth_token": "test-key:test-secret",
+            }
+        )
+        cls.env.company.write(
+            {
+                "frappe_etax_connection_id": cls.frappe_connection.id,
+                "is_etax_configured": True,
+            }
+        )
         cls.env.company.vat = "0000000000000"
         cls.tivc01 = cls.env.ref("frappe_etax_service.etax_purpose_code_01")
 

@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ================================
 Connector to Frappe eTax service
 ================================
@@ -17,7 +13,7 @@ Connector to Frappe eTax service
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-ecosoft--odoo%2Fecosoft--addons-lightgray.png?logo=github
@@ -54,14 +50,22 @@ Workflow:
 Configuration
 =============
 
-**1. API Connection**
+**1. Frappe Connection**
 
-Go to **Invoicing -> Configurations -> Settings**, section **Ecosoft e-Tax Services**:
+#. Go to **Invoicing -> Configurations -> e-Tax Service -> Frappe Connections**.
+#. Create a connection for the company:
 
-* **Frappe Server URL** - URL of the Frappe server where the e-Tax Service is installed.
-* **Frappe Auth Token** - Token generated from the Frappe server.
+   * **Frappe Server URL** - Base URL of the Frappe server where the e-Tax
+     Service is installed. Do not include the API route.
+   * **Frappe Auth Token** - Token generated from the Frappe server in
+     ``api_key:api_secret`` format.
 
-Contact your e-Tax Service provider for these values.
+#. Go to **Invoicing -> Configurations -> Settings**, section
+   **Ecosoft e-Tax Services**.
+#. Enable e-Tax and select the **Frappe e-Tax Connection** for the company.
+
+The connection is selected per company and shared by every Frappe e-Tax API
+operation. Contact your e-Tax Service provider for the URL and token.
 
 **2. Document Type Code (etax.doctype.code)**
 

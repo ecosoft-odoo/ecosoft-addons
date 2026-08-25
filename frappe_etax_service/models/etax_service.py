@@ -12,6 +12,12 @@ from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
+FRAPPE_ETAX_API_CODES = {
+    "FRAPPE_ETAX_SIGN",
+    "FRAPPE_ETAX_PAYMENT_SIGN",
+    "FRAPPE_ETAX_PAYMENT_REPLACE",
+}
+
 
 class ETaxServiceMixin(models.AbstractModel):
     _name = "etax.service.mixin"
@@ -72,6 +78,51 @@ class ETaxServiceMixin(models.AbstractModel):
             "form_name": form_name,
             "pdf_content": self._get_odoo_form() if form_type == "odoo" else False,
         }
+
+    def _get_frappe_etax_connection(self):
+        self.ensure_one()
+        company = self.company_id
+        connection = company.sudo().frappe_etax_connection_id
+        if not connection:
+            raise ValidationError(
+                self.env._("Company '%s' does not have a Frappe e-Tax Connection.")
+                % company.display_name
+            )
+        connection = connection.sudo()
+        if connection.company_id != company:
+            raise ValidationError(
+                self.env._("The Frappe e-Tax Connection must belong to company '%s'.")
+                % company.display_name
+            )
+        if not connection.active:
+            raise ValidationError(
+                self.env._("Frappe e-Tax Connection '%s' is archived.")
+                % connection.display_name
+            )
+        return connection
+
+    def _execute_rest_api(self, api_data, auth_token, payload=None, params=None):
+        if api_data.code not in FRAPPE_ETAX_API_CODES:
+            return super()._execute_rest_api(
+                api_data, auth_token, payload=payload, params=params
+            )
+
+        connection = self._get_frappe_etax_connection()
+        runtime_api_data = self.env["api.config"].new(
+            {
+                "endpoint_url": connection.server_url,
+                "headers": api_data.headers,
+                "is_form_data": api_data.is_form_data,
+                "method": api_data.method,
+                "route_path": api_data.route_path,
+            }
+        )
+        return super()._execute_rest_api(
+            runtime_api_data,
+            connection.auth_token,
+            payload=payload,
+            params=params,
+        )
 
     def _prepare_etax_payload(self):
         self.ensure_one()
@@ -144,6 +195,17 @@ class ETaxServiceMixin(models.AbstractModel):
         )
 
     def _pre_etax_validate(self):
+        disabled = self.filtered(
+            lambda record: not record.company_id.is_etax_configured
+        )
+        if disabled:
+            raise ValidationError(
+                self.env._("e-Tax is not enabled for company '%s'.")
+                % disabled[0].company_id.display_name
+            )
+        for record in self:
+            record._get_frappe_etax_connection()
+
         invalid = self.filtered(
             lambda m: m.etax_status in ["success", "replace", "processing"]
         )

@@ -26,6 +26,12 @@ msgid "%s: must be posted/paid before signing eTax"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.constraint,message:frappe_etax_service.constraint_frappe_etax_connection_frappe_etax_connection_name_company_uniq
+msgid ""
+"A Frappe e-Tax connection with this name already exists for the company."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__api_log_ids
 #: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__api_log_ids
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_service_mixin__api_log_ids
@@ -57,6 +63,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_needaction
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_needaction
 msgid "Action Needed"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__active
+msgid "Active"
 msgstr ""
 
 #. module: frappe_etax_service
@@ -119,16 +130,24 @@ msgid "Applicable Doctype Codes"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.frappe_etax_connection_form_view
+msgid "Archived"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_attachment_count
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_attachment_count
 msgid "Attachment Count"
 msgstr ""
 
 #. module: frappe_etax_service
-#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
-msgid ""
-"Authentication token for Frappe e-Tax Service. Format: "
-"[api_key]:[api_secret]"
+#: model:ir.model.fields,help:frappe_etax_service.field_frappe_etax_connection__auth_token
+msgid "Authentication token in [api_key]:[api_secret] format."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_frappe_etax_connection__server_url
+msgid "Base URL of the Frappe e-Tax server, without an API route."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -170,6 +189,17 @@ msgid "Companies"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__company_id
+msgid "Company"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "Company '%s' does not have a Frappe e-Tax Connection."
+msgstr ""
+
+#. module: frappe_etax_service
 #. odoo-python
 #: code:addons/frappe_etax_service/models/etax_service.py:0
 msgid "Company '%s' does not have a Tax ID (VAT) configured."
@@ -178,6 +208,18 @@ msgstr ""
 #. module: frappe_etax_service
 #: model:ir.model,name:frappe_etax_service.model_res_config_settings
 msgid "Config Settings"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.frappe_etax_connection_form_view
+msgid "Connection Name"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid ""
+"Connection profile containing the Frappe server URL and authentication "
+"token."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -227,6 +269,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__create_uid
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__create_uid
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__create_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__create_uid
 msgid "Created by"
 msgstr ""
 
@@ -236,6 +279,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__create_date
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__create_date
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__create_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__create_date
 msgid "Created on"
 msgstr ""
 
@@ -291,6 +335,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__display_name
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__display_name
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__display_name
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__display_name
 msgid "Display Name"
 msgstr ""
 
@@ -471,15 +516,44 @@ msgid "Frappe - eTax Payment Replacement"
 msgstr ""
 
 #. module: frappe_etax_service
-#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__frappe_auth_token
-#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__frappe_auth_token
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__auth_token
 msgid "Frappe Auth Token"
 msgstr ""
 
 #. module: frappe_etax_service
-#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__frappe_server_url
-#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__frappe_server_url
-msgid "Frappe Server Url"
+#. odoo-python
+#: code:addons/frappe_etax_service/models/frappe_etax_connection.py:0
+msgid "Frappe Auth Token must use [api_key]:[api_secret] format."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.actions.act_window,name:frappe_etax_service.action_frappe_etax_connection
+#: model:ir.ui.menu,name:frappe_etax_service.frappe_etax_connection_menu
+msgid "Frappe Connections"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__server_url
+msgid "Frappe Server URL"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/frappe_etax_connection.py:0
+msgid "Frappe Server URL must be a valid HTTP or HTTPS URL."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_frappe_etax_connection
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__frappe_etax_connection_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__frappe_etax_connection_id
+msgid "Frappe e-Tax Connection"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "Frappe e-Tax Connection '%s' is archived."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -504,6 +578,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__id
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__id
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__id
 msgid "ID"
 msgstr ""
 
@@ -579,6 +654,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__write_uid
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__write_uid
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__write_uid
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__write_uid
 msgid "Last Updated by"
 msgstr ""
 
@@ -588,7 +664,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__write_date
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__write_date
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__write_date
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__write_date
 msgid "Last Updated on"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
+msgid "Manage Connections"
 msgstr ""
 
 #. module: frappe_etax_service
@@ -618,6 +700,7 @@ msgstr ""
 #. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__name
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__name
+#: model:ir.model.fields,field_description:frappe_etax_service.field_frappe_etax_connection__name
 msgid "Name"
 msgstr ""
 
@@ -681,16 +764,6 @@ msgid "Origin"
 msgstr ""
 
 #. module: frappe_etax_service
-#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
-msgid "Paste your frappe server URL"
-msgstr ""
-
-#. module: frappe_etax_service
-#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
-msgid "Paste your frappe token"
-msgstr ""
-
-#. module: frappe_etax_service
 #: model:ir.model,name:frappe_etax_service.model_account_payment
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_replacement_wizard__origin_ref__account_payment
 msgid "Payments"
@@ -726,6 +799,12 @@ msgstr ""
 #. module: frappe_etax_service
 #: model:ir.model,name:frappe_etax_service.model_etax_purpose_code
 msgid "Purpose Code follow INET convention."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__rating_ids
+#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__rating_ids
+msgid "Ratings"
 msgstr ""
 
 #. module: frappe_etax_service
@@ -772,6 +851,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_user_id
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_user_id
 msgid "Responsible User"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/res_company.py:0
+msgid "Select a Frappe e-Tax Connection before enabling e-Tax."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -842,6 +927,18 @@ msgid "Success"
 msgstr ""
 
 #. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "The Frappe e-Tax Connection must belong to company '%s'."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/res_company.py:0
+msgid "The Frappe e-Tax Connection must belong to the same company."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_replacement_wizard_view
 msgid ""
 "This action will cancel this document, and create a replacement document.<br/>\n"
@@ -891,11 +988,6 @@ msgid "Type of the exception activity on record."
 msgstr ""
 
 #. module: frappe_etax_service
-#: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
-msgid "URL of the Frappe e-Tax Service."
-msgstr ""
-
-#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__is_credit_payment_entry
 #: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__is_credit_payment_entry
 msgid "Use Credit Note on Payment"
@@ -917,6 +1009,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/frappe_etax_service/models/etax_service.py:0
 msgid "_prepare_etax_doc_data() not implemented for model: %s"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.frappe_etax_connection_form_view
+msgid "api_key:api_secret"
 msgstr ""
 
 #. module: frappe_etax_service
@@ -942,6 +1039,12 @@ msgid ""
 "e-Tax Replacement not allowed after this date of next invoice month. For "
 "example, if replace lock date is 10 and invoice date is 20/11/2000, "
 "replacement e-Tax is not allowed after 10/12/2000."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid "e-Tax is not enabled for company '%s'."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -991,6 +1094,11 @@ msgstr ""
 #. module: frappe_etax_service
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_doctype__doc_source_template__frappe
 msgid "frappe"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.frappe_etax_connection_form_view
+msgid "https://etax.example.com"
 msgstr ""
 
 #. module: frappe_etax_service
