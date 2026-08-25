@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="frappe_etax_connection_list_view" model="ir.ui.view">
+        <field name="name">frappe.etax.connection.list.view</field>
+        <field name="model">frappe.etax.connection</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="company_id" groups="base.group_multi_company" />
+                <field name="server_url" />
+                <field name="active" column_invisible="True" />
+            </list>
+        </field>
+    </record>
+
+    <record id="frappe_etax_connection_form_view" model="ir.ui.view">
+        <field name="name">frappe.etax.connection.form.view</field>
+        <field name="model">frappe.etax.connection</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1>
+                            <field name="name" placeholder="Connection Name" />
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company" />
+                        <field
+                            name="server_url"
+                            placeholder="https://etax.example.com"
+                        />
+                        <field name="auth_token" placeholder="api_key:api_secret" />
+                        <field name="active" invisible="1" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_frappe_etax_connection" model="ir.actions.act_window">
+        <field name="name">Frappe Connections</field>
+        <field name="res_model">frappe.etax.connection</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="api_config_form_view_frappe_etax" model="ir.ui.view">
+        <field name="name">api.config.form.view.frappe.etax</field>
+        <field name="model">api.config</field>
+        <field name="inherit_id" ref="usability_api_connector.api_config_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_test_call_api']" position="attributes">
+                <attribute name="invisible">
+                    code in ('FRAPPE_ETAX_SIGN', 'FRAPPE_ETAX_PAYMENT_SIGN', 'FRAPPE_ETAX_PAYMENT_REPLACE')
+                </attribute>
+            </xpath>
+            <xpath expr="//field[@name='endpoint_url']" position="attributes">
+                <attribute name="invisible">
+                    code in ('FRAPPE_ETAX_SIGN', 'FRAPPE_ETAX_PAYMENT_SIGN', 'FRAPPE_ETAX_PAYMENT_REPLACE')
+                </attribute>
+            </xpath>
+            <xpath expr="//group[@name='auth']" position="attributes">
+                <attribute name="invisible">
+                    code in ('FRAPPE_ETAX_SIGN', 'FRAPPE_ETAX_PAYMENT_SIGN', 'FRAPPE_ETAX_PAYMENT_REPLACE')
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem
+        id="frappe_etax_connection_menu"
+        name="Frappe Connections"
+        parent="etax_service_menu"
+        action="action_frappe_etax_connection"
+        sequence="5"
+        groups="account.group_account_manager"
+    />
+</odoo>
