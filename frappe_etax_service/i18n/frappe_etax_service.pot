@@ -26,6 +26,14 @@ msgid "%s: must be posted/paid before signing eTax"
 msgstr ""
 
 #. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"%s: no e-Tax line items found. Add Tax Invoice information or reconcile the "
+"payment with a Customer Invoice before signing e-Tax."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.constraint,message:frappe_etax_service.constraint_frappe_etax_connection_frappe_etax_connection_name_company_uniq
 msgid ""
 "A Frappe e-Tax connection with this name already exists for the company."
