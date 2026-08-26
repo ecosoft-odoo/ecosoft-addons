@@ -3,11 +3,13 @@
 
 from unittest.mock import MagicMock, patch
 
+from odoo import Command
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.addons.frappe_etax_service.models.etax_service import ETaxServiceMixin
 
 REQUESTS_PATH = "odoo.addons.usability_api_connector.models.common_base_api.requests"
 
@@ -117,6 +119,58 @@ class TestFrappeEtaxConnection(TransactionCase):
             timeout=30,
             data={"doc_data": '{"value": 1}'},
         )
+
+
+class TestPaymentETaxValidation(TransactionCase):
+    def _new_payment(self):
+        return self.env["account.payment"].new(
+            {
+                "amount": 100.0,
+                "payment_type": "inbound",
+                "partner_type": "customer",
+                "partner_id": self.env.company.partner_id.id,
+            }
+        )
+
+    def _validate_payment_lines(self, payment):
+        with patch.object(
+            ETaxServiceMixin,
+            "_pre_etax_validate",
+            return_value=None,
+        ):
+            return payment._pre_etax_validate()
+
+    def test_payment_without_lines_is_rejected(self):
+        payment = self._new_payment()
+
+        with self.assertRaisesRegex(ValidationError, "no e-Tax line items found"):
+            self._validate_payment_lines(payment)
+
+    def test_payment_with_reconciled_invoice_lines_is_allowed(self):
+        payment = self._new_payment()
+        invoice = self.env["account.move"].new(
+            {
+                "move_type": "out_invoice",
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Test line",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                        }
+                    )
+                ],
+            }
+        )
+        payment.reconciled_invoice_ids = invoice
+
+        self.assertIsNone(self._validate_payment_lines(payment))
+
+    def test_payment_with_tax_invoice_is_allowed(self):
+        payment = self._new_payment()
+        payment.tax_invoice_ids = self.env["account.move.tax.invoice"].new({})
+
+        self.assertIsNone(self._validate_payment_lines(payment))
 
 
 @tagged("post_install", "-at_install")
