@@ -64,6 +64,24 @@ class AccountPayment(models.Model):
             )
         return super().action_draft()
 
+    def _pre_etax_validate(self):
+        res = super()._pre_etax_validate()
+        missing_lines = self.filtered(
+            lambda payment: not payment.tax_invoice_ids
+            and not payment.reconciled_invoice_ids.invoice_line_ids
+        )
+        if missing_lines:
+            names = ", ".join(missing_lines.mapped("display_name"))
+            raise ValidationError(
+                self.env._(
+                    "%s: no e-Tax line items found. Add Tax Invoice information "
+                    "or reconcile the payment with a Customer Invoice before "
+                    "signing e-Tax."
+                )
+                % names
+            )
+        return res
+
     def _prepare_context_for_wizard(self, **kwargs):
         move_type = list(set(self.move_id.mapped("move_type")))
         if len(move_type) > 1:
