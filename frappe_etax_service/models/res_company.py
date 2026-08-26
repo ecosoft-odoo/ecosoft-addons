@@ -20,16 +20,10 @@ class ResCompany(models.Model):
         string="Enable e-Tax",
     )
 
-    @api.constrains("frappe_etax_connection_id", "is_etax_configured")
+    @api.constrains("frappe_etax_connection_id")
     def _check_frappe_etax_connection(self):
         for company in self:
             connection = company.frappe_etax_connection_id
-            if company.is_etax_configured and not connection:
-                raise ValidationError(
-                    self.env._(
-                        "Select a Frappe e-Tax Connection before enabling e-Tax."
-                    )
-                )
             if connection and connection.company_id != company:
                 raise ValidationError(
                     self.env._(
