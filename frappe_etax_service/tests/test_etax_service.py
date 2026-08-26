@@ -42,7 +42,7 @@ class TestFrappeEtaxConnection(TransactionCase):
                 }
             )
 
-    def test_company_requires_its_own_connection_when_enabled(self):
+    def test_company_rejects_connection_from_other_company(self):
         company = self.env["res.company"].create({"name": "e-Tax Company"})
         other_company = self.env["res.company"].create({"name": "Other Company"})
         connection = self.env["frappe.etax.connection"].create(
@@ -54,10 +54,23 @@ class TestFrappeEtaxConnection(TransactionCase):
             }
         )
 
-        with self.assertRaises(ValidationError), self.cr.savepoint():
-            company.is_etax_configured = True
+        company.is_etax_configured = True
+        self.assertTrue(company.is_etax_configured)
         with self.assertRaises(ValidationError), self.cr.savepoint():
             company.frappe_etax_connection_id = connection
+
+    def test_settings_can_enable_etax_before_connection(self):
+        company = self.env["res.company"].create({"name": "Unconfigured e-Tax Company"})
+
+        self.env["res.config.settings"].create(
+            {
+                "company_id": company.id,
+                "is_etax_configured": True,
+            }
+        )
+
+        self.assertTrue(company.is_etax_configured)
+        self.assertFalse(company.frappe_etax_connection_id)
 
     def test_api_operation_uses_company_connection(self):
         connection = self.env["frappe.etax.connection"].create(
