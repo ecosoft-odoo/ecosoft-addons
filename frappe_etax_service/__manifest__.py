@@ -4,7 +4,7 @@
 {
     "name": "Connector to Frappe eTax service",
     "summary": "Integrate Odoo with Frappe e-Tax service",
-    "version": "18.0.1.3.1",
+    "version": "18.0.1.3.2",
     "author": "Kitti U., Ecosoft",
     "license": "AGPL-3",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
