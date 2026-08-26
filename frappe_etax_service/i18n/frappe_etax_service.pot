@@ -802,12 +802,6 @@ msgid "Purpose Code follow INET convention."
 msgstr ""
 
 #. module: frappe_etax_service
-#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__rating_ids
-#: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__rating_ids
-msgid "Ratings"
-msgstr ""
-
-#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__reason
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__reason
 msgid "Reason"
