@@ -591,6 +591,16 @@ msgid "ID"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.actions.server,name:frappe_etax_service.ir_cron_run_update_processing_document_ir_actions_server
+msgid "INET eTax: Update Processing Invoices"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.actions.server,name:frappe_etax_service.ir_cron_run_update_processing_payment_ir_actions_server
+msgid "INET eTax: Update Processing Payments"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_exception_icon
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_exception_icon
 msgid "Icon"
