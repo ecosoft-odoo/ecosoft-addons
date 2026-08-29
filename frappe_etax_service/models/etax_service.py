@@ -17,6 +17,14 @@ FRAPPE_ETAX_API_CODES = {
     "FRAPPE_ETAX_PAYMENT_SIGN",
     "FRAPPE_ETAX_PAYMENT_REPLACE",
 }
+FRAPPE_ETAX_STATUS_FIELDS = [
+    "status",
+    "transaction_code",
+    "error_code",
+    "error_message",
+    "pdf_url",
+    "xml_url",
+]
 
 
 class ETaxServiceMixin(models.AbstractModel):
@@ -42,6 +50,7 @@ class ETaxServiceMixin(models.AbstractModel):
             ("processing", "Processing"),
         ],
         string="ETax Status",
+        index="btree_not_null",
         copy=False,
     )
     etax_error_code = fields.Char(
@@ -193,6 +202,72 @@ class ETaxServiceMixin(models.AbstractModel):
                 "res_id": self.id,
             }
         )
+
+    def update_processing_document(self):
+        """Fetch and apply the latest status of one processing document."""
+        self.ensure_one()
+        if self.etax_status != "processing":
+            return False
+        if not self.etax_transaction_code:
+            _logger.warning(
+                "Cannot update processing e-Tax document %s,%s without a "
+                "transaction code",
+                self._name,
+                self.id,
+            )
+            return False
+
+        connection = self._get_frappe_etax_connection()
+        response = requests.get(
+            f"{connection.server_url}/api/resource/INET ETax Document",
+            headers={"Authorization": f"token {connection.auth_token}"},
+            params={
+                "filters": json.dumps(
+                    [["transaction_code", "=", self.etax_transaction_code]]
+                ),
+                "fields": json.dumps(FRAPPE_ETAX_STATUS_FIELDS),
+                "limit_page_length": 1,
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        documents = response.json().get("data") or []
+        if not documents:
+            _logger.warning(
+                "No Frappe e-Tax document found for transaction %s",
+                self.etax_transaction_code,
+            )
+            return False
+
+        self._hook_update_data(
+            self._etax_sign_api_code,
+            {"message": documents[0]},
+        )
+        return True
+
+    def run_update_processing_document(self, limit=100, auto_commit=True):
+        """Update one cron batch of processing e-Tax documents."""
+        records = self.search(
+            [("etax_status", "=", "processing")],
+            limit=limit,
+            order="id",
+        )
+        processed = 0
+        for record in records:
+            try:
+                with self.env.cr.savepoint():
+                    record.update_processing_document()
+            except Exception:  # noqa: BLE001
+                _logger.exception(
+                    "API Error: run_update_processing_document() for %s,%s",
+                    record._name,
+                    record.id,
+                )
+            else:
+                processed += 1
+                if auto_commit:
+                    self.env.cr.commit()  # pylint: disable=invalid-commit
+        return processed
 
     def _pre_etax_validate(self):
         disabled = self.filtered(
