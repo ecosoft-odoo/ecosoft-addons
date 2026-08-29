@@ -15,6 +15,7 @@
                 </p>
                 <group>
                     <group>
+                        <field name="origin_ref" invisible="1" />
                         <field
                             name="purpose_code_id"
                             options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"

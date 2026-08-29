@@ -94,6 +94,7 @@ class AccountMove(models.Model):
             "view_mode": "form",
             "target": "new",
             "context": {
+                "active_model": self._name,
                 "default_etax_doctype_code": self.etax_doctype_code,
                 "default_origin_ref": f"{self._name},{self.id}",
             },
