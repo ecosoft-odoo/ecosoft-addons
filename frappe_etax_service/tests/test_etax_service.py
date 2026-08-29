@@ -1,6 +1,7 @@
 # Copyright 2025 Ecosoft Co., Ltd (http://ecosoft.co.th/)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+import json
 from unittest.mock import MagicMock, patch
 
 from odoo import Command
@@ -9,7 +10,10 @@ from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
-from odoo.addons.frappe_etax_service.models.etax_service import ETaxServiceMixin
+from odoo.addons.frappe_etax_service.models.etax_service import (
+    FRAPPE_ETAX_STATUS_FIELDS,
+    ETaxServiceMixin,
+)
 
 REQUESTS_PATH = "odoo.addons.usability_api_connector.models.common_base_api.requests"
 
@@ -381,3 +385,97 @@ class TestETax(AccountTestInvoicingCommon):
         self.assertEqual(credit_note.etax_doctype_id, self.doctype_81)
         self.assertEqual(credit_note.etax_doctype_id.doctype_code_id.code, "81")
         self.assertEqual(credit_note.etax_status, "success")
+
+    def test_08_update_processing_document(self):
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[100.0],
+            taxes=[self.tax_sale_a],
+        )
+        invoice.write(
+            {
+                "etax_status": "processing",
+                "etax_transaction_code": "TX-PROCESSING-001",
+            }
+        )
+        response = MagicMock()
+        response.json.return_value = {
+            "data": [
+                {
+                    "status": "Error",
+                    "transaction_code": "TX-PROCESSING-001",
+                    "error_code": "ETAX-001",
+                    "error_message": "Signing failed",
+                }
+            ]
+        }
+
+        with patch(
+            "odoo.addons.frappe_etax_service.models.etax_service.requests.get",
+            return_value=response,
+        ) as request:
+            result = invoice.update_processing_document()
+
+        self.assertTrue(result)
+        self.assertEqual(invoice.etax_status, "error")
+        self.assertEqual(invoice.etax_error_code, "ETAX-001")
+        self.assertEqual(invoice.etax_error_message, "Signing failed")
+        response.raise_for_status.assert_called_once_with()
+        request.assert_called_once_with(
+            "https://etax.example.com/api/resource/INET ETax Document",
+            headers={"Authorization": "token test-key:test-secret"},
+            params={
+                "filters": '[["transaction_code", "=", "TX-PROCESSING-001"]]',
+                "fields": json.dumps(FRAPPE_ETAX_STATUS_FIELDS),
+                "limit_page_length": 1,
+            },
+            timeout=20,
+        )
+
+    def test_09_processing_document_crons(self):
+        for xmlid, model_name in (
+            (
+                "frappe_etax_service.ir_cron_run_update_processing_document",
+                "account.move",
+            ),
+            (
+                "frappe_etax_service.ir_cron_run_update_processing_payment",
+                "account.payment",
+            ),
+        ):
+            cron = self.env.ref(xmlid)
+            self.assertEqual(cron.model_id.model, model_name)
+            self.assertEqual(cron.interval_number, 1)
+            self.assertEqual(cron.interval_type, "minutes")
+            self.assertEqual(cron.code, "model.run_update_processing_document()")
+
+    def test_10_processing_document_cron_respects_limit(self):
+        invoices = self.env["account.move"]
+        for transaction_code in ("TX-BATCH-001", "TX-BATCH-002"):
+            invoice = self.init_invoice(
+                "out_invoice",
+                partner=self.env.ref("base.res_partner_2"),
+                amounts=[100.0],
+                taxes=[self.tax_sale_a],
+            )
+            invoice.write(
+                {
+                    "etax_status": "processing",
+                    "etax_transaction_code": transaction_code,
+                }
+            )
+            invoices |= invoice
+
+        with patch.object(
+            ETaxServiceMixin,
+            "update_processing_document",
+            return_value=True,
+        ) as update:
+            processed = invoices.run_update_processing_document(
+                limit=1,
+                auto_commit=False,
+            )
+
+        self.assertEqual(processed, 1)
+        update.assert_called_once()

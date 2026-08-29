@@ -18,6 +18,7 @@
     "data": [
         "security/frappe_etax_security.xml",
         "security/ir.model.access.csv",
+        "data/cron.xml",
         "data/etax_doctype_code_data.xml",
         "data/etax_purpose_code_data.xml",
         "data/api_config_data.xml",
