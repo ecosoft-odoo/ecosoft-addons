@@ -4,7 +4,7 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
@@ -199,6 +199,7 @@ class TestETax(AccountTestInvoicingCommon):
         cls.tivc01 = cls.env.ref("frappe_etax_service.etax_purpose_code_01")
 
         doctype_code_380 = cls.env.ref("frappe_etax_service.etax_doctype_code_380")
+        doctype_code_T01 = cls.env.ref("frappe_etax_service.etax_doctype_code_T01")
         doctype_code_T02 = cls.env.ref("frappe_etax_service.etax_doctype_code_T02")
         doctype_code_80 = cls.env.ref("frappe_etax_service.etax_doctype_code_80")
         doctype_code_81 = cls.env.ref("frappe_etax_service.etax_doctype_code_81")
@@ -208,6 +209,13 @@ class TestETax(AccountTestInvoicingCommon):
                 "name": "ใบแจ้งหนี้ (Test)",
                 "move_type": "out_invoice",
                 "doctype_code_id": doctype_code_380.id,
+            }
+        )
+        cls.doctype_T01 = cls.env["etax.doctype"].create(
+            {
+                "name": "ใบรับ (Test)",
+                "move_type": "entry",
+                "doctype_code_id": doctype_code_T01.id,
             }
         )
         cls.doctype_T02 = cls.env["etax.doctype"].create(
@@ -263,6 +271,37 @@ class TestETax(AccountTestInvoicingCommon):
 
         with patch.object(type(invoice), "action_call_api", mock_action_call_api):
             wizard.sign_etax_invoice()
+
+    def _create_signed_reconciled_payment(self, partner=None):
+        partner = partner or self.env.ref("base.res_partner_2")
+        payment_date = fields.Date.today()
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=partner,
+            invoice_date=payment_date,
+            amounts=[100.0],
+            taxes=[],
+            post=True,
+        )
+        payment = self.init_payment(
+            100.0,
+            partner=partner,
+            date=payment_date,
+            post=True,
+        )
+        payment.action_validate()
+        lines = (invoice.line_ids | payment.move_id.line_ids).filtered(
+            lambda line: line.account_id.account_type == "asset_receivable"
+            and not line.reconciled
+        )
+        lines.reconcile()
+        payment.write(
+            {
+                "etax_doctype_id": self.doctype_T01.id,
+                "etax_status": "success",
+            }
+        )
+        return invoice, payment
 
     def test_01_purpose_code_etax(self):
         # display_name must follow {code} - {name} format
@@ -335,6 +374,54 @@ class TestETax(AccountTestInvoicingCommon):
         # Replacement signed; original marked as replaced
         self.assertEqual(replacement.etax_status, "success")
         self.assertEqual(invoice.etax_status, "replace")
+
+    def test_05b_payment_replacement_reconciles_on_confirm(self):
+        invoice, payment = self._create_signed_reconciled_payment()
+        purpose = self.env.ref("frappe_etax_service.etax_purpose_code_14")
+        action = payment.action_open_replacement_wizard()
+        wizard = (
+            self.env["etax.replacement.wizard"]
+            .with_context(**action["context"])
+            .create(
+                {
+                    "purpose_code_id": purpose.id,
+                    "reason": purpose.reason,
+                }
+            )
+        )
+
+        self.assertEqual(wizard.origin_ref, payment)
+        replacement_action = wizard.create_replacement()
+        replacement = self.env["account.payment"].browse(replacement_action["res_id"])
+
+        self.assertEqual(payment.state, "canceled")
+        self.assertEqual(replacement.state, "draft")
+        self.assertEqual(replacement.replacement_origin_payment_id, payment)
+        self.assertEqual(payment.replacement_payment_ids, replacement)
+        self.assertEqual(replacement.invoice_ids, invoice)
+        self.assertEqual(invoice.payment_state, "not_paid")
+
+        replacement_date = fields.Date.add(payment.date, days=1)
+        replacement.date = replacement_date
+        replacement.action_post()
+
+        self.assertEqual(replacement.date, replacement_date)
+        self.assertEqual(replacement.reconciled_invoice_ids, invoice)
+        self.assertEqual(invoice.payment_state, "paid")
+
+    def test_05c_payment_replacement_rejects_another_partner(self):
+        invoice, payment = self._create_signed_reconciled_payment()
+        replacement = payment.create_replacement_etax()
+        replacement.partner_id = self.env.ref("base.res_partner_3")
+
+        with (
+            self.assertRaisesRegex(ValidationError, "same customer or vendor"),
+            self.cr.savepoint(),
+        ):
+            replacement.action_post()
+
+        self.assertEqual(replacement.state, "draft")
+        self.assertEqual(invoice.payment_state, "not_paid")
 
     def test_06_sign_debit_note(self):
         """Sign ใบเพิ่มหนี้ (doctype 80)"""

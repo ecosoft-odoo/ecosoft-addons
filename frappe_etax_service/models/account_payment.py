@@ -1,7 +1,7 @@
 # Copyright 2023 Kitti U.
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -16,12 +16,19 @@ class AccountPayment(models.Model):
         copy=False,
         default=False,
     )
-    replaced_receipt_id = fields.Many2one(
+    replacement_origin_payment_id = fields.Many2one(
         comodel_name="account.payment",
-        string="Replaced Receipt Payment Document",
+        string="Original Payment",
         readonly=True,
         copy=False,
-        help="This field support replacement payment",
+        help="Original payment for which this replacement was created.",
+    )
+    replacement_payment_ids = fields.One2many(
+        comodel_name="account.payment",
+        inverse_name="replacement_origin_payment_id",
+        string="Replacement Payments",
+        readonly=True,
+        help="Replacement payments created from this payment.",
     )
     is_etax_configured = fields.Boolean(
         related="company_id.is_etax_configured",
@@ -43,8 +50,8 @@ class AccountPayment(models.Model):
     def _hook_update_data(self, code_api, result):
         res = super()._hook_update_data(code_api, result)
         if code_api == self._etax_sign_api_code and self.etax_status == "success":
-            if self.replaced_receipt_id:
-                self.replaced_receipt_id.etax_status = "replace"
+            if self.replacement_origin_payment_id:
+                self.replacement_origin_payment_id.etax_status = "replace"
         return res
 
     def action_draft(self):
@@ -63,6 +70,98 @@ class AccountPayment(models.Model):
                 )
             )
         return super().action_draft()
+
+    def _validate_replacement_invoices(self):
+        valid_account_types = ("asset_receivable", "liability_payable")
+        for payment in self.filtered("replacement_origin_payment_id"):
+            invoices = payment.invoice_ids
+            if len(invoices) > 1:
+                raise ValidationError(
+                    self.env._("Multiple invoices are not allowed for a replacement")
+                )
+            if invoices.filtered(lambda invoice: invoice.state != "posted"):
+                raise ValidationError(
+                    self.env._(
+                        "The invoice to reconcile must be posted before confirming "
+                        "the replacement payment."
+                    )
+                )
+            if invoices and invoices.company_id != payment.company_id:
+                raise ValidationError(
+                    self.env._(
+                        "The replacement payment and invoice to reconcile must belong "
+                        "to the same company."
+                    )
+                )
+            if (
+                invoices
+                and invoices.commercial_partner_id
+                != payment.partner_id.commercial_partner_id
+            ):
+                raise ValidationError(
+                    self.env._(
+                        "The replacement payment and invoice to reconcile must belong "
+                        "to the same customer or vendor. Correct the source invoice "
+                        "before confirming a replacement for another party."
+                    )
+                )
+            if invoices and not invoices.line_ids.filtered(
+                lambda line: line.account_id.reconcile
+                and line.account_id.account_type in valid_account_types
+                and not line.reconciled
+            ):
+                raise ValidationError(
+                    self.env._(
+                        "The invoice to reconcile has no outstanding receivable or "
+                        "payable amount."
+                    )
+                )
+
+    def _reconcile_replacement_invoices(self):
+        # OCA account_payment_state_keep_draft uses the same invoice_ids link.
+        # Filtering reconciled lines keeps both action_post hooks idempotent.
+        valid_account_types = ("asset_receivable", "liability_payable")
+        for payment in self.filtered(
+            lambda pay: pay.replacement_origin_payment_id and pay.invoice_ids
+        ):
+            if not payment.move_id:
+                raise ValidationError(
+                    self.env._(
+                        "The replacement payment must create a journal entry before "
+                        "it can be reconciled."
+                    )
+                )
+            invoice_lines = payment.invoice_ids.line_ids.filtered(
+                lambda line: line.account_id.reconcile
+                and line.account_id.account_type in valid_account_types
+                and not line.reconciled
+            )
+            payment_lines = payment.move_id.line_ids.filtered(
+                lambda line: line.account_id.reconcile
+                and line.account_id.account_type in valid_account_types
+                and not line.reconciled
+            )
+            common_accounts = invoice_lines.account_id & payment_lines.account_id
+            if invoice_lines and payment_lines and not common_accounts:
+                raise ValidationError(
+                    self.env._(
+                        "The replacement payment and invoice must use the same "
+                        "receivable or payable account."
+                    )
+                )
+            for account in common_accounts:
+                lines = invoice_lines.filtered(
+                    lambda line, account=account: line.account_id == account
+                ) | payment_lines.filtered(
+                    lambda line, account=account: line.account_id == account
+                )
+                lines.reconcile()
+
+    def action_post(self):
+        self._validate_replacement_invoices()
+        res = super().action_post()
+        self._reconcile_replacement_invoices()
+        return res
 
     def _pre_etax_validate(self):
         res = super()._pre_etax_validate()
@@ -97,7 +196,7 @@ class AccountPayment(models.Model):
                 "active_id": self.id,
             }
         )
-        if self.replaced_receipt_id and self.etax_doctype_id:
+        if self.replacement_origin_payment_id and self.etax_doctype_id:
             kwargs.update(
                 {
                     "default_etax_doctype_id": self.etax_doctype_id.id,
@@ -115,6 +214,7 @@ class AccountPayment(models.Model):
             "view_mode": "form",
             "target": "new",
             "context": {
+                "active_model": self._name,
                 "default_etax_doctype_code": self.etax_doctype_code,
                 "default_origin_ref": f"{self._name},{self.id}",
             },
@@ -131,6 +231,7 @@ class AccountPayment(models.Model):
             raise ValidationError(
                 self.env._("Multiple reconciled invoices not allowed")
             )
+        invoices = self.reconciled_invoice_ids
         res = self.with_context(include_business_fields=True).copy_data()[0]
 
         # Preserve important fields manually
@@ -138,7 +239,8 @@ class AccountPayment(models.Model):
             {
                 "date": self.date,
                 "etax_doctype_id": self.etax_doctype_id.id,
-                "replaced_receipt_id": self.id,
+                "replacement_origin_payment_id": self.id,
+                "invoice_ids": [Command.set(invoices.ids)],
             }
         )
 
