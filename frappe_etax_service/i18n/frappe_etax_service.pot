@@ -638,6 +638,11 @@ msgid "Invoice template source"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+msgid "Invoice to Reconcile"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_replacement_wizard__origin_ref__account_move
 msgid "Invoices"
 msgstr ""
@@ -701,6 +706,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__message_ids
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__message_ids
 msgid "Messages"
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid "Multiple invoices are not allowed for a replacement"
 msgstr ""
 
 #. module: frappe_etax_service
@@ -782,6 +793,16 @@ msgid "Origin"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__replacement_origin_payment_id
+msgid "Original Payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_account_payment__replacement_origin_payment_id
+msgid "Original payment for which this replacement was created."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model,name:frappe_etax_service.model_account_payment
 #: model:ir.model.fields.selection,name:frappe_etax_service.selection__etax_replacement_wizard__origin_ref__account_payment
 msgid "Payments"
@@ -839,11 +860,6 @@ msgid "Replaced Document"
 msgstr ""
 
 #. module: frappe_etax_service
-#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__replaced_receipt_id
-msgid "Replaced Receipt Payment Document"
-msgstr ""
-
-#. module: frappe_etax_service
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_replacement_wizard_view
 msgid "Replacement"
 msgstr ""
@@ -852,6 +868,21 @@ msgstr ""
 #: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__replacement_lock_date
 #: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__replacement_lock_date
 msgid "Replacement Lock Date"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
+msgid "Replacement Payment"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_payment__replacement_payment_ids
+msgid "Replacement Payments"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_account_payment__replacement_payment_ids
+msgid "Replacement payments created from this payment."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -945,6 +976,54 @@ msgid "The Frappe e-Tax Connection must belong to the same company."
 msgstr ""
 
 #. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"The invoice to reconcile has no outstanding receivable or payable amount."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"The invoice to reconcile must be posted before confirming the replacement "
+"payment."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"The replacement payment and invoice must use the same receivable or payable "
+"account."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"The replacement payment and invoice to reconcile must belong to the same "
+"company."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"The replacement payment and invoice to reconcile must belong to the same "
+"customer or vendor. Correct the source invoice before confirming a "
+"replacement for another party."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_payment.py:0
+msgid ""
+"The replacement payment must create a journal entry before it can be "
+"reconciled."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_replacement_wizard_view
 msgid ""
 "This action will cancel this document, and create a replacement document.<br/>\n"
@@ -956,11 +1035,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
 msgid "This eTax document has been replaced"
-msgstr ""
-
-#. module: frappe_etax_service
-#: model:ir.model.fields,help:frappe_etax_service.field_account_payment__replaced_receipt_id
-msgid "This field support replacement payment"
 msgstr ""
 
 #. module: frappe_etax_service
