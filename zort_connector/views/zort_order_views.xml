@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_zort_order_list" model="ir.ui.view">
+        <field name="name">zort.order.list</field>
+        <field name="model">zort.order</field>
+        <field name="arch" type="xml">
+            <list
+                string="Zort Orders"
+                decoration-info="state == 'new'"
+                decoration-success="state == 'processed'"
+                decoration-danger="state == 'error'"
+                default_order="zort_order_date desc"
+            >
+                <field name="zort_order_number" />
+                <field name="zort_order_date" />
+                <field name="customer_name" />
+                <field name="source_channel" />
+                <field name="total_amount" />
+                <field name="zort_status" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-info="state == 'new'"
+                    decoration-success="state == 'processed'"
+                    decoration-danger="state == 'error'"
+                />
+                <field name="sale_order_ids" widget="many2many_tags" optional="show" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_zort_order_form" model="ir.ui.view">
+        <field name="name">zort.order.form</field>
+        <field name="model">zort.order</field>
+        <field name="arch" type="xml">
+            <form string="Zort Order">
+                <header>
+                    <button
+                        name="action_create_sale_order"
+                        string="Create Sale Order"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state != 'new' or sale_order_ids"
+                    />
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="zort_order_number" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Order Info">
+                            <field name="zort_order_id" />
+                            <field name="zort_status" />
+                            <field name="zort_order_date" />
+                            <field name="zort_update_date" />
+                            <field name="source_channel" />
+                            <field name="channel_order_id" />
+                        </group>
+                        <group string="Amounts">
+                            <field name="total_amount" />
+                            <field name="payment_amount" />
+                            <field name="shipping_cost" />
+                        </group>
+                    </group>
+                    <group string="Customer">
+                        <field name="customer_name" />
+                        <field name="customer_phone" />
+                        <field name="customer_address" />
+                    </group>
+                    <group string="Processing">
+                        <field name="sale_order_ids" widget="many2many_tags" />
+                        <field name="sync_log_id" />
+                    </group>
+                    <group invisible="not remark">
+                        <field name="remark" />
+                    </group>
+                    <notebook>
+                        <page string="Raw Data" name="raw_data">
+                            <field name="raw_data" widget="code" />
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <record id="view_zort_order_search" model="ir.ui.view">
+        <field name="name">zort.order.search</field>
+        <field name="model">zort.order</field>
+        <field name="arch" type="xml">
+            <search string="Search Zort Orders">
+                <field name="zort_order_number" />
+                <field name="customer_name" />
+                <field name="source_channel" />
+                <separator />
+                <filter
+                    string="New"
+                    name="state_new"
+                    domain="[('state', '=', 'new')]"
+                />
+                <filter
+                    string="Processed"
+                    name="state_processed"
+                    domain="[('state', '=', 'processed')]"
+                />
+                <filter
+                    string="Error"
+                    name="state_error"
+                    domain="[('state', '=', 'error')]"
+                />
+                <group expand="0" string="Group By">
+                    <filter
+                        string="Source Channel"
+                        name="group_channel"
+                        context="{'group_by': 'source_channel'}"
+                    />
+                    <filter
+                        string="Status"
+                        name="group_status"
+                        context="{'group_by': 'zort_status'}"
+                    />
+                    <filter
+                        string="State"
+                        name="group_state"
+                        context="{'group_by': 'state'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_zort_order" model="ir.actions.act_window">
+        <field name="name">Zort Orders</field>
+        <field name="res_model">zort.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_zort_order_list" />
+        <field name="search_view_id" ref="view_zort_order_search" />
+        <field name="context">{'search_default_state_new': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Zort orders yet. Run the sync to fetch orders from Zort.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="zort_menu_orders"
+        name="Zort Orders"
+        parent="zort_menu"
+        action="action_zort_order"
+        sequence="10"
+    />
+</odoo>

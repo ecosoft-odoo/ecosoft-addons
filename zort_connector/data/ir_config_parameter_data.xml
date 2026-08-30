@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="zort_connector_order_sync_days_back" model="ir.config_parameter">
+        <field name="key">zort_connector.order_sync_days_back</field>
+        <field name="value">10</field>
+    </record>
+    <!-- last_sync_datetime is intentionally left empty so the first run uses
+         order_sync_days_back as fallback. It is updated automatically after
+         each successful sync. -->
+    <record id="zort_connector_last_sync_datetime" model="ir.config_parameter">
+        <field name="key">zort_connector.last_sync_datetime</field>
+        <field name="value" />
+    </record>
+    <record id="zort_connector_pending_order_batch_size" model="ir.config_parameter">
+        <field name="key">zort_connector.pending_order_batch_size</field>
+        <field name="value">500</field>
+    </record>
+</odoo>

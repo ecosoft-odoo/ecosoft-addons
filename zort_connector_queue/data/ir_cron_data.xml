@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!--
+        Override the base zort_connector cron to run as a queue job.
+        queue_job_cron adds run_as_queue_job field to ir.cron; setting it here
+        means the scheduler will dispatch a queue job instead of running inline.
+    -->
+    <record id="zort_connector.ir_cron_auto_sync_zort_order" model="ir.cron">
+        <field name="run_as_queue_job" eval="True" />
+        <field name="no_parallel_queue_job_run" eval="True" />
+    </record>
+</odoo>

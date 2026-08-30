@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_zort_sync_log_list" model="ir.ui.view">
+        <field name="name">zort.sync.log.list</field>
+        <field name="model">zort.sync.log</field>
+        <field name="arch" type="xml">
+            <list
+                string="Zort Sync Logs"
+                decoration-success="state == 'done'"
+                decoration-danger="state == 'failed'"
+                decoration-info="state == 'in_progress'"
+            >
+                <field name="id" />
+                <field name="sync_from" />
+                <field name="sync_to" />
+                <field name="page" string="Page" />
+                <field name="total_pages" string="Of" />
+                <field
+                    name="state"
+                    widget="badge"
+                    decoration-success="state == 'done'"
+                    decoration-danger="state == 'failed'"
+                    decoration-info="state == 'in_progress'"
+                />
+                <field name="order_created" string="Created" />
+                <field name="order_updated" string="Updated" />
+                <field name="order_failed" string="Failed" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_zort_sync_log_form" model="ir.ui.view">
+        <field name="name">zort.sync.log.form</field>
+        <field name="model">zort.sync.log</field>
+        <field name="arch" type="xml">
+            <form string="Zort Sync Log">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="id" readonly="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Sync Window">
+                            <field name="sync_from" />
+                            <field name="sync_to" />
+                            <field name="page" string="Page" />
+                            <field name="total_pages" string="Total Pages" />
+                        </group>
+                        <group string="Result">
+                            <field
+                                name="state"
+                                widget="badge"
+                                decoration-success="state == 'done'"
+                                decoration-danger="state == 'failed'"
+                                decoration-info="state == 'in_progress'"
+                            />
+                            <field name="order_created" string="Created" />
+                            <field name="order_updated" string="Updated" />
+                            <field name="order_failed" string="Failed" />
+                        </group>
+                    </group>
+                    <group invisible="not error_message">
+                        <field name="error_message" string="Error" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_zort_sync_log_search" model="ir.ui.view">
+        <field name="name">zort.sync.log.search</field>
+        <field name="model">zort.sync.log</field>
+        <field name="arch" type="xml">
+            <search string="Search Sync Logs">
+                <filter string="Done" name="done" domain="[('state', '=', 'done')]" />
+                <filter
+                    string="Failed"
+                    name="failed"
+                    domain="[('state', '=', 'failed')]"
+                />
+                <filter
+                    string="In Progress"
+                    name="in_progress"
+                    domain="[('state', '=', 'in_progress')]"
+                />
+                <separator />
+                <filter
+                    string="Has Failures"
+                    name="has_failures"
+                    domain="[('order_failed', '>', 0)]"
+                />
+            </search>
+        </field>
+    </record>
+
+    <record id="action_zort_sync_log" model="ir.actions.act_window">
+        <field name="name">Sync Logs</field>
+        <field name="res_model">zort.sync.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_zort_sync_log_list" />
+        <field name="search_view_id" ref="view_zort_sync_log_search" />
+        <field name="context">{'search_default_done': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No sync logs yet. Logs are created automatically by the cron job.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="zort_menu_sync_log"
+        name="Sync Logs"
+        parent="zort_menu_config"
+        action="action_zort_sync_log"
+        sequence="20"
+    />
+</odoo>

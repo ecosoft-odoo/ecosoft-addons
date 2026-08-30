@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+"access_zort_sync_log_user","zort.sync.log user","model_zort_sync_log","zort_connector.group_zort_user",1,0,0,0
+"access_zort_sync_log_manager","zort.sync.log manager","model_zort_sync_log","zort_connector.group_zort_manager",1,1,1,1
+"access_zort_order_user","zort.order user","model_zort_order","zort_connector.group_zort_user",1,0,0,0
+"access_zort_order_manager","zort.order manager","model_zort_order","zort_connector.group_zort_manager",1,1,1,1
+"access_zort_ecommerce_channel","zort.ecommerce.channel","model_zort_ecommerce_channel","sales_team.group_sale_salesman",1,1,1,1
+"access_zort_product","zort.product","model_zort_product","base.group_user",1,1,1,1

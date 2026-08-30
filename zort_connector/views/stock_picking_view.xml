@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="inherit_view_picking_form" model="ir.ui.view">
+        <field name="name">inherit.view.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_view_api_logs"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-exchange"
+                    invisible="api_log_count == 0"
+                >
+                    <field name="api_log_count" widget="statinfo" string="API Logs" />
+                </button>
+            </xpath>
+            <xpath expr="//notebook/page[@name='extra']/group" position="after">
+                <group>
+                    <field name="updated_qty_to_zort" readonly="1" />
+                    <field name="zort_return_no" readonly="1" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

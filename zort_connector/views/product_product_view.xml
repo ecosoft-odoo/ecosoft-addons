@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Menu Product Variants -->
+    <record id="product_product_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.product.only.form.view.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_view_api_logs"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-exchange"
+                    invisible="api_log_count == 0"
+                >
+                    <field name="api_log_count" widget="statinfo" string="API Logs" />
+                </button>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_create_product_on_zort"
+                    type="object"
+                    string="Create to Zort"
+                    class="oe_highlight"
+                    invisible="not sync_with_zort"
+                />
+                <button
+                    name="action_update_product_to_zort"
+                    type="object"
+                    string="Update to Zort"
+                    class="btn-info"
+                />
+                <button
+                    name="action_update_qty_to_zort"
+                    type="object"
+                    string="Update Quantity to Zort"
+                    class="btn-info"
+                    invisible="not sync_with_zort"
+                    help="Update the quantity of this product on Zort"
+                />
+                <button
+                    name="action_fetch_and_update_image_from_zort"
+                    type="object"
+                    string="Fetch Image from Zort"
+                    class="btn-info"
+                />
+            </xpath>
+            <xpath
+                expr="//page[@name='general_information']/group/group[@name='group_standard_price']"
+                position="inside"
+            >
+                <field name="sync_with_zort" />
+                <field name="zort_product_ids" widget="many2many_tags" />
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Menu Products > Variants -->
+    <record id="product_product_only_form_view" model="ir.ui.view">
+        <field name="name">product.product.view.form.easy</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_create_product_on_zort"
+                    type="object"
+                    string="Create to Zort"
+                    class="oe_highlight"
+                    invisible="not sync_with_zort"
+                />
+                <button
+                    name="action_update_product_to_zort"
+                    type="object"
+                    string="Update to Zort"
+                    class="btn-info"
+                />
+                <button
+                    name="action_update_qty_to_zort"
+                    type="object"
+                    string="Update Quantity to Zort"
+                    class="btn-info"
+                    invisible="not sync_with_zort"
+                    help="Update the quantity of this product on Zort"
+                />
+                <button
+                    name="action_fetch_and_update_image_from_zort"
+                    type="object"
+                    string="Fetch Image from Zort"
+                    class="btn-info"
+                />
+            </xpath>
+            <xpath expr="//group[@name='codes']" position="inside">
+                <field name="sync_with_zort" />
+                <field name="zort_product_ids" widget="many2many_tags" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

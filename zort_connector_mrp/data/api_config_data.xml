@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <!-- Update BOM Product Qty -->
+    <record id="api_config_zort_update_bom_qty" model="api.config">
+        <field name="name">Zort Update BOM Product Qty</field>
+        <field name="code">zort_update_bom_qty</field>
+        <field name="model_id" ref="mrp.model_mrp_bom" />
+        <field name="api_type">rest_api</field>
+        <field name="endpoint_system">external</field>
+        <field name="endpoint_url">https://open-api.zortout.com/v4</field>
+        <field name="route_path">/Product/UpdateProductAvailableStockList</field>
+        <field name="method">post</field>
+        <field name="auth_required">False</field>
+        <field name="headers">(lambda c: {
+    "storename": c.zort_store_name,
+    "apikey": c.zort_api_key,
+    "apisecret": c.zort_api_secret,
+} if c.zort_connector_enabled else {})(env.company)</field>
+        <field name="result_success_key">resCode</field>
+        <field name="result_success_value">200</field>
+        <field name="result_message_key">resDesc</field>
+        <field name="save_log">True</field>
+        <field
+            name="params_code"
+        >{"warehousecode": env.company.zort_warehouse_code or "W0001"}</field>
+        <field name="python_code">{"stocks": bom_stocks}</field>
+    </record>
+</odoo>
