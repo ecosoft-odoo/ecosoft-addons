@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.account</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='connectors_setting_container']" position="inside">
+                <setting />
+                <setting
+                    id="zort_connector"
+                    documentation="https://developers.zortout.com/"
+                    help="Import Zort orders and sync deliveries"
+                >
+                    <field name="zort_connector_enabled" />
+                </setting>
+                <setting
+                    id="zort_endpoint_url"
+                    help=""
+                    invisible="not zort_connector_enabled"
+                >
+                    <label
+                        for="zort_endpoint_url"
+                        string="Endpoint URL"
+                        class="col-lg-4"
+                    />
+                    <field name="zort_endpoint_url" />
+                    <label for="zort_store_name" string="Store Name" class="col-lg-4" />
+                    <field name="zort_store_name" />
+                    <label for="zort_api_key" string="API Key" class="col-lg-4" />
+                    <field name="zort_api_key" password="True" />
+                    <label for="zort_api_secret" string="API Secret" class="col-lg-4" />
+                    <field name="zort_api_secret" password="True" />
+                    <label
+                        for="zort_warehouse_code"
+                        string="Warehouse Code"
+                        class="col-lg-4"
+                    />
+                    <field name="zort_warehouse_code" />
+                    <label
+                        for="zort_default_tax_id"
+                        string="Default Tax"
+                        class="col-lg-4"
+                    />
+                    <field name="zort_default_tax_id" />
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

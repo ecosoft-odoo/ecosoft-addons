@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_zort_ecommerce_channel_form" model="ir.ui.view">
+        <field name="name">zort.ecommerce.channel.form</field>
+        <field name="model">zort.ecommerce.channel</field>
+        <field name="arch" type="xml">
+            <form string="E-commerce Channel">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Ribbon to show archived status -->
+                        <widget
+                            name="web_ribbon"
+                            title="Archived"
+                            bg_color="text-bg-danger"
+                            invisible="active"
+                        />
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="active" invisible="1" />
+                            <field name="code" />
+                            <field name="partner_id" />
+                            <field name="description" />
+                        </group>
+                        <group>
+                            <field name="auto_create_customer" />
+                        </group>
+                    </group>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <record id="view_zort_ecommerce_channel_list" model="ir.ui.view">
+        <field name="name">zort.ecommerce.channel.list</field>
+        <field name="model">zort.ecommerce.channel</field>
+        <field name="arch" type="xml">
+            <list string="E-commerce Channels" editable="bottom">
+                <field name="active" column_invisible="1" />
+                <field name="name" />
+                <field name="code" />
+                <field name="partner_id" />
+                <field name="auto_create_customer" optional="show" width="150px" />
+                <button name="open_ecommerce_config_form" type="object" string="View" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_zort_ecommerce_channel_search" model="ir.ui.view">
+        <field name="name">zort.ecommerce.channel.search</field>
+        <field name="model">zort.ecommerce.channel</field>
+        <field name="arch" type="xml">
+            <search string="E-commerce Channel Search">
+                <field name="name" />
+                <filter
+                    string="Active"
+                    name="active"
+                    domain="[('active', '=', True)]"
+                />
+                <filter
+                    string="Inactive"
+                    name="inactive"
+                    domain="[('active', '=', False)]"
+                />
+            </search>
+        </field>
+    </record>
+
+    <record id="action_zort_ecommerce_channels" model="ir.actions.act_window">
+        <field name="name">E-commerce Channels</field>
+        <field name="res_model">zort.ecommerce.channel</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_zort_ecommerce_channel_list" />
+        <field name="search_view_id" ref="view_zort_ecommerce_channel_search" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first e-commerce channel
+            </p>
+        </field>
+        <field name="context">{'default_active': True}</field>
+        <field name="domain">[]</field>
+    </record>
+
+    <menuitem
+        id="zort_menu_root"
+        name="Zort Settings"
+        parent="sale.menu_sale_config"
+        sequence="99"
+    />
+
+    <menuitem
+        id="zort_menu_ecommerce_channel"
+        name="E-commerce Channels"
+        parent="zort_menu_root"
+        action="action_zort_ecommerce_channels"
+        sequence="10"
+    />
+</odoo>
