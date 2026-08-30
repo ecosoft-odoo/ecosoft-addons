@@ -33,7 +33,7 @@
                     "ref_document_type_code": rec.debit_origin_id.etax_doctype_code or rec.reversed_entry_id.etax_doctype_code or rec.replaced_entry_id.etax_doctype_code,
                     "buyer_ref_document": rec.payment_reference,
                     "seller_branch_id": rec.company_id.company_registry,
-                    "source_system": env["ir.config_parameter"].get_param("web.base.url", ""),
+                    "source_system": env["ir.config_parameter"].sudo().get_param("web.base.url", ""),
                     "send_mail": rec.company_id.is_send_etax_email and "Y" or "N",
                     "seller_tax_id": rec.company_id.vat,
                     "buyer_name": rec.partner_id.name,
@@ -115,7 +115,7 @@
                     # --
                     "buyer_ref_document": "",
                     "seller_branch_id": rec.company_id.company_registry,
-                    "source_system": env["ir.config_parameter"].get_param("web.base.url", ""),
+                    "source_system": env["ir.config_parameter"].sudo().get_param("web.base.url", ""),
                     "send_mail": rec.company_id.is_send_etax_email and "Y" or "N",
                     "seller_tax_id": rec.company_id.vat,
                     "buyer_name": rec.partner_id.name,
@@ -205,7 +205,7 @@
                     # --
                     "buyer_ref_document": "",
                     "seller_branch_id": rec.company_id.company_registry,
-                    "source_system": env["ir.config_parameter"].get_param("web.base.url", ""),
+                    "source_system": env["ir.config_parameter"].sudo().get_param("web.base.url", ""),
                     "send_mail": rec.company_id.is_send_etax_email and "Y" or "N",
                     "seller_tax_id": rec.company_id.vat,
                     "buyer_name": rec.partner_id.name,
