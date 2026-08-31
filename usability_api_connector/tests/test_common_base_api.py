@@ -4,6 +4,8 @@
 import warnings
 from unittest.mock import MagicMock, patch
 
+import requests
+
 from odoo.tests.common import TransactionCase
 
 REQUESTS_PATH = "odoo.addons.usability_api_connector.models.common_base_api.requests"
@@ -83,3 +85,25 @@ class TestCommonBaseApi(TransactionCase):
             self.api_config.action_call_api(self.api_config.code)
 
         self.assertEqual(execute.call_args.args[1], auth_token)
+
+    def test_http_error_saves_response_body_in_existing_log(self):
+        self.api_config.write({"python_code": "{}", "save_log": True})
+        response = MagicMock()
+        response.text = '{"message": "Buyer tax ID is required"}'
+        response.raise_for_status.side_effect = requests.HTTPError(
+            "417 Client Error: EXPECTATION FAILED",
+            response=response,
+        )
+
+        with patch(f"{REQUESTS_PATH}.request", return_value=response):
+            notification = self.api_config.action_call_api(self.api_config.code)
+
+        log = self.env["api.connector.log"].search(
+            [("api_code", "=", self.api_config.code)],
+            order="id desc",
+            limit=1,
+        )
+        self.assertEqual(log.state, "failed")
+        self.assertIn("HTTP error: 417 Client Error", log.error_message)
+        self.assertIn("Buyer tax ID is required", log.error_message)
+        self.assertIn("Buyer tax ID is required", notification["params"]["message"])

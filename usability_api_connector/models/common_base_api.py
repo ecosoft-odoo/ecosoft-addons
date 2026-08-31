@@ -13,6 +13,7 @@ from odoo.exceptions import ValidationError
 from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
+HTTP_ERROR_RESPONSE_LIMIT = 8192
 
 
 class CommonBaseApi(models.AbstractModel):
@@ -253,7 +254,14 @@ class CommonBaseApi(models.AbstractModel):
         except (requests.Timeout, requests.ConnectionError) as e:
             raise ValidationError(self.env._("Connection error: %s") % e) from e
         except requests.HTTPError as e:
-            raise ValidationError(self.env._("HTTP error: %s") % e) from e
+            message = self.env._("HTTP error: %s") % e
+            response_text = getattr(e.response, "text", "")
+            if response_text:
+                response_text = self._truncate_text(
+                    response_text, limit=HTTP_ERROR_RESPONSE_LIMIT
+                )
+                message = f"{message}\nResponse: {response_text}"
+            raise ValidationError(message) from e
 
     def _connect_odoo(self, api_data, auth_token, payload, ssl_context, params=None):
         if api_data.api_type == "xmlrpc":
