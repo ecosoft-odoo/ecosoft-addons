@@ -1,6 +1,7 @@
 # Copyright 2025 Ecosoft Co., Ltd. (https://ecosoft.co.th)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
+import ast
 import json
 import logging
 import ssl
@@ -14,6 +15,34 @@ from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
 HTTP_ERROR_RESPONSE_LIMIT = 8192
+
+
+def format_log_content(value):
+    """Return structured API content as readable, indented JSON."""
+    if value is None or value == "":
+        return ""
+
+    structured_value = value
+    if isinstance(value, str):
+        for parser in (json.loads, ast.literal_eval):
+            try:
+                parsed_value = parser(value)
+            except (TypeError, ValueError, SyntaxError):
+                continue
+            if isinstance(parsed_value, dict | list | tuple):
+                structured_value = parsed_value
+                break
+        else:
+            return value
+
+    if isinstance(structured_value, dict | list | tuple):
+        return json.dumps(
+            structured_value,
+            ensure_ascii=False,
+            indent=2,
+            default=str,
+        )
+    return str(value)
 
 
 class CommonBaseApi(models.AbstractModel):
@@ -115,6 +144,9 @@ class CommonBaseApi(models.AbstractModel):
                 .get_param("api_connector.log_limit", "0")
             )
         return text[:limit] if limit > 0 else text
+
+    def _format_log_content(self, value):
+        return format_log_content(value)
 
     def _get_header_globals_dict(self, auth_token):
         return {"auth_token": auth_token, "rec": self, "env": self.env}
@@ -552,7 +584,7 @@ class CommonBaseApi(models.AbstractModel):
             self.write(
                 {
                     "api_status": "success",
-                    "api_result": self._truncate_text(result),
+                    "api_result": self._truncate_text(self._format_log_content(result)),
                 }
             )
             self._hook_update_data(code_api, result)
@@ -590,10 +622,10 @@ class CommonBaseApi(models.AbstractModel):
                 "res_model": self._name,
                 "res_id": res_id,
                 "state": state,
-                "payload": self._truncate_text(str(payload))
+                "payload": self._truncate_text(self._format_log_content(payload))
                 if payload is not None
                 else False,
-                "result": self._truncate_text(str(result))
+                "result": self._truncate_text(self._format_log_content(result))
                 if result is not None
                 else False,
                 "error_message": error_message,

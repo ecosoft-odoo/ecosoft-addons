@@ -161,9 +161,8 @@
                             </group>
                             <field
                                 name="api_result"
-                                widget="code"
                                 readonly="1"
-                                options="{'mode': 'javascript'}"
+                                class="o_api_connector_log_content"
                             />
                         </page>
                     </notebook>
