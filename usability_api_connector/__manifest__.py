@@ -3,7 +3,7 @@
 
 {
     "name": "Usability - API Connector",
-    "version": "18.0.1.1.3",
+    "version": "18.0.1.1.4",
     "license": "AGPL-3",
     "category": "Tools",
     "author": "Ecosoft, Odoo Community Association (OCA)",
@@ -14,5 +14,10 @@
         "views/api_config_views.xml",
         "views/api_connector_log_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "usability_api_connector/static/src/scss/api_log.scss",
+        ],
+    },
     "maintainers": ["Saran440"],
 }

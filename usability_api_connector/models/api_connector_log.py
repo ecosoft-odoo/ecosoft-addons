@@ -3,6 +3,8 @@
 
 from odoo import fields, models
 
+from .common_base_api import format_log_content
+
 
 class ApiConnectorLog(models.Model):
     _name = "api.connector.log"
@@ -32,6 +34,14 @@ class ApiConnectorLog(models.Model):
     )
     payload = fields.Text(readonly=True)
     result = fields.Text(readonly=True)
+    payload_display = fields.Text(
+        string="Formatted Payload",
+        compute="_compute_display_content",
+    )
+    result_display = fields.Text(
+        string="Formatted Result",
+        compute="_compute_display_content",
+    )
     error_message = fields.Text(readonly=True)
     user_id = fields.Many2one(
         comodel_name="res.users",
@@ -43,3 +53,8 @@ class ApiConnectorLog(models.Model):
         string="Called Date",
         readonly=True,
     )
+
+    def _compute_display_content(self):
+        for log in self:
+            log.payload_display = format_log_content(log.payload)
+            log.result_display = format_log_content(log.result)

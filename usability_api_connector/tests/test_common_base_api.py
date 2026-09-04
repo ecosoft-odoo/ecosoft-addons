@@ -86,6 +86,48 @@ class TestCommonBaseApi(TransactionCase):
 
         self.assertEqual(execute.call_args.args[1], auth_token)
 
+    def test_api_log_content_is_formatted_as_indented_json(self):
+        payload = {"name": "เอกสารทดสอบ", "items": [{"quantity": 1}]}
+        result = {"is_success": True, "id": 10}
+
+        self.api_config._create_api_log(
+            api_data=self.api_config,
+            payload=payload,
+            state="success",
+            result=result,
+        )
+
+        log = self.env["api.connector.log"].search(
+            [("api_code", "=", self.api_config.code)],
+            order="id desc",
+            limit=1,
+        )
+        self.assertEqual(
+            log.payload,
+            '{\n  "name": "เอกสารทดสอบ",\n  "items": [\n    {\n'
+            '      "quantity": 1\n    }\n  ]\n}',
+        )
+        self.assertEqual(
+            log.result,
+            '{\n  "is_success": true,\n  "id": 10\n}',
+        )
+
+    def test_existing_python_repr_log_is_pretty_printed_for_display(self):
+        log = self.env["api.connector.log"].create(
+            {
+                "api_code": self.api_config.code,
+                "state": "success",
+                "payload": "{'name': 'Document 1', 'active': True}",
+                "result": "plain response",
+            }
+        )
+
+        self.assertEqual(
+            log.payload_display,
+            '{\n  "name": "Document 1",\n  "active": true\n}',
+        )
+        self.assertEqual(log.result_display, "plain response")
+
     def test_http_error_saves_response_body_in_existing_log(self):
         self.api_config.write({"python_code": "{}", "save_log": True})
         response = MagicMock()
