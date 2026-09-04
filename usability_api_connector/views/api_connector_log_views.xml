@@ -54,18 +54,18 @@
                     <notebook>
                         <page name="result" string="Result">
                             <field
-                                name="result"
-                                widget="code"
+                                name="result_display"
                                 readonly="1"
-                                options="{'mode': 'javascript'}"
+                                nolabel="1"
+                                class="o_api_connector_log_content"
                             />
                         </page>
                         <page name="payload" string="Payload">
                             <field
-                                name="payload"
-                                widget="code"
+                                name="payload_display"
                                 readonly="1"
-                                options="{'mode': 'javascript'}"
+                                nolabel="1"
+                                class="o_api_connector_log_content"
                             />
                         </page>
                         <page name="error" string="Error" invisible="not error_message">
