@@ -14,5 +14,10 @@
         "views/api_config_views.xml",
         "views/api_connector_log_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "usability_api_connector/static/src/scss/api_log.scss",
+        ],
+    },
     "maintainers": ["Saran440"],
 }
