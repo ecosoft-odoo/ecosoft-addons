@@ -1,4 +1,4 @@
-<odoo>
+<odoo noupdate="1">
     <!-- Invoice -->
     <record id="api_etax_invoice_frappe" model="api.config">
         <field name="name">Frappe - eTax Invoice</field>
@@ -46,8 +46,8 @@
                     "buyer_building_no": "",
                     "buyer_address_line1": rec.partner_id.street,
                     "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": "",
-                    "buyer_address_line4": "",
+                    "buyer_address_line3": " ".join([rec.partner_id.city, rec.partner_id.state_id.name]),
+                    "buyer_address_line4": rec.partner_id.zip,
                     "buyer_address_line5": "",
                     "buyer_city_name": rec.partner_id.city,
                     "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
@@ -128,8 +128,8 @@
                     "buyer_building_no": "",
                     "buyer_address_line1": rec.partner_id.street,
                     "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": "",
-                    "buyer_address_line4": "",
+                    "buyer_address_line3": " ".join([rec.partner_id.city, rec.partner_id.state_id.name]),
+                    "buyer_address_line4": rec.partner_id.zip,
                     "buyer_address_line5": "",
                     "buyer_city_name": rec.partner_id.city,
                     "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
@@ -218,8 +218,8 @@
                     "buyer_building_no": "",
                     "buyer_address_line1": rec.partner_id.street,
                     "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": "",
-                    "buyer_address_line4": "",
+                    "buyer_address_line3": " ".join([rec.partner_id.city, rec.partner_id.state_id.name]),
+                    "buyer_address_line4": rec.partner_id.zip,
                     "buyer_address_line5": "",
                     "buyer_city_name": rec.partner_id.city,
                     "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
