@@ -46,14 +46,16 @@
                     "buyer_building_no": "",
                     "buyer_address_line1": rec.partner_id.street,
                     "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": " ".join([rec.partner_id.city, rec.partner_id.state_id.name]),
+                    "buyer_address_line3": " ".join(
+                        filter(None, [rec.partner_id.city, rec.partner_id.state_id.name])
+                    ),
                     "buyer_address_line4": rec.partner_id.zip,
                     "buyer_address_line5": "",
                     "buyer_city_name": rec.partner_id.city,
                     "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
                     "original_amount_untaxed": rec._get_additional_amount()[0],
                     "final_amount_untaxed": rec._get_additional_amount()[2],
-                    "adjust_amount_untaxed": rec._get_additional_amount()[2],
+                    "adjust_amount_untaxed": rec._get_additional_amount()[1],
                     "line_item_information": [
                         {
                             "product_code": line.product_id and line.product_id.default_code or "",
@@ -128,7 +130,9 @@
                     "buyer_building_no": "",
                     "buyer_address_line1": rec.partner_id.street,
                     "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": " ".join([rec.partner_id.city, rec.partner_id.state_id.name]),
+                    "buyer_address_line3": " ".join(
+                        filter(None, [rec.partner_id.city, rec.partner_id.state_id.name])
+                    ),
                     "buyer_address_line4": rec.partner_id.zip,
                     "buyer_address_line5": "",
                     "buyer_city_name": rec.partner_id.city,
@@ -218,15 +222,18 @@
                     "buyer_building_no": "",
                     "buyer_address_line1": rec.partner_id.street,
                     "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": " ".join([rec.partner_id.city, rec.partner_id.state_id.name]),
+                    "buyer_address_line3": " ".join(
+                        filter(None, [rec.partner_id.city, rec.partner_id.state_id.name])
+                    ),
                     "buyer_address_line4": rec.partner_id.zip,
                     "buyer_address_line5": "",
                     "buyer_city_name": rec.partner_id.city,
                     "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
-                    # As of now, no use for payment
-                    "original_amount_untaxed": 100,
-                    "final_amount_untaxed": 90,
-                    "adjust_amount_untaxed": 10,
+                    # Receipts, including replacements, use line items for totals.
+                    # These adjustment fields apply to credit/debit notes.
+                    "original_amount_untaxed": False,
+                    "final_amount_untaxed": False,
+                    "adjust_amount_untaxed": False,
                     "line_item_information": rec.tax_invoice_ids and [
                         {
                             "product_code": line.tax_invoice_number,
