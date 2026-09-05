@@ -22,7 +22,6 @@
         "data/etax_doctype_code_data.xml",
         "data/etax_purpose_code_data.xml",
         "data/api_config_data.xml",
-        # "data/server_action.xml",
         "views/etax_menu.xml",
         "views/frappe_etax_connection_views.xml",
         "views/res_config_settings.xml",

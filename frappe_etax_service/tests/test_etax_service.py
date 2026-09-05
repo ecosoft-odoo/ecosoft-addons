@@ -8,6 +8,7 @@ from odoo import Command, fields
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
+from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.frappe_etax_service.models.etax_service import (
@@ -247,6 +248,19 @@ class TestETax(AccountTestInvoicingCommon):
             taxes=[cls.tax_sale_a],
         )
 
+    def _etax_payload(self, record, xmlid):
+        config = self.env.ref(f"frappe_etax_service.{xmlid}")
+        return safe_eval(
+            config.python_code.strip(),
+            {
+                "rec": record,
+                "env": self.env,
+                "form_type": "frappe",
+                "form_name": "Test",
+                "pdf_content": False,
+            },
+        )["doc_data"]
+
     def _simulate_sign_success(self, move):
         """Simulate API success by calling _hook_update_data directly."""
         move._hook_update_data(
@@ -472,6 +486,63 @@ class TestETax(AccountTestInvoicingCommon):
         self.assertEqual(credit_note.etax_doctype_id, self.doctype_81)
         self.assertEqual(credit_note.etax_doctype_id.doctype_code_id.code, "81")
         self.assertEqual(credit_note.etax_status, "success")
+
+    def test_original_invoice_sign_after_adjustments(self):
+        for move_type, origin_field, amount, final in (
+            ("out_refund", "reversed_entry_id", 100.0, 400.0),
+            ("out_refund", "reversed_entry_id", 500.0, 0.0),
+            ("out_invoice", "debit_origin_id", 100.0, 600.0),
+            ("out_invoice", "debit_origin_id", 500.0, 1000.0),
+        ):
+            with self.subTest(move_type=move_type, amount=amount):
+                invoice = self.init_invoice(
+                    "out_invoice",
+                    partner=self.cust_invoice.partner_id,
+                    amounts=[500.0],
+                    taxes=[self.tax_sale_a],
+                )
+                invoice.action_post()
+                original = self._etax_payload(invoice, "api_etax_invoice_frappe")
+                note = self.init_invoice(
+                    move_type,
+                    partner=invoice.partner_id,
+                    amounts=[amount],
+                    taxes=[self.tax_sale_a],
+                )
+                note[origin_field] = invoice
+                note.action_post()
+                if move_type == "out_refund":
+                    # Posting a linked refund already reconciles it in Odoo.
+                    self.assertAlmostEqual(
+                        invoice.amount_residual,
+                        invoice.amount_total * (500.0 - amount) / 500.0,
+                    )
+                self.assertTrue(invoice.enable_etax)
+                payload = self._etax_payload(invoice, "api_etax_invoice_frappe")
+                self.assertEqual(payload, original)
+                self.assertEqual(invoice.amount_untaxed, 500.0)
+                adjustment = self._etax_payload(note, "api_etax_invoice_frappe")
+                self.assertEqual(adjustment["original_amount_untaxed"], 500.0)
+                self.assertEqual(adjustment["final_amount_untaxed"], final)
+                self.assertEqual(adjustment["adjust_amount_untaxed"], amount)
+                self._sign_via_wizard(invoice, self.doctype_T02)
+                self.assertEqual(invoice.etax_status, "success")
+
+    def test_replacement_receipt_payload_has_no_adjustment(self):
+        invoice, payment = self._create_signed_reconciled_payment()
+        replacement = payment.create_replacement_etax()
+        replacement.action_post()
+        normal = self._etax_payload(replacement, "api_etax_payment_frappe")
+        payload = self._etax_payload(replacement, "api_etax_payment_replace_frappe")
+        self.assertEqual(payload, normal)
+        self.assertEqual(payload["ref_document_id"], payment.name)
+        self.assertTrue(payload["line_item_information"])
+        for field in (
+            "original_amount_untaxed",
+            "final_amount_untaxed",
+            "adjust_amount_untaxed",
+        ):
+            self.assertIs(payload[field], False)
 
     def test_08_update_processing_document(self):
         invoice = self.init_invoice(
