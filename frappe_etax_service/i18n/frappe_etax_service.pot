@@ -15,6 +15,14 @@ msgstr ""
 
 #. module: frappe_etax_service
 #. odoo-python
+#: code:addons/frappe_etax_service/models/account_move.py:0
+msgid ""
+"%s: To send this credit/debit note as e-Tax, reset it to draft and select an"
+" eTax Refund Reason and enter its description in the e-Tax Info tab."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
 #: code:addons/frappe_etax_service/models/etax_service.py:0
 msgid "%s: eTax status is already Processing/Success"
 msgstr ""
@@ -441,6 +449,12 @@ msgid "Error message"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_adjustment_doctype_code
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_adjustment_doctype_code
+msgid "Etax Adjustment Doctype Code"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_wizard__etax_doctype_locked
 msgid "Etax Doctype Locked"
 msgstr ""
@@ -788,6 +802,14 @@ msgid "Only posted etax payment can have a substitution"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_account_bank_statement_line__etax_refund_reason_id
+#: model:ir.model.fields,help:frappe_etax_service.field_account_move__etax_refund_reason_id
+msgid ""
+"Optional for accounting. Required before signing a credit/debit note as "
+"e-Tax."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_replacement_wizard__origin_ref
 msgid "Origin"
 msgstr ""
@@ -897,6 +919,12 @@ msgid "Responsible User"
 msgstr ""
 
 #. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/account_move.py:0
+msgid "Select an eTax reason for this credit/debit note."
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model,name:frappe_etax_service.model_etax_doctype_wizard
 msgid "Select eTax Document Type"
 msgstr ""
@@ -977,6 +1005,12 @@ msgstr ""
 
 #. module: frappe_etax_service
 #. odoo-python
+#: code:addons/frappe_etax_service/models/account_move.py:0
+msgid "The eTax Refund Reason can only be changed in draft before signing."
+msgstr ""
+
+#. module: frappe_etax_service
+#. odoo-python
 #: code:addons/frappe_etax_service/models/account_payment.py:0
 msgid ""
 "The invoice to reconcile has no outstanding receivable or payable amount."
@@ -1043,6 +1077,13 @@ msgstr ""
 msgid ""
 "This is used to indicate this document             will cancel etax payment "
 "on INET (Case Etax)"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
+msgid ""
+"To send this credit/debit note as e-Tax, reset it to draft and select\n"
+"                    an eTax Refund Reason and enter its description in the e-Tax Info tab."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -1154,7 +1195,9 @@ msgid "eTax Document Type"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_bank_statement_line__etax_refund_reason_id
 #: model:ir.model.fields,field_description:frappe_etax_service.field_account_debit_note__purpose_code_id
+#: model:ir.model.fields,field_description:frappe_etax_service.field_account_move__etax_refund_reason_id
 #: model:ir.model.fields,field_description:frappe_etax_service.field_account_move_reversal__purpose_code_id
 msgid "eTax Refund Reason"
 msgstr ""
