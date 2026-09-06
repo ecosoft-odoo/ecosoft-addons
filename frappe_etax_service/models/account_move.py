@@ -37,8 +37,110 @@ class AccountMove(models.Model):
         compute="_compute_enable_etax",
         store=True,
     )
+    etax_refund_reason_id = fields.Many2one(
+        comodel_name="etax.purpose.code",
+        string="eTax Refund Reason",
+        compute="_compute_etax_refund_reason_id",
+        inverse="_inverse_etax_refund_reason_id",
+        domain="[('etax_doctype_code_ids.code', '=', etax_adjustment_doctype_code)]",
+        help="Optional for accounting. "
+        "Required before signing a credit/debit note as e-Tax.",
+    )
+    etax_adjustment_doctype_code = fields.Char(
+        compute="_compute_etax_adjustment_doctype_code",
+    )
 
-    @api.depends("move_type", "etax_status", "state", "is_etax_configured")
+    @api.depends("move_type", "debit_origin_id")
+    def _compute_etax_adjustment_doctype_code(self):
+        for rec in self:
+            rec.etax_adjustment_doctype_code = (
+                "81"
+                if rec.move_type == "out_refund"
+                else "80"
+                if rec.move_type == "out_invoice_debit"
+                or (rec.move_type == "out_invoice" and rec.debit_origin_id)
+                else False
+            )
+
+    @api.depends("create_purpose_code", "etax_adjustment_doctype_code")
+    def _compute_etax_refund_reason_id(self):
+        for rec in self:
+            rec.etax_refund_reason_id = self.env["etax.purpose.code"].search(
+                [
+                    ("code", "=", rec.create_purpose_code),
+                    (
+                        "etax_doctype_code_ids.code",
+                        "=",
+                        rec.etax_adjustment_doctype_code,
+                    ),
+                ],
+                limit=1,
+            )
+
+    def _inverse_etax_refund_reason_id(self):
+        for rec in self:
+            if rec.state != "draft" or rec.etax_status in (
+                "success",
+                "processing",
+                "replace",
+            ):
+                raise ValidationError(
+                    self.env._(
+                        "The eTax Refund Reason can only be changed "
+                        "in draft before signing."
+                    )
+                )
+            purpose = rec.etax_refund_reason_id
+            if purpose and rec.etax_adjustment_doctype_code not in (
+                purpose.etax_doctype_code_ids.mapped("code")
+            ):
+                raise ValidationError(
+                    self.env._("Select an eTax reason for this credit/debit note.")
+                )
+            rec.create_purpose_code = purpose.code
+
+    @api.onchange("etax_refund_reason_id")
+    def _onchange_etax_refund_reason_id(self):
+        self.create_purpose = self.etax_refund_reason_id.reason
+
+    def _has_etax_refund_reason(self):
+        self.ensure_one()
+        return bool(
+            (self.create_purpose_code or "").strip()
+            and (self.create_purpose or "").strip()
+        )
+
+    def _check_etax_refund_reason(self):
+        for rec in self.filtered("etax_adjustment_doctype_code"):
+            if not rec._has_etax_refund_reason():
+                raise ValidationError(
+                    self.env._(
+                        "%s: To send this credit/debit note as e-Tax, "
+                        "reset it to draft and select an eTax Refund Reason "
+                        "and enter its description "
+                        "in the e-Tax Info tab."
+                    )
+                    % rec.display_name
+                )
+
+    def _pre_etax_validate(self):
+        self._check_etax_refund_reason()
+        return super()._pre_etax_validate()
+
+    def action_call_api(self, code_api):
+        if code_api == self._etax_sign_api_code:
+            self._check_etax_refund_reason()
+        return super().action_call_api(code_api)
+
+    @api.depends(
+        "move_type",
+        "etax_status",
+        "state",
+        "is_etax_configured",
+        "create_purpose_code",
+        "create_purpose",
+        "etax_adjustment_doctype_code",
+    )
     def _compute_enable_etax(self):
         for rec in self:
             rec.enable_etax = (
@@ -46,6 +148,10 @@ class AccountMove(models.Model):
                 and rec.etax_status not in ("success", "processing")
                 and rec.state == "posted"
                 and rec.company_id.is_etax_configured
+                and (
+                    not rec.etax_adjustment_doctype_code
+                    or rec._has_etax_refund_reason()
+                )
             )
 
     @api.onchange("is_credit_payment_entry", "create_purpose")

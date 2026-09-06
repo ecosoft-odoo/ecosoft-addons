@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from odoo import Command, fields
 from odoo.exceptions import ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools.safe_eval import safe_eval
 
@@ -453,7 +453,17 @@ class TestETax(AccountTestInvoicingCommon):
             amounts=[100.0],
             taxes=[self.tax_sale_a],
         )
-        debit_note.write({"debit_origin_id": source_invoice.id})
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "80"), ("reason", "!=", False)],
+            limit=1,
+        )
+        debit_note.write(
+            {
+                "debit_origin_id": source_invoice.id,
+                "create_purpose_code": purpose.code,
+                "create_purpose": purpose.reason,
+            }
+        )
         debit_note.action_post()
 
         self._sign_via_wizard(debit_note, self.doctype_80)
@@ -478,7 +488,17 @@ class TestETax(AccountTestInvoicingCommon):
             amounts=[100.0],
             taxes=[self.tax_sale_a],
         )
-        credit_note.write({"reversed_entry_id": source_invoice.id})
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        credit_note.write(
+            {
+                "reversed_entry_id": source_invoice.id,
+                "etax_refund_reason_id": purpose.id,
+                "create_purpose": purpose.reason,
+            }
+        )
         credit_note.action_post()
 
         self._sign_via_wizard(credit_note, self.doctype_81)
@@ -486,6 +506,215 @@ class TestETax(AccountTestInvoicingCommon):
         self.assertEqual(credit_note.etax_doctype_id, self.doctype_81)
         self.assertEqual(credit_note.etax_doctype_id.doctype_code_id.code, "81")
         self.assertEqual(credit_note.etax_status, "success")
+
+    def test_credit_note_created_before_invoice_sign_can_add_reason(self):
+        invoice = self.cust_invoice
+        invoice.action_post()
+        wizard = (
+            self.env["account.move.reversal"]
+            .with_context(
+                active_model="account.move",
+                active_ids=invoice.ids,
+            )
+            .create(
+                {
+                    "reason": "Accounting refund",
+                    "move_ids": [Command.set(invoice.ids)],
+                    "journal_id": invoice.journal_id.id,
+                }
+            )
+        )
+        wizard.reverse_moves()
+        credit_note = wizard.new_move_ids
+        self.assertFalse(credit_note.create_purpose_code)
+        credit_note.action_post()
+        self.assertFalse(credit_note.enable_etax)
+
+        self._sign_via_wizard(invoice, self.doctype_T02)
+        self.assertFalse(credit_note.enable_etax)
+        with patch(f"{REQUESTS_PATH}.request") as request:
+            with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+                credit_note.action_call_api(credit_note._etax_sign_api_code)
+            request.assert_not_called()
+        with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+            credit_note._pre_etax_validate()
+
+        credit_note.button_draft()
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        with Form(credit_note) as form:
+            form.etax_refund_reason_id = purpose
+        self.assertEqual(credit_note.create_purpose_code, purpose.code)
+        self.assertEqual(credit_note.create_purpose, purpose.reason)
+        credit_note.action_post()
+        self.assertTrue(credit_note.enable_etax)
+        payload = self._etax_payload(credit_note, "api_etax_invoice_frappe")
+        self.assertEqual(payload["create_purpose_code"], purpose.code)
+        self.assertEqual(payload["ref_document_id"], invoice.name)
+        self._sign_via_wizard(credit_note, self.doctype_81)
+        self.assertEqual(credit_note.etax_status, "success")
+
+    def test_credit_note_other_reason_requires_description(self):
+        purpose = self.env["etax.purpose.code"].create(
+            {
+                "name": "Other credit reason",
+                "code": "TEST99",
+                "etax_doctype_code_ids": [
+                    Command.set(self.doctype_81.doctype_code_id.ids)
+                ],
+            }
+        )
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        credit_note.etax_refund_reason_id = purpose
+        self.assertFalse(credit_note.create_purpose)
+        credit_note.action_post()
+        self.assertFalse(credit_note.enable_etax)
+        credit_note.button_draft()
+        credit_note.create_purpose = "   "
+        credit_note.action_post()
+        self.assertFalse(credit_note.enable_etax)
+        credit_note.button_draft()
+        credit_note.create_purpose = "Customer returned goods"
+        credit_note.action_post()
+        self.assertTrue(credit_note.enable_etax)
+
+    def test_credit_note_existing_code_and_reason_remain_usable(self):
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        credit_note.write(
+            {
+                "create_purpose_code": purpose.code,
+                "create_purpose": "Existing custom description",
+            }
+        )
+        self.assertEqual(credit_note.etax_refund_reason_id, purpose)
+        self.assertEqual(credit_note.create_purpose, "Existing custom description")
+        credit_note.action_post()
+        self.assertTrue(credit_note.enable_etax)
+        with (
+            self.assertRaisesRegex(ValidationError, "only be changed in draft"),
+            self.cr.savepoint(),
+        ):
+            credit_note.etax_refund_reason_id = False
+        credit_note.button_draft()
+        with Form(credit_note) as form:
+            form.etax_refund_reason_id = self.env["etax.purpose.code"]
+        self.assertFalse(credit_note.create_purpose_code)
+        self.assertFalse(credit_note.create_purpose)
+
+    def test_refund_reason_rejects_invoice_reason(self):
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        with (
+            self.assertRaisesRegex(
+                ValidationError, "reason for this credit/debit note"
+            ),
+            self.cr.savepoint(),
+        ):
+            credit_note.etax_refund_reason_id = self.tivc01
+
+    def test_refund_reason_form_preserves_custom_description(self):
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        with Form(credit_note) as form:
+            form.etax_refund_reason_id = purpose
+            self.assertEqual(form.create_purpose, purpose.reason)
+            form.create_purpose = "Customer-specific refund description"
+        self.assertEqual(credit_note.create_purpose_code, purpose.code)
+        self.assertEqual(
+            credit_note.create_purpose, "Customer-specific refund description"
+        )
+
+    def test_debit_note_created_before_invoice_sign_can_add_reason(self):
+        invoice = self.cust_invoice
+        invoice.action_post()
+        self.assertTrue(invoice.enable_etax)
+        self.assertFalse(invoice.etax_adjustment_doctype_code)
+        wizard = self.env["account.debit.note"].create(
+            {
+                "move_ids": [Command.set(invoice.ids)],
+                "reason": "Accounting adjustment",
+                "copy_lines": True,
+            }
+        )
+        action = wizard.create_debit()
+        debit_note = self.env["account.move"].browse(action["res_id"])
+        self.assertEqual(debit_note.move_type, "out_invoice")
+        self.assertEqual(debit_note.etax_adjustment_doctype_code, "80")
+        self.assertFalse(debit_note.create_purpose_code)
+        debit_note.action_post()
+        self.assertFalse(debit_note.enable_etax)
+        self._sign_via_wizard(invoice, self.doctype_T02)
+        self.assertFalse(debit_note.enable_etax)
+        with patch(f"{REQUESTS_PATH}.request") as request:
+            with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+                debit_note.action_call_api(debit_note._etax_sign_api_code)
+            request.assert_not_called()
+        with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+            debit_note._pre_etax_validate()
+        debit_note.button_draft()
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "80"), ("reason", "!=", False)],
+            limit=1,
+        )
+        with Form(debit_note) as form:
+            form.etax_refund_reason_id = purpose
+            self.assertEqual(form.create_purpose, purpose.reason)
+            form.create_purpose = "Additional services supplied"
+        self.assertEqual(debit_note.create_purpose_code, purpose.code)
+        self.assertEqual(debit_note.create_purpose, "Additional services supplied")
+        debit_note.action_post()
+        self.assertTrue(debit_note.enable_etax)
+        payload = self._etax_payload(debit_note, "api_etax_invoice_frappe")
+        self.assertEqual(payload["create_purpose_code"], purpose.code)
+        self.assertEqual(payload["ref_document_id"], invoice.name)
+        self._sign_via_wizard(debit_note, self.doctype_80)
+        self.assertEqual(debit_note.etax_status, "success")
+
+    def test_debit_note_reason_validation(self):
+        debit_note = self.init_invoice("out_invoice", amounts=[100.0])
+        debit_note.debit_origin_id = self.cust_invoice
+        credit_reason = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81")], limit=1
+        )
+        with (
+            self.assertRaisesRegex(ValidationError, "credit/debit note"),
+            self.cr.savepoint(),
+        ):
+            debit_note.etax_refund_reason_id = credit_reason
+        purpose = self.env["etax.purpose.code"].create(
+            {
+                "name": "Other debit reason",
+                "code": "TEST80",
+                "etax_doctype_code_ids": [
+                    Command.set(self.doctype_80.doctype_code_id.ids)
+                ],
+            }
+        )
+        with Form(debit_note) as form:
+            form.etax_refund_reason_id = purpose
+        for description in (False, "   ", "Additional charge"):
+            debit_note.create_purpose = description
+            debit_note.action_post()
+            self.assertEqual(debit_note.enable_etax, description == "Additional charge")
+            debit_note.button_draft()
+        with Form(debit_note) as form:
+            form.etax_refund_reason_id = self.env["etax.purpose.code"]
+        self.assertFalse(debit_note.create_purpose_code)
+        self.assertFalse(debit_note.create_purpose)
+        debit_note.action_post()
+        with (
+            self.assertRaisesRegex(ValidationError, "only be changed in draft"),
+            self.cr.savepoint(),
+        ):
+            debit_note.etax_refund_reason_id = purpose
 
     def test_original_invoice_sign_after_adjustments(self):
         for move_type, origin_field, amount, final in (
