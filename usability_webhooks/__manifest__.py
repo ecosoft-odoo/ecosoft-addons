@@ -3,7 +3,7 @@
 
 {
     "name": "REST API for Webhook",
-    "version": "18.0.4.1.0",
+    "version": "18.0.4.2.0",
     "license": "AGPL-3",
     "category": "Tools",
     "author": "Ecosoft, Odoo Community Association (OCA)",
