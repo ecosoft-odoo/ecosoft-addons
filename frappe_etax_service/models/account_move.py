@@ -159,6 +159,128 @@ class AccountMove(models.Model):
         if self.is_credit_payment_entry:
             self.ref = self.create_purpose
 
+    def _get_etax_document_data(self):
+        """Prepare invoice references, adjustments and signed line amounts."""
+        data = super()._get_etax_document_data()
+        original, adjustment, _corrected = self._get_additional_amount()
+        data.update(
+            {
+                "document_issue_dtm": self.invoice_date
+                and self.invoice_date.strftime("%Y-%m-%dT%H:%M:%S"),
+                "ref_document_id": self.debit_origin_id.name
+                or self.reversed_entry_id.name
+                or self.replaced_entry_id.name,
+                "ref_document_issue_dtm": (
+                    self.debit_origin_id.invoice_date
+                    and self.debit_origin_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
+                )
+                or (
+                    self.reversed_entry_id.invoice_date
+                    and self.reversed_entry_id.invoice_date.strftime(
+                        "%Y-%m-%dT%H:%M:%S"
+                    )
+                )
+                or (
+                    self.replaced_entry_id.invoice_date
+                    and self.replaced_entry_id.invoice_date.strftime(
+                        "%Y-%m-%dT%H:%M:%S"
+                    )
+                ),
+                "ref_document_type_code": self.debit_origin_id.etax_doctype_code
+                or self.reversed_entry_id.etax_doctype_code
+                or self.replaced_entry_id.etax_doctype_code,
+                "buyer_ref_document": self.payment_reference,
+                "original_amount_untaxed": original,
+                "final_amount_untaxed": self._get_etax_final_amount_untaxed(),
+                "adjust_amount_untaxed": adjustment,
+                "line_item_information": self._get_etax_line_item_information(),
+            }
+        )
+        return data
+
+    def _get_etax_invoice_lines(self):
+        """Return product lines included in the invoice e-Tax payload."""
+        self.ensure_one()
+        return self.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product"
+            and (line.price_unit > 0 or line.price_subtotal < 0)
+            and not line.skip_etax
+        )
+
+    def _get_etax_line_amounts(self):
+        """Return the amounts that belong to each individual e-Tax line.
+
+        Preserve each line's signed base, tax and total, including deductions.
+        Regular product amounts stay unchanged; the receiver can sum all lines
+        without recalculating tax or applying the allowance a second time.
+        """
+        self.ensure_one()
+        currency = self.currency_id
+        amounts = {}
+        for line in self._get_etax_invoice_lines():
+            line_base = currency.round(line.price_subtotal)
+            line_tax = currency.round(line.price_total - line.price_subtotal)
+            line_total = currency.round(line.price_total)
+            amounts[line.id] = (line_base, line_tax, line_total)
+        return amounts
+
+    def _get_etax_line_item_information(self):
+        """Return e-Tax items shared by invoices and payment receipts."""
+        self.ensure_one()
+        line_amounts = self._get_etax_line_amounts()
+        items = []
+        for line in self._get_etax_invoice_lines():
+            line_base, line_tax, line_total = line_amounts[line.id]
+            # A positive down-payment invoice is a charge, not a deduction.
+            is_allowance = line_base < 0
+            items.append(
+                self._prepare_etax_line_item(
+                    line,
+                    {
+                        "product_code": line.product_id.default_code or "",
+                        "product_name": line.product_id.name or line.name,
+                        "product_price": 0.0
+                        if is_allowance
+                        else round(line.price_unit, 2),
+                        "product_quantity": 1 if is_allowance else line.quantity,
+                        "line_tax_type_code": "VAT" if line.tax_ids else "FRE",
+                        "line_tax_rate": line.tax_ids[:1].amount or 0.0,
+                        "line_base_amount": line_base,
+                        "line_tax_amount": line_tax,
+                        "line_allowance_charge_ind": "false" if is_allowance else "",
+                        "line_allowance_actual_amount": (
+                            abs(line_base) if is_allowance else 0.0
+                        ),
+                        "line_allowance_actual_currency_code": self.currency_id.name,
+                        "line_total_amount": line_total,
+                    },
+                )
+            )
+        return items
+
+    def _get_etax_line_total_amount(self):
+        """Return the included line total after deductions and before VAT."""
+        self.ensure_one()
+        line_total = sum(line.price_subtotal for line in self._get_etax_invoice_lines())
+        return self.currency_id.round(line_total)
+
+    def _get_etax_final_amount_untaxed(self):
+        """Return the e-Tax header total without changing invoice deductions.
+
+        Debit and credit notes require the corrected amount after applying the
+        adjustment to the original invoice.  Other documents keep using the
+        line total so down-payment allowance lines remain deducted.
+        """
+        self.ensure_one()
+        if self.debit_origin_id or self.reversed_entry_id:
+            return self._get_additional_amount()[2]
+        return self._get_etax_line_total_amount()
+
+    def _prepare_etax_line_item(self, line, values):
+        """Hook for report-specific unit prices and quantities."""
+        self.ensure_one()
+        return values
+
     def _get_additional_amount(self):
         """
         In case of credit note, debit note or replacement tax invoice
