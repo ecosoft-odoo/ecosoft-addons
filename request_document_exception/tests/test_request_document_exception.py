@@ -1,8 +1,11 @@
 # Copyright 2025 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+from unittest import TestCase
+
 from odoo.tests import tagged
 
+from odoo.addons.base_exception.exceptions import BaseExceptionError
 from odoo.addons.request_document.tests.test_request_document import TestRequestDocument
 
 
@@ -23,7 +26,11 @@ class TestRequestDocumentException(TestRequestDocument):
         self.assertEqual(request_order.state, "draft")
         self.assertFalse(request_order.main_exception_id)
 
-        request_order.action_submit()
+        # In test mode, base_exception stores exceptions in the current
+        # transaction. Avoid Odoo's assertRaises savepoint rolling them back.
+        with TestCase.assertRaises(self, BaseExceptionError):
+            request_order.action_submit()
+
         self.assertEqual(request_order.state, "draft")
         self.assertTrue(request_order.main_exception_id)
 
