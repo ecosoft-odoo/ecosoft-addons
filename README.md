@@ -34,7 +34,7 @@ addon | version | maintainers | summary
 [request_document_purchase_request](request_document_purchase_request/) | 18.0.1.1.0 |  | Request Document - Purchase Request
 [request_document_tier_validation](request_document_tier_validation/) | 18.0.1.0.0 |  | Request Document - Tier Validation
 [usability_api_connector](usability_api_connector/) | 18.0.1.1.3 | <a href='https://github.com/Saran440'><img src='https://github.com/Saran440.png' width='32' height='32' style='border-radius:50%;' alt='Saran440'/></a> | Usability - API Connector
-[usability_webhooks](usability_webhooks/) | 18.0.4.1.0 |  | REST API for Webhook
+[usability_webhooks](usability_webhooks/) | 18.0.4.2.0 |  | REST API for Webhook
 
 [//]: # (end addons)
 
