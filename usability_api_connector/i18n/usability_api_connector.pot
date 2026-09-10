@@ -296,6 +296,16 @@ msgid "Form Data"
 msgstr ""
 
 #. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__payload_display
+msgid "Formatted Payload"
+msgstr ""
+
+#. module: usability_api_connector
+#: model:ir.model.fields,field_description:usability_api_connector.field_api_connector_log__result_display
+msgid "Formatted Result"
+msgstr ""
+
+#. module: usability_api_connector
 #: model:ir.model.fields.selection,name:usability_api_connector.selection__api_config__method__get
 msgid "GET"
 msgstr ""
