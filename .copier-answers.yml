@@ -1,8 +1,7 @@
 # Do NOT update manually; changes here will be overwritten by Copier
-_commit: v1.31
+_commit: v1.44
 _src_path: gh:oca/oca-addons-repo-template
 additional_ruff_rules: []
-ci: GitHub
 convert_readme_fragments_to_markdown: false
 enable_checklog_odoo: false
 generate_requirements_txt: true
@@ -17,6 +16,7 @@ odoo_test_flavor: Both
 odoo_version: 15.0
 org_name: Ecosoft
 org_slug: ecosoft-odoo
+postgres_image: ''
 rebel_module_groups: []
 repo_description: This project is custom module that we think other project can re-use
     module but not generic for global and thailand
