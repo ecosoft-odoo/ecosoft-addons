@@ -26,3 +26,20 @@ Go to *Settings > Technical > API Configuration > Outbound Webhook Rules* to con
 | **Endpoint URL** | Required when Endpoint Source is `Static URL`. |
 | **Payload Fields** | A JSON object. Static values are sent as-is; `{field.path}` templates are resolved from the record (dotted paths supported, e.g. `{partner_id.name}`), recursively at any nesting level. A one2many/many2many field can be expanded into a list of objects: give the key matching the field name a one-item array as value, e.g. `"order_line": [{"product": "{product_id.name}"}]`. Leave empty to send `{"id": <record_id>}` only. |
 | **Authorization Header** | Optional `Authorization` header value sent with every outbound request, e.g. `Bearer <token>`. |
+
+### Payload templates
+
+| Template | Result |
+|----------|--------|
+| `{field.path}` | The raw value. A path crossing a multi-record one2many/many2many cannot be traversed - use `:join` instead. |
+| `{field.path:label}` | Selection value replaced by its translated label, e.g. `sale` -> `Sales Order`. |
+| `{field.path:join}` | Every value along the path, comma separated. Traverses x2many fields, e.g. `{order_line.product_id.name:join}`. |
+| `{field.path:date}` | Date part only of a datetime field, e.g. `2026-07-31`. |
+| `{field.path:text}` | Html field converted to plain text. |
+| `{@_webhook_method}` | Calls `_webhook_method()` on the record and sends what it returns. |
+| `{@_webhook_method(arg1, arg2)}` | Same, with arguments passed as plain strings. |
+
+Only methods named `_webhook_*` can be called. Define them on the model that
+inherits `webhook.outbound.mixin`, for example to look up a value in another
+model. Anything that fails to resolve is logged and sent as `null`, so a bad
+template never blocks the `write()` that triggered the webhook.

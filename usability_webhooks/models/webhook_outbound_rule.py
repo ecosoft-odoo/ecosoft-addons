@@ -34,8 +34,16 @@ class WebhookOutboundRule(models.Model):
         "level.\nA one2many/many2many field can be expanded into a list of "
         "objects: give a key matching the field name a one-item array as "
         'value, e.g. "order_line": [{"product": "{product_id.name}"}].\n'
+        "'{field.path:format}' converts the value, where format is one of:\n"
+        "- label: selection value -> its translated label\n"
+        "- join: comma separated values, for a path crossing a x2many field\n"
+        "- date: datetime -> date part only\n"
+        "- text: html -> plain text\n"
+        "'{@_webhook_method}' or '{@_webhook_method(arg1, arg2)}' calls a "
+        "method of the record and sends what it returns; only methods named "
+        "'_webhook_*' can be called and arguments are passed as strings.\n"
         'Example: {"request_code": "{name}", '
-        '"data": {"id": "{id}", "state": "{state}"}}\n'
+        '"data": {"id": "{id}", "state": "{state:label}"}}\n'
         "Leave empty to send id only.",
     )
     auth_header = fields.Char(
