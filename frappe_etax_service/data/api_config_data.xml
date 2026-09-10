@@ -19,64 +19,7 @@
         <field name="headers">{"Authorization": f"token {auth_token}"}</field>
         <field name="python_code">
             {
-                "doc_data": {
-                    "currency_code": rec.currency_id.name,
-                    "document_type_code": rec.etax_doctype_code,
-                    "document_id": rec.name,
-                    "document_issue_dtm": rec.invoice_date and rec.invoice_date.strftime("%Y-%m-%dT%H:%M:%S"),
-                    "create_purpose_code": rec.create_purpose_code,
-                    "create_purpose": rec.create_purpose,
-                    "ref_document_id": rec.debit_origin_id.name or rec.reversed_entry_id.name or rec.replaced_entry_id.name,
-                    "ref_document_issue_dtm": (rec.debit_origin_id.invoice_date and rec.debit_origin_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S"))
-                        or (rec.reversed_entry_id.invoice_date and rec.reversed_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S"))
-                        or (rec.replaced_entry_id.invoice_date and rec.replaced_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")),
-                    "ref_document_type_code": rec.debit_origin_id.etax_doctype_code or rec.reversed_entry_id.etax_doctype_code or rec.replaced_entry_id.etax_doctype_code,
-                    "buyer_ref_document": rec.payment_reference,
-                    "seller_branch_id": rec.company_id.company_registry,
-                    "source_system": env["ir.config_parameter"].sudo().get_param("web.base.url", ""),
-                    "send_mail": rec.company_id.is_send_etax_email and "Y" or "N",
-                    "seller_tax_id": rec.company_id.vat,
-                    "buyer_name": rec.partner_id.name,
-                    "buyer_type": "TXID",  # TXID, NIDN, CCPT, OTHR (no taxid)
-                    "buyer_tax_id": rec.partner_id.vat,
-                    "buyer_branch_id": rec.partner_id.company_registry or "00000",
-                    "buyer_email": rec.partner_id.email,
-                    "buyer_zip": rec.partner_id.zip,
-                    "buyer_building_name": "",
-                    "buyer_building_no": "",
-                    "buyer_address_line1": rec.partner_id.street,
-                    "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": " ".join(
-                        filter(None, [rec.partner_id.city, rec.partner_id.state_id.name])
-                    ),
-                    "buyer_address_line4": rec.partner_id.zip,
-                    "buyer_address_line5": "",
-                    "buyer_city_name": rec.partner_id.city,
-                    "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
-                    "original_amount_untaxed": rec._get_additional_amount()[0],
-                    "final_amount_untaxed": rec._get_additional_amount()[2],
-                    "adjust_amount_untaxed": rec._get_additional_amount()[1],
-                    "line_item_information": [
-                        {
-                            "product_code": line.product_id and line.product_id.default_code or "",
-                            "product_name": line.product_id and line.product_id.name or line.name,
-                            "product_price": line.price_unit,
-                            "product_quantity": line.quantity,
-                            "line_tax_type_code": line.tax_ids.name and "VAT" or "FRE",
-                            "line_tax_rate": line.tax_ids and line.tax_ids[0].amount or 0.00,
-                            "line_base_amount": line.tax_ids and line.price_subtotal or 0.00,
-                            "line_tax_amount": line.tax_ids
-                            and (line.price_total - line.price_subtotal)
-                            or 0.0,
-                            "line_total_amount": line.price_total,
-                        }
-                        for line in rec.invoice_line_ids.filtered(
-                            lambda inv_line: inv_line.display_type == "product"
-                            and inv_line.price_unit > 0
-                            and not inv_line.skip_etax
-                        )
-                    ],
-                },
+                "doc_data": rec._get_etax_document_data(),
                 "form_type": form_type,  # odoo or frappe
                 # odoo's report name or frappe's print format
                 "form_name": form_name,
@@ -104,71 +47,7 @@
         <field name="headers">{"Authorization": f"token {auth_token}"}</field>
         <field name="python_code">
             {
-                "doc_data": {
-                    "currency_code": rec.currency_id.name,
-                    "document_type_code": rec.etax_doctype_code,
-                    "document_id": rec.name,
-                    "document_issue_dtm": rec.date and rec.date.strftime("%Y-%m-%dT%H:%M:%S"),
-                    "create_purpose_code": rec.create_purpose_code,
-                    "create_purpose": rec.create_purpose,
-                    "ref_document_id": rec.replacement_origin_payment_id.name,
-                    "ref_document_issue_dtm": rec.replacement_origin_payment_id.date and rec.replacement_origin_payment_id.date.strftime("%Y-%m-%dT%H:%M:%S"),
-                    "ref_document_type_code": rec.replacement_origin_payment_id.etax_doctype_code,
-                    # --
-                    "buyer_ref_document": "",
-                    "seller_branch_id": rec.company_id.company_registry,
-                    "source_system": env["ir.config_parameter"].sudo().get_param("web.base.url", ""),
-                    "send_mail": rec.company_id.is_send_etax_email and "Y" or "N",
-                    "seller_tax_id": rec.company_id.vat,
-                    "buyer_name": rec.partner_id.name,
-                    "buyer_type": "TXID",  # TXID, NIDN, CCPT, OTHR (no taxid)
-                    "buyer_tax_id": rec.partner_id.vat,
-                    "buyer_branch_id": rec.partner_id.company_registry or "00000",
-                    "buyer_email": rec.partner_id.email,
-                    "buyer_zip": rec.partner_id.zip,
-                    "buyer_building_name": "",
-                    "buyer_building_no": "",
-                    "buyer_address_line1": rec.partner_id.street,
-                    "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": " ".join(
-                        filter(None, [rec.partner_id.city, rec.partner_id.state_id.name])
-                    ),
-                    "buyer_address_line4": rec.partner_id.zip,
-                    "buyer_address_line5": "",
-                    "buyer_city_name": rec.partner_id.city,
-                    "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
-                    "original_amount_untaxed": False,
-                    "final_amount_untaxed": False,
-                    "adjust_amount_untaxed": False,
-                    "line_item_information": rec.tax_invoice_ids and [
-                        {
-                            "product_code": line.tax_invoice_number,
-                            "product_name": line.tax_invoice_number,
-                            "product_price": line.tax_base_amount,
-                            "product_quantity": 1,
-                            "line_tax_type_code": line.tax_line_id.name and "VAT" or "FRE",
-                            "line_tax_rate": line.tax_line_id.amount,
-                            "line_base_amount": line.tax_base_amount,
-                            "line_tax_amount": line.balance,
-                            "line_total_amount": line.tax_base_amount + line.balance,
-                        }
-                        for line in rec.tax_invoice_ids
-                    ] or
-                    [
-                        {
-                            "product_code": "",
-                            "product_name": line.name and line.name.split(" ")[0] or "",
-                            "product_price": line.price_unit,
-                            "product_quantity": line.quantity,
-                            "line_tax_type_code": "FRE",
-                            "line_tax_rate": 0.0,
-                            "line_base_amount": line.price_subtotal,
-                            "line_tax_amount": 0.0,
-                            "line_total_amount": line.price_subtotal,
-                        }
-                        for line in rec.reconciled_invoice_ids.invoice_line_ids
-                    ],
-                },
+                "doc_data": rec._get_etax_document_data(),
                 "form_type": form_type,  # odoo or frappe
                 # odoo's report name or frappe's print format
                 "form_name": form_name,
@@ -196,73 +75,7 @@
         <field name="headers">{"Authorization": f"token {auth_token}"}</field>
         <field name="python_code">
             {
-                "doc_data": {
-                    "currency_code": rec.currency_id.name,
-                    "document_type_code": rec.etax_doctype_code,
-                    "document_id": rec.name,
-                    "document_issue_dtm": rec.date and rec.date.strftime("%Y-%m-%dT%H:%M:%S"),
-                    "create_purpose_code": rec.create_purpose_code,
-                    "create_purpose": rec.create_purpose,
-                    "ref_document_id": rec.replacement_origin_payment_id.name,
-                    "ref_document_issue_dtm": rec.replacement_origin_payment_id.date and rec.replacement_origin_payment_id.date.strftime("%Y-%m-%dT%H:%M:%S"),
-                    "ref_document_type_code": rec.replacement_origin_payment_id.etax_doctype_code,
-                    # --
-                    "buyer_ref_document": "",
-                    "seller_branch_id": rec.company_id.company_registry,
-                    "source_system": env["ir.config_parameter"].sudo().get_param("web.base.url", ""),
-                    "send_mail": rec.company_id.is_send_etax_email and "Y" or "N",
-                    "seller_tax_id": rec.company_id.vat,
-                    "buyer_name": rec.partner_id.name,
-                    "buyer_type": "TXID",  # TXID, NIDN, CCPT, OTHR (no taxid)
-                    "buyer_tax_id": rec.partner_id.vat,
-                    "buyer_branch_id": rec.partner_id.company_registry or "00000",
-                    "buyer_email": rec.partner_id.email,
-                    "buyer_zip": rec.partner_id.zip,
-                    "buyer_building_name": "",
-                    "buyer_building_no": "",
-                    "buyer_address_line1": rec.partner_id.street,
-                    "buyer_address_line2": rec.partner_id.street2,
-                    "buyer_address_line3": " ".join(
-                        filter(None, [rec.partner_id.city, rec.partner_id.state_id.name])
-                    ),
-                    "buyer_address_line4": rec.partner_id.zip,
-                    "buyer_address_line5": "",
-                    "buyer_city_name": rec.partner_id.city,
-                    "buyer_country_code": rec.partner_id.country_id and rec.partner_id.country_id.code or "",
-                    # Receipts, including replacements, use line items for totals.
-                    # These adjustment fields apply to credit/debit notes.
-                    "original_amount_untaxed": False,
-                    "final_amount_untaxed": False,
-                    "adjust_amount_untaxed": False,
-                    "line_item_information": rec.tax_invoice_ids and [
-                        {
-                            "product_code": line.tax_invoice_number,
-                            "product_name": line.tax_invoice_number,
-                            "product_price": line.tax_base_amount,
-                            "product_quantity": 1,
-                            "line_tax_type_code": line.tax_line_id.name and "VAT" or "FRE",
-                            "line_tax_rate": line.tax_line_id.amount,
-                            "line_base_amount": line.tax_base_amount,
-                            "line_tax_amount": line.balance,
-                            "line_total_amount": line.tax_base_amount + line.balance,
-                        }
-                        for line in rec.tax_invoice_ids
-                    ] or
-                    [
-                        {
-                            "product_code": "",
-                            "product_name": line.name and line.name.split(" ")[0] or "",
-                            "product_price": line.price_unit,
-                            "product_quantity": line.quantity,
-                            "line_tax_type_code": "FRE",
-                            "line_tax_rate": 0.0,
-                            "line_base_amount": line.price_subtotal,
-                            "line_tax_amount": 0.0,
-                            "line_total_amount": line.price_subtotal,
-                        }
-                        for line in rec.reconciled_invoice_ids.invoice_line_ids
-                    ],
-                },
+                "doc_data": rec._get_etax_document_data(),
                 "form_type": form_type,  # odoo or frappe
                 # odoo's report name or frappe's print format
                 "form_name": form_name,

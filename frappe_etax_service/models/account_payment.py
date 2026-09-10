@@ -38,6 +38,65 @@ class AccountPayment(models.Model):
         store=True,
     )
 
+    def _get_etax_document_data(self):
+        """Prepare document-specific e-Tax data; extensions may override this."""
+        data = super()._get_etax_document_data()
+        data.update(
+            {
+                "document_issue_dtm": self.date
+                and self.date.strftime("%Y-%m-%dT%H:%M:%S"),
+                "ref_document_id": self.replacement_origin_payment_id.name,
+                "ref_document_issue_dtm": self.replacement_origin_payment_id.date
+                and self.replacement_origin_payment_id.date.strftime(
+                    "%Y-%m-%dT%H:%M:%S"
+                ),
+                "ref_document_type_code": (
+                    self.replacement_origin_payment_id.etax_doctype_code
+                ),
+                "buyer_ref_document": "",
+                "original_amount_untaxed": False,
+                "final_amount_untaxed": False,
+                "adjust_amount_untaxed": False,
+            }
+        )
+        data["line_item_information"] = self._get_etax_line_item_information()
+        return data
+
+    def _get_etax_line_item_information(self):
+        """Return standard receipt tax-invoice lines, or reconciled exempt items."""
+        self.ensure_one()
+        return (
+            self.tax_invoice_ids
+            and [
+                {
+                    "product_code": line.tax_invoice_number,
+                    "product_name": line.tax_invoice_number,
+                    "product_price": line.tax_base_amount,
+                    "product_quantity": 1,
+                    "line_tax_type_code": line.tax_line_id.name and "VAT" or "FRE",
+                    "line_tax_rate": line.tax_line_id.amount,
+                    "line_base_amount": line.tax_base_amount,
+                    "line_tax_amount": line.balance,
+                    "line_total_amount": line.tax_base_amount + line.balance,
+                }
+                for line in self.tax_invoice_ids
+            ]
+            or [
+                {
+                    "product_code": "",
+                    "product_name": line.name and line.name.split(" ")[0] or "",
+                    "product_price": line.price_unit,
+                    "product_quantity": line.quantity,
+                    "line_tax_type_code": "FRE",
+                    "line_tax_rate": 0.0,
+                    "line_base_amount": line.price_subtotal,
+                    "line_tax_amount": 0.0,
+                    "line_total_amount": line.price_subtotal,
+                }
+                for line in self.reconciled_invoice_ids.invoice_line_ids
+            ]
+        )
+
     @api.depends("etax_status", "state", "is_etax_configured")
     def _compute_enable_etax(self):
         for rec in self:

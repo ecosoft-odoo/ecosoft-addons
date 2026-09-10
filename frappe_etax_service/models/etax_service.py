@@ -72,6 +72,42 @@ class ETaxServiceMixin(models.AbstractModel):
         copy=False,
     )
 
+    def _get_etax_document_data(self):
+        """Shared e-Tax identity, seller and buyer data for invoices and receipts."""
+        self.ensure_one()
+        return {
+            "currency_code": self.currency_id.name,
+            "document_type_code": self.etax_doctype_code,
+            "document_id": self.name,
+            "create_purpose_code": self.create_purpose_code,
+            "create_purpose": self.create_purpose,
+            "seller_branch_id": self.company_id.company_registry,
+            "source_system": self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("web.base.url", ""),
+            "send_mail": self.company_id.is_send_etax_email and "Y" or "N",
+            "seller_tax_id": self.company_id.vat,
+            "buyer_name": self.partner_id.name,
+            "buyer_type": "TXID",
+            "buyer_tax_id": self.partner_id.vat,
+            "buyer_branch_id": self.partner_id.company_registry or "00000",
+            "buyer_email": self.partner_id.email,
+            "buyer_zip": self.partner_id.zip,
+            "buyer_building_name": "",
+            "buyer_building_no": "",
+            "buyer_address_line1": self.partner_id.street,
+            "buyer_address_line2": self.partner_id.street2,
+            "buyer_address_line3": " ".join(
+                filter(None, [self.partner_id.city, self.partner_id.state_id.name])
+            ),
+            "buyer_address_line4": self.partner_id.zip,
+            "buyer_address_line5": "",
+            "buyer_city_name": self.partner_id.city,
+            "buyer_country_code": self.partner_id.country_id
+            and self.partner_id.country_id.code
+            or "",
+        }
+
     def _get_odoo_form(self):
         report = self.etax_doctype_id.report_id
         content, _ = report._render_qweb_pdf(report.xml_id, res_ids=self.ids)
