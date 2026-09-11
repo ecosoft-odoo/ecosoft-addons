@@ -70,7 +70,35 @@ class TestETaxPayload(TransactionCase):
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0]["line_base_amount"], 180)
         self.assertEqual(items[0]["product_quantity"], 2)
+        self.assertEqual(items[0]["line_allowance_charge_ind"], "false")
+        self.assertEqual(items[0]["line_allowance_actual_amount"], 20)
         self.assertEqual(invoice._get_etax_final_amount_untaxed(), 180)
+
+    def test_discount_excludes_price_included_vat(self):
+        self.tax.price_include_override = "tax_included"
+        invoice = self._invoice([(107, 2, {"discount": 10})])
+        item = invoice._get_etax_line_item_information()[0]
+        self.assertEqual(item["line_allowance_actual_amount"], 20)
+        self.assertEqual(item["line_base_amount"], 180)
+        self.assertEqual(item["line_tax_amount"], 12.6)
+        self.assertEqual(item["line_total_amount"], 192.6)
+
+    def test_full_discount_and_exempt_discount(self):
+        for discount, allowance, base in [(10, 20, 180), (100, 200, 0)]:
+            with self.subTest(discount=discount):
+                invoice = self._invoice([(100, 2, {"discount": discount})], taxed=False)
+                item = invoice._get_etax_line_item_information()[0]
+                self.assertEqual(item["line_allowance_actual_amount"], allowance)
+                self.assertEqual(item["line_allowance_charge_ind"], "false")
+                self.assertEqual(item["line_base_amount"], base)
+                self.assertEqual(item["product_price"], 100)
+                self.assertEqual(item["product_quantity"], 2)
+
+    def test_discounted_negative_line_is_one_allowance(self):
+        invoice = self._invoice([(300, 1, {}), (-100, 1, {"discount": 10})])
+        item = invoice._get_etax_line_item_information()[-1]
+        self.assertEqual(item["line_allowance_actual_amount"], 90)
+        self.assertEqual(item["line_base_amount"], -90)
 
     def test_adjustment_and_replacement_totals(self):
         origin = self._invoice([(300, 1, {})])
