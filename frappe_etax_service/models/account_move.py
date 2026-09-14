@@ -233,6 +233,21 @@ class AccountMove(models.Model):
             line_base, line_tax, line_total = line_amounts[line.id]
             # A positive down-payment invoice is a charge, not a deduction.
             is_allowance = line_base < 0
+            allowance_amount = abs(line_base) if is_allowance else 0.0
+            if not is_allowance and line.discount > 0:
+                # L27 is the tax-exclusive discount for the whole line.
+                # Use Odoo's tax engine for prices that already include VAT.
+                undiscounted = line.tax_ids.compute_all(
+                    line.price_unit,
+                    currency=self.currency_id,
+                    quantity=line.quantity,
+                    product=line.product_id,
+                    partner=self.partner_id,
+                    is_refund=self.move_type == "out_refund",
+                )["total_excluded"]
+                allowance_amount = max(
+                    self.currency_id.round(undiscounted - line_base), 0.0
+                )
             items.append(
                 self._prepare_etax_line_item(
                     line,
@@ -247,10 +262,10 @@ class AccountMove(models.Model):
                         "line_tax_rate": line.tax_ids[:1].amount or 0.0,
                         "line_base_amount": line_base,
                         "line_tax_amount": line_tax,
-                        "line_allowance_charge_ind": "false" if is_allowance else "",
-                        "line_allowance_actual_amount": (
-                            abs(line_base) if is_allowance else 0.0
+                        "line_allowance_charge_ind": (
+                            "false" if allowance_amount else ""
                         ),
+                        "line_allowance_actual_amount": allowance_amount,
                         "line_allowance_actual_currency_code": self.currency_id.name,
                         "line_total_amount": line_total,
                     },
