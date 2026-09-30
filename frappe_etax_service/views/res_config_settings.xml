@@ -23,6 +23,10 @@
                         invisible="not is_etax_configured"
                     >
                         <field name="is_send_etax_email" />
+                        <div class="content-group" invisible="not is_send_etax_email">
+                            <field name="require_etax_email" />
+                            <label for="require_etax_email" />
+                        </div>
                     </setting>
                     <setting
                         id="frappe_etax_connection"

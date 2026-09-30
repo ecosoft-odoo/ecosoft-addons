@@ -97,3 +97,24 @@ Purpose codes are automatically filtered by document type when creating a credit
 Go to **Invoicing -> Configurations -> Settings**, section **Ecosoft e-Tax Services**:
 
 * **Replacement Lock Date** - Day of month after which creating a replacement e-Tax document is no longer allowed (counted from the 1st of the following month). Default is ``1``.
+
+**6. e-Tax Recipient Emails**
+
+Open the customer or invoice contact and fill in **e-Tax Email** next to
+**Email**. Multiple recipients can be entered as a comma-separated list,
+for example ``billing@example.com,accounting@example.com``.
+
+Invoices, receipts, and replacement receipts use this field for
+``buyer_email`` in the Frappe e-Tax API payload.
+
+Under **Send Email** in the company's e-Tax settings, enable **Require Email
+Before Signing e-Tax** to block signing when the document's customer has no
+e-Tax Email. This option is disabled by default.
+
+* With **Send Email** disabled, documents are signed without requesting email.
+* With **Send Email** enabled and recipients provided, signing requests email delivery.
+* When recipients are missing and **Require Email Before Signing e-Tax** is
+  disabled, signing proceeds with ``send_mail = N``.
+* When recipients are missing and the requirement is enabled, signing is
+  blocked before calling the API. For multiple documents, email issues are
+  reported together before any signing request.

@@ -15,6 +15,12 @@ class ResCompany(models.Model):
         ondelete="restrict",
     )
     is_send_etax_email = fields.Boolean(string="Send Email")
+    require_etax_email = fields.Boolean(
+        string="Require Email Before Signing e-Tax",
+        default=False,
+        help="When Send Email is enabled, block signing if the customer has no "
+        "e-Tax Email. Otherwise, sign without requesting email delivery.",
+    )
     replacement_lock_date = fields.Integer()
     is_etax_configured = fields.Boolean(
         string="Enable e-Tax",
