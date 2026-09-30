@@ -3,6 +3,7 @@
 from . import frappe_etax_connection
 from . import res_company
 from . import res_config_settings
+from . import res_partner
 from . import etax_doctype_code
 from . import etax_purpose_code
 from . import etax_doctype

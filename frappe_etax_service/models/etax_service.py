@@ -72,6 +72,26 @@ class ETaxServiceMixin(models.AbstractModel):
         copy=False,
     )
 
+    def _check_etax_email(self):
+        missing = self.filtered(
+            lambda record: record.company_id.is_send_etax_email
+            and record.company_id.require_etax_email
+            and not (record.partner_id.email_etax or "").strip()
+        )
+        if missing:
+            raise ValidationError(
+                self.env._("Cannot sign e-Tax. Please fill in e-Tax Email for:\n%s")
+                % "\n".join(
+                    f"{record.display_name}: {record.partner_id.display_name}"
+                    for record in missing
+                )
+            )
+
+    def action_call_api(self, code_api):
+        if code_api in FRAPPE_ETAX_API_CODES:
+            self._check_etax_email()
+        return super().action_call_api(code_api)
+
     def _get_etax_document_data(self):
         """Shared e-Tax identity, seller and buyer data for invoices and receipts."""
         self.ensure_one()
@@ -91,7 +111,7 @@ class ETaxServiceMixin(models.AbstractModel):
             "buyer_type": "TXID",
             "buyer_tax_id": self.partner_id.vat,
             "buyer_branch_id": self.partner_id.company_registry or "00000",
-            "buyer_email": self.partner_id.email,
+            "buyer_email": self.partner_id.email_etax,
             "buyer_zip": self.partner_id.zip,
             "buyer_building_name": "",
             "buyer_building_no": "",
@@ -306,6 +326,7 @@ class ETaxServiceMixin(models.AbstractModel):
         return processed
 
     def _pre_etax_validate(self):
+        self._check_etax_email()
         disabled = self.filtered(
             lambda record: not record.company_id.is_etax_configured
         )

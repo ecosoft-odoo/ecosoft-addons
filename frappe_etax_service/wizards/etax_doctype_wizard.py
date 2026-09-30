@@ -24,6 +24,7 @@ class ETaxDoctypeWizard(models.TransientModel):
     )
 
     def _process_sign_etax(self, moves):
+        moves._check_etax_email()
         moves.write(
             {
                 "etax_doctype_id": self.etax_doctype_id.id,
