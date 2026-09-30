@@ -194,6 +194,14 @@ msgid ""
 msgstr ""
 
 #. module: frappe_etax_service
+#. odoo-python
+#: code:addons/frappe_etax_service/models/etax_service.py:0
+msgid ""
+"Cannot sign e-Tax. Please fill in e-Tax Email for:\n"
+"%s"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype_code__code
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__code
 msgid "Code"
@@ -236,6 +244,11 @@ msgstr ""
 msgid ""
 "Connection profile containing the Frappe server URL and authentication "
 "token."
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model,name:frappe_etax_service.model_res_partner
+msgid "Contact"
 msgstr ""
 
 #. module: frappe_etax_service
@@ -398,6 +411,12 @@ msgstr ""
 #. module: frappe_etax_service
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.res_config_settings_view_form
 msgid "Ecosoft e-Tax Services"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_res_partner__email_etax
+#: model:ir.model.fields,help:frappe_etax_service.field_res_users__email_etax
+msgid "Email addresses for e-Tax delivery, separated by commas."
 msgstr ""
 
 #. module: frappe_etax_service
@@ -913,6 +932,12 @@ msgid "Report"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_company__require_etax_email
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_config_settings__require_etax_email
+msgid "Require Email Before Signing e-Tax"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_doctype__activity_user_id
 #: model:ir.model.fields,field_description:frappe_etax_service.field_etax_purpose_code__activity_user_id
 msgid "Responsible User"
@@ -1127,6 +1152,14 @@ msgid "Website communication history"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model:ir.model.fields,help:frappe_etax_service.field_res_company__require_etax_email
+#: model:ir.model.fields,help:frappe_etax_service.field_res_config_settings__require_etax_email
+msgid ""
+"When Send Email is enabled, block signing if the customer has no e-Tax "
+"Email. Otherwise, sign without requesting email delivery."
+msgstr ""
+
+#. module: frappe_etax_service
 #. odoo-python
 #: code:addons/frappe_etax_service/models/etax_service.py:0
 msgid "_prepare_etax_doc_data() not implemented for model: %s"
@@ -1138,9 +1171,20 @@ msgid "api_key:api_secret"
 msgstr ""
 
 #. module: frappe_etax_service
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_partner_form
+msgid "billing@example.com,accounting@example.com"
+msgstr ""
+
+#. module: frappe_etax_service
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_account_payment_form
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_move_form_etax
 msgid "e-Tax"
+msgstr ""
+
+#. module: frappe_etax_service
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_partner__email_etax
+#: model:ir.model.fields,field_description:frappe_etax_service.field_res_users__email_etax
+msgid "e-Tax Email"
 msgstr ""
 
 #. module: frappe_etax_service
