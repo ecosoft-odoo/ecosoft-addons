@@ -15,6 +15,7 @@ from odoo.addons.frappe_etax_service.models.etax_service import (
     FRAPPE_ETAX_STATUS_FIELDS,
     ETaxServiceMixin,
 )
+from odoo.addons.usability_api_connector.models.common_base_api import CommonBaseApi
 
 REQUESTS_PATH = "odoo.addons.usability_api_connector.models.common_base_api.requests"
 
@@ -866,3 +867,34 @@ class TestETax(AccountTestInvoicingCommon):
 
         self.assertEqual(processed, 1)
         update.assert_called_once()
+
+    def test_required_etax_email(self):
+        invoice = self.cust_invoice
+        for send_email, required, email, blocked in (
+            (True, True, False, True),
+            (True, True, "   ", True),
+            (True, True, "billing@example.com", False),
+            (True, False, False, False),
+            (False, True, False, False),
+            (False, False, False, False),
+        ):
+            with self.subTest(send_email=send_email, required=required, email=email):
+                invoice.company_id.write(
+                    {
+                        "is_send_etax_email": send_email,
+                        "require_etax_email": required,
+                    }
+                )
+                invoice.partner_id.email_etax = email
+                with patch.object(
+                    CommonBaseApi, "action_call_api", return_value=True
+                ) as call_api:
+                    if blocked:
+                        with self.assertRaisesRegex(ValidationError, "e-Tax Email"):
+                            invoice.action_call_api(invoice._etax_sign_api_code)
+                        call_api.assert_not_called()
+                    else:
+                        self.assertTrue(
+                            invoice.action_call_api(invoice._etax_sign_api_code)
+                        )
+                        call_api.assert_called_once_with(invoice._etax_sign_api_code)

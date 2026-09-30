@@ -16,6 +16,10 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.is_send_etax_email",
         readonly=False,
     )
+    require_etax_email = fields.Boolean(
+        related="company_id.require_etax_email",
+        readonly=False,
+    )
     replacement_lock_date = fields.Integer(
         related="company_id.replacement_lock_date",
         readonly=False,
