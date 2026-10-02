@@ -146,6 +146,28 @@ class TestPaymentETaxValidation(TransactionCase):
         ):
             return payment._pre_etax_validate()
 
+    def test_enable_etax_only_for_customer_receipt(self):
+        self.env.company.is_etax_configured = True
+        cases = [
+            ("inbound", "customer", True),
+            ("outbound", "customer", False),
+            ("outbound", "supplier", False),
+            ("inbound", "supplier", False),
+        ]
+        for payment_type, partner_type, expected in cases:
+            with self.subTest(payment_type=payment_type, partner_type=partner_type):
+                payment = self.env["account.payment"].new(
+                    {
+                        "amount": 100.0,
+                        "payment_type": payment_type,
+                        "partner_type": partner_type,
+                        "partner_id": self.env.company.partner_id.id,
+                        "company_id": self.env.company.id,
+                        "state": "paid",
+                    }
+                )
+                self.assertEqual(payment.enable_etax, expected)
+
     def test_payment_without_lines_is_rejected(self):
         payment = self._new_payment()
 
