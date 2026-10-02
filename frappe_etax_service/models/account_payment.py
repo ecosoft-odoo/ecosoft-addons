@@ -97,11 +97,15 @@ class AccountPayment(models.Model):
             ]
         )
 
-    @api.depends("etax_status", "state", "is_etax_configured")
+    @api.depends(
+        "partner_type", "payment_type", "etax_status", "state", "is_etax_configured"
+    )
     def _compute_enable_etax(self):
         for rec in self:
             rec.enable_etax = (
-                rec.etax_status not in ("success", "processing")
+                rec.partner_type == "customer"
+                and rec.payment_type == "inbound"
+                and rec.etax_status not in ("success", "processing")
                 and rec.state == "paid"
                 and rec.company_id.is_etax_configured
             )
