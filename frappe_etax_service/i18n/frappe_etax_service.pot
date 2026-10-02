@@ -980,6 +980,8 @@ msgstr ""
 #: code:addons/frappe_etax_service/models/etax_service.py:0
 #: model:ir.actions.act_window,name:frappe_etax_service.action_etax_doctype_wizard
 #: model_terms:ir.ui.view,arch_db:frappe_etax_service.etax_doctype_wizard_view
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_out_credit_note_tree_etax_button
+#: model_terms:ir.ui.view,arch_db:frappe_etax_service.view_out_invoice_tree_etax_button
 msgid "Sign e-Tax Invoice"
 msgstr ""
 
