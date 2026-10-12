@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="mrp_bom_form_view_inherit_zort" model="ir.ui.view">
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view" />
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field
+                    name="qty_available"
+                    invisible="not product_tmpl_id"
+                    help="Display in unit of Product, show what Qty can be produce from BOM Kit"
+                />
+            </field>
+        </field>
+    </record>
+</odoo>

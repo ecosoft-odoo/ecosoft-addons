@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="marketplace_customer_1" model="res.partner">
+        <field name="name">Marketplace Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+    </record>
+    <record id="marketplace_customer_2" model="res.partner">
+        <field name="name">Shoppee Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+    </record>
+    <record id="marketplace_customer_3" model="res.partner">
+        <field name="name">Lazada Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+    </record>
+    <record id="marketplace_customer_4" model="res.partner">
+        <field name="name">Tiktok Customer</field>
+        <field name="is_company" eval="True" />
+        <field name="company_type">company</field>
+    </record>
+</odoo>

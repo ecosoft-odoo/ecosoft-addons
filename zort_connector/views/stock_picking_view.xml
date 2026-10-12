@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="inherit_view_picking_form" model="ir.ui.view">
+        <field name="name">inherit.view.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='extra']/group" position="after">
+                <group>
+                    <field name="zort_return_no" invisible="1" />
+                    <group
+                        string="Zort Return Order Info"
+                        name="zort_return_order_info"
+                        invisible="not zort_return_no"
+                    >
+                        <button
+                            name="action_view_return_order_json"
+                            string="View Return Order JSON from Zort"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-external-link"
+                        />
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
