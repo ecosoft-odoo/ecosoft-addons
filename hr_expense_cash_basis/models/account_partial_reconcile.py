@@ -27,10 +27,10 @@ class AccountPartialReconcile(models.Model):
 
         moves_to_create = []
         to_reconcile_after = []
+        partial_duplicate_expense = []
         for move_values in tax_cash_basis_values_per_move.values():
             move = move_values["move"]
             pending_cash_basis_lines = []
-            partial_duplicate_expense = []
             for partial_values in move_values["partials"]:
                 partial = partial_values["partial"]
                 if (
