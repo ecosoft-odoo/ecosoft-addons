@@ -12,7 +12,7 @@ Go to *Settings > Technical > Parameters > System Parameters* to adjust the foll
 | `webhook.call_function_log` | `True` | Enable logging for `/api/call_function` |
 | `webhook.rollback_state_failed` | `1` | Roll back the transaction when the API response is not successful |
 | `webhook.rollback_except` | `1` | Roll back the transaction when an unhandled exception occurs |
-| `webhook.ignore_checkcompany_model` | `[]` | JSON list of model names excluded from company-scoped record lookup |
+| `webhook.ignore_checkcompany_model` | `[]` | JSON list of model names excluded from company-scoped record lookup, e.g. `["res.partner", "product.product"]`. Names must match exactly (a comma separated list is also accepted) |
 
 ## Outbound Webhook Rules
 

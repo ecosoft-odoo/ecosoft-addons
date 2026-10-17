@@ -2,3 +2,4 @@
 
 from . import test_webhook_outbound
 from . import test_webhook_utils
+from . import test_webhook_controller

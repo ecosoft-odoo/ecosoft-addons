@@ -25,7 +25,8 @@ class WebhookController(http.Controller):
         rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
         rollback_except = ICP.sudo().get_param("webhook.rollback_except")
 
-        data_str = json.dumps(vals)
+        # Dump before the call (payload may change), only when log is needed
+        data_str = json.dumps(vals) if vals.get("is_create_log") else ""
         state = "draft"
         res = {}
 
@@ -119,35 +120,37 @@ class WebhookController(http.Controller):
                 return
             request.env["ir.http"]._auth_method_bearer()
 
-    @http.route("/api/create_data", type="json", auth="none")
+    # auth="none" routes use a read-only cursor by default, which would fail on
+    # first write then run the whole call again: all routes may write (api.log)
+    @http.route("/api/create_data", type="json", auth="none", readonly=False)
     def create_data(self, model, vals):
         self.update_session_auth()
         self._set_create_logs("webhook.create_data_log", vals)
         res = self._create_api_logs(model, vals, "create_data")
         return res
 
-    @http.route("/api/update_data", type="json", auth="none")
+    @http.route("/api/update_data", type="json", auth="none", readonly=False)
     def update_data(self, model, vals):
         self.update_session_auth()
         self._set_create_logs("webhook.update_data_log", vals)
         res = self._create_api_logs(model, vals, "update_data")
         return res
 
-    @http.route("/api/create_update_data", type="json", auth="none")
+    @http.route("/api/create_update_data", type="json", auth="none", readonly=False)
     def create_update_data(self, model, vals):
         self.update_session_auth()
         self._set_create_logs("webhook.create_update_data_log", vals)
         res = self._create_api_logs(model, vals, "create_update_data")
         return res
 
-    @http.route("/api/search_data", type="json", auth="none")
+    @http.route("/api/search_data", type="json", auth="none", readonly=False)
     def search_data(self, model, vals):
         self.update_session_auth()
         self._set_create_logs("webhook.search_data_log", vals)
         res = self._create_api_logs(model, vals, "search_data")
         return res
 
-    @http.route("/api/call_function", type="json", auth="none")
+    @http.route("/api/call_function", type="json", auth="none", readonly=False)
     def call_function(self, model, vals):
         self.update_session_auth()
         self._set_create_logs("webhook.call_function_log", vals)

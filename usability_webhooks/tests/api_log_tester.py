@@ -8,6 +8,7 @@ class APILogTester(models.Model):
     _inherit = "api.log"
 
     subtype_test_id = fields.Many2one(comodel_name="mail.message.subtype")
+    reference_test = fields.Reference(selection=[("mail.message.subtype", "Subtype")])
 
     def action_call_api_with_params(self, a, b, note=""):
         """Test method with keyword args for call_function tests."""

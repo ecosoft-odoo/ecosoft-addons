@@ -5,8 +5,9 @@ import ast
 import logging
 import re
 
-from odoo import api, models, tools
+from odoo import api, models
 from odoo.exceptions import ValidationError
+from odoo.service.model import get_public_method
 
 _logger = logging.getLogger(__name__)
 
@@ -15,13 +16,28 @@ class WebhookUtils(models.AbstractModel):
     _name = "webhook.utils"
     _description = "Utils Class"
 
-    @tools.ormcache("model", "key_search", "val", "extra_domain")
+    def _with_lookup_memo(self):
+        """Give one API call its own lookup memo, like `import_cache` in load().
+        Never shared across requests or users, unlike an ormcache."""
+        if "webhook_lookup_memo" in self.env.context:
+            return self
+        return self.with_context(webhook_lookup_memo={})
+
     def _call_field_search_cache(self, model, key_search, val, extra_domain="[]"):
         """Search records by an explicit field name.
-        All args must be hashable strings for ORM cache compatibility."""
+        Found records are memoized for the current API call only."""
+        memo = self.env.context.get("webhook_lookup_memo")
+        env = model.env
+        memo_key = (env.uid, env.su, model._name, key_search, val, extra_domain)
+        if memo is not None and memo_key in memo:
+            return model.browse(memo[memo_key])
         val = ast.literal_eval(val)
         domain = [(key_search, "in", val)] + ast.literal_eval(extra_domain)
-        return model.search(domain)
+        records = model.search(domain)
+        # No match is not memoized, auto_create searches again after creating
+        if memo is not None and records:
+            memo[memo_key] = records.ids
+        return records
 
     def _get_o2m_line(self, line_data_dict, line_obj):
         rec_fields = []
@@ -153,6 +169,7 @@ class WebhookUtils(models.AbstractModel):
             }
         }
         """
+        self = self._with_lookup_memo()
         data_dict = vals.get("payload", {})
         rec_dict, rec, line_all_fields = self._convert_data_to_id(model, vals)
         company_id = rec_dict.get("company_id") or self.env.company.id
@@ -167,8 +184,6 @@ class WebhookUtils(models.AbstractModel):
             "result": {"id": obj.id},
             "messages": self.env._("Record created successfully"),
         }
-        # Clear cache
-        self.env.registry.clear_cache()
         return res
 
     def _search_object(self, model, vals):
@@ -222,6 +237,7 @@ class WebhookUtils(models.AbstractModel):
             }
         },
         """
+        self = self._with_lookup_memo()
         data_dict = vals.get("payload", {})
         auto_create = vals.get("auto_create", {})
 
@@ -243,6 +259,8 @@ class WebhookUtils(models.AbstractModel):
             lines = rec[line_field]
             # First, delete all lines o2m
             lines.unlink()
+            # Deleted lines may be memoized lookup results
+            self.env.context["webhook_lookup_memo"].clear()
             rec_dict[line_field] = self.process_lines(
                 rec[line_field], data_dict[line_field], auto_create
             )
@@ -262,51 +280,63 @@ class WebhookUtils(models.AbstractModel):
         search_domain = [("id", "in", value)]
         return self.env[sub_model].search_read(search_domain, field_2many)
 
-    @tools.ormcache("key", "model_obj")
     def _get_sub_model(self, key, model_obj):
         sub_model = model_obj._fields[key].comodel_name
         return sub_model
 
+    def _get_2many_ids(self, value, key, model_obj):
+        """Return (sub_model, ids) of a relational value given by read()"""
+        # For case reference type, "model,id"
+        if model_obj._fields[key].type == "reference":
+            if not value:
+                return False, []
+            sub_model, res_id = value.split(",")
+            return sub_model, [int(res_id)]
+        # For case many2one, (id, display_name)
+        if isinstance(value, tuple):
+            value = [value[0]]
+        return self._get_sub_model(key, model_obj), value or []
+
     def _update_result_with_2many(self, result, result_dict, model_obj):
-        model_list = []
-        for res in result:
-            for key, value in res.items():
-                field_2many = result_dict.get(key)
-                # Search values that need to be displayed in the result
-                if field_2many:
-                    # For case many2one, convert to list
-                    if isinstance(value, tuple):
-                        value = [value[0]]
+        for key, field_2many in result_dict.items():
+            rows = [res for res in result if key in res]
+            # Empty spec "field{}" keeps the value as read
+            if not field_2many or not rows:
+                continue
+            # Recusive search for 2many fields
+            filtered_values = [x for x in field_2many if "{" in x]
+            sub_result = []
+            if filtered_values:
+                # Update search_field without {}
+                field_2many = [x.split("{")[0] for x in field_2many]
+                sub_result = self._search_subfield(filtered_values)
 
-                    # For case reference type, convert to list
-                    if model_obj._fields[key].type == "reference":
-                        sub_model = value.split(",")[0]
-                        value = [value.split(",")[1]]
-                    else:
-                        sub_model = self._get_sub_model(key, model_obj)
-
-                    # Recusive search for 2many fields
-                    filtered_values = [x for x in field_2many if "{" in x]
-                    sub_result = []
-                    if filtered_values:
-                        # Update search_field without {}
-                        field_2many = [x.split("{")[0] for x in field_2many]
-                        sub_result = self._search_subfield(filtered_values)
-
+            # Read related records of all rows at once (per sub model)
+            row_ids = []
+            ids_by_model = {}
+            for res in rows:
+                sub_model, ids = self._get_2many_ids(res[key], key, model_obj)
+                row_ids.append((res, sub_model, set(ids)))
+                if sub_model:
+                    ids_by_model.setdefault(sub_model, set()).update(ids)
+            children = {}
+            for sub_model, ids in ids_by_model.items():
+                child_result = []
+                if ids:
                     child_result = self._update_child_2many(
-                        value, field_2many, sub_model
+                        list(ids), field_2many, sub_model
                     )
+                if filtered_values:
+                    child_result = self._update_result_with_2many(
+                        child_result, sub_result, self.env[sub_model]
+                    )
+                children[sub_model] = child_result
 
-                    if filtered_values:
-                        child_result = self._update_result_with_2many(
-                            child_result, sub_result, self.env[sub_model]
-                        )
-                    # Replace value with child result
-                    res[key] = child_result
-                    model_list.append(sub_model)
-        # Clear caches (use set to avoid redundant clears for repeated models)
-        for model in set(model_list):
-            self.env[model].env.registry.clear_cache()
+            # Replace value with child result, in sub model order as before
+            for res, sub_model, ids in row_ids:
+                res[key] = [
+                    child for child in children.get(sub_model, []) if child["id"] in ids
+                ]
         return result
 
     @api.model
@@ -389,6 +419,22 @@ class WebhookUtils(models.AbstractModel):
 
         return result
 
+    def _get_ignore_checkcompany_model(self):
+        """Model names in system parameter 'webhook.ignore_checkcompany_model',
+        a JSON list. A comma separated value is also accepted."""
+        value = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("webhook.ignore_checkcompany_model", "[]")
+        )
+        try:
+            model_names = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            model_names = value
+        if not isinstance(model_names, list | tuple | set):
+            model_names = str(model_names).split(",")
+        return {str(name).strip() for name in model_names}
+
     def _get_company_domain(
         self, have_company, model, rec_dict, main_company, ignore_checkcompany_model
     ):
@@ -405,6 +451,8 @@ class WebhookUtils(models.AbstractModel):
         )
         for new_rec in new_recs:
             self.friendly_create_data(Model._name, {"payload": new_rec})
+        # New records may change any lookup result (e.g. duplicate match)
+        self.env.context.get("webhook_lookup_memo", {}).clear()
 
     def _process_many2_field(
         self,
@@ -445,7 +493,6 @@ class WebhookUtils(models.AbstractModel):
         )
 
         if len(records) > 1:
-            Model.env.registry.clear_cache()
             raise ValidationError(
                 self.env._("'%(val)s' matched more than 1 record") % {"val": search_val}
             )
@@ -457,7 +504,6 @@ class WebhookUtils(models.AbstractModel):
             )
 
         if not records:
-            Model.env.registry.clear_cache()
             raise ValidationError(
                 self.env._("'%(key)s': '%(val)s' found no match.")
                 % {"key": key, "val": search_val}
@@ -508,7 +554,6 @@ class WebhookUtils(models.AbstractModel):
                 )
 
             if not records:
-                Model.env.registry.clear_cache()
                 raise ValidationError(
                     self.env._("'%(key)s': '%(val)s' found no match.")
                     % {"key": key, "val": search_vals}
@@ -529,10 +574,7 @@ class WebhookUtils(models.AbstractModel):
         - other fields are passed through unchanged.
         """
         final_dict = {}
-        ICP = self.env["ir.config_parameter"]
-        ignore_checkcompany_model = ICP.sudo().get_param(
-            "webhook.ignore_checkcompany_model", "[]"
-        )
+        ignore_checkcompany_model = self._get_ignore_checkcompany_model()
         auto_create = auto_create or {}
         main_company = self.env.company
         for key, value in rec_dict.items():
@@ -583,7 +625,7 @@ class WebhookUtils(models.AbstractModel):
 
     @api.model
     def create_data(self, model, vals):
-        _logger.info(f"[{model}].create_data(), input: {vals}")
+        _logger.info("[%s].create_data(), input: %s", model, vals)
         res = self.friendly_create_data(model, vals)
         if res["is_success"]:
             res_id = res["result"]["id"]
@@ -591,23 +633,23 @@ class WebhookUtils(models.AbstractModel):
             result_field = vals.get("result_field", [])
             for result in result_field:
                 res["result"][result] = p[result]
-        _logger.info(f"[{model}].create_data(), output: {res}")
+        _logger.info("[%s].create_data(), output: %s", model, res)
         return res
 
     @api.model
     def update_data(self, model, vals):
-        _logger.info(f"[{model}].update_data(), input: {vals}")
+        _logger.info("[%s].update_data(), input: %s", model, vals)
         res = self.friendly_update_data(model, vals)
         if res["is_success"]:
             search_key = vals.get("search_key", {})
             for key, value in search_key.items():
                 res["result"][key] = value
-        _logger.info(f"[{model}].update_data(), output: {res}")
+        _logger.info("[%s].update_data(), output: %s", model, res)
         return res
 
     @api.model
     def create_update_data(self, model, vals):
-        _logger.info(f"[{model}].create_update_data(), input: {vals}")
+        _logger.info("[%s].create_update_data(), input: %s", model, vals)
         # Update
         rec = self._search_object(model, vals)
         if not rec:
@@ -617,7 +659,7 @@ class WebhookUtils(models.AbstractModel):
             search_key = vals.get("search_key", {})
             for key, value in search_key.items():
                 res["result"][key] = value
-        _logger.info(f"[{model}].create_update_data(), output: {res}")
+        _logger.info("[%s].create_update_data(), output: %s", model, res)
         return res
 
     @api.model
@@ -685,14 +727,14 @@ class WebhookUtils(models.AbstractModel):
             }
         }
         """
-        _logger.info(f"[{model}].search_data(), input: {vals}")
+        _logger.info("[%s].search_data(), input: %s", model, vals)
         result = self._common_search_data(model, vals)
         res = {
             "is_success": True,
             "result": result,
             "messages": self.env._("Record search successfully"),
         }
-        _logger.info(f"[{model}].search_data(), output: {res}")
+        _logger.info("[%s].search_data(), output: %s", model, res)
         return res
 
     @api.model
@@ -713,6 +755,8 @@ class WebhookUtils(models.AbstractModel):
                     Criteria used to search for the target record.
                 - payload : dict
                     - method (str): The name of the method to call on the record.
+                        Only public methods are allowed (no '_' prefix
+                        or @api.private), same as RPC.
                     - parameter (dict, optional):
                         Keyword arguments to pass to the method.
                     - context (dict, optional): Context to use when calling the method.
@@ -753,12 +797,9 @@ class WebhookUtils(models.AbstractModel):
 
         rec = self._search_object(model, vals).with_context(**context)
 
-        if not hasattr(rec, method_name):
-            raise AttributeError(
-                f"Record(s) of model {model} has no method '{method_name}'"
-            )
-
-        result = getattr(rec, method_name)(**(parameter or {}))
+        # Same guard as RPC: block private ('_' prefix / @api.private) methods
+        func = get_public_method(rec, method_name)
+        result = func(rec, **(parameter or {}))
         return {
             "is_success": True,
             "result": result,
