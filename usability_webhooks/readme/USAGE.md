@@ -129,7 +129,8 @@ Use `field{subfield1,subfield2}` to expand relational fields inline.
 
 #### 5. `/api/call_function` - call a method on a record
 
-- `method` *(str)*: method name
+- `method` *(str)*: method name. Only public methods can be called, same as RPC:
+  names starting with `_` and methods marked `@api.private` (e.g. `sudo`) are refused
 - `parameter` *(dict, optional)*: keyword arguments
 - `context` *(dict, optional)*: merged into `env.context` before the call
 

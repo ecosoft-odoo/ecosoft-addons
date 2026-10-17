@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ====================
 REST API for Webhook
 ====================
@@ -76,43 +72,38 @@ System Parameters
 Go to *Settings > Technical > Parameters > System Parameters* to adjust
 the following keys:
 
-+---------------------------------------+----------+-----------------------------+
-| Key                                   | Default  | Description                 |
-+=======================================+==========+=============================+
-| ``webhook.preview_limit``             | ``2000`` | Maximum characters stored   |
-|                                       |          | in the preview fields.      |
-|                                       |          | Payloads longer than this   |
-|                                       |          | are also saved as a full    |
-|                                       |          | JSON attachment.            |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.create_data_log``           | ``True`` | Enable logging for          |
-|                                       |          | ``/api/create_data``        |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.update_data_log``           | ``True`` | Enable logging for          |
-|                                       |          | ``/api/update_data``        |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.create_update_data_log``    | ``True`` | Enable logging for          |
-|                                       |          | ``/api/create_update_data`` |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.search_data_log``           | ``True`` | Enable logging for          |
-|                                       |          | ``/api/search_data``        |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.call_function_log``         | ``True`` | Enable logging for          |
-|                                       |          | ``/api/call_function``      |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.rollback_state_failed``     | ``1``    | Roll back the transaction   |
-|                                       |          | when the API response is    |
-|                                       |          | not successful              |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.rollback_except``           | ``1``    | Roll back the transaction   |
-|                                       |          | when an unhandled exception |
-|                                       |          | occurs                      |
-+---------------------------------------+----------+-----------------------------+
-| ``webhook.ignore_checkcompany_model`` | ``[]``   | JSON list of model names    |
-|                                       |          | excluded from               |
-|                                       |          | company-scoped record       |
-|                                       |          | lookup                      |
-+---------------------------------------+----------+-----------------------------+
++---------------------------------------+----------+-----------------------------------------+
+| Key                                   | Default  | Description                             |
++=======================================+==========+=========================================+
+| ``webhook.preview_limit``             | ``2000`` | Maximum characters stored in the        |
+|                                       |          | preview fields. Payloads longer than    |
+|                                       |          | this are also saved as a full JSON      |
+|                                       |          | attachment.                             |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.create_data_log``           | ``True`` | Enable logging for ``/api/create_data`` |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.update_data_log``           | ``True`` | Enable logging for ``/api/update_data`` |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.create_update_data_log``    | ``True`` | Enable logging for                      |
+|                                       |          | ``/api/create_update_data``             |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.search_data_log``           | ``True`` | Enable logging for ``/api/search_data`` |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.call_function_log``         | ``True`` | Enable logging for                      |
+|                                       |          | ``/api/call_function``                  |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.rollback_state_failed``     | ``1``    | Roll back the transaction when the API  |
+|                                       |          | response is not successful              |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.rollback_except``           | ``1``    | Roll back the transaction when an       |
+|                                       |          | unhandled exception occurs              |
++---------------------------------------+----------+-----------------------------------------+
+| ``webhook.ignore_checkcompany_model`` | ``[]``   | JSON list of model names excluded from  |
+|                                       |          | company-scoped record lookup, e.g.      |
+|                                       |          | ``["res.partner", "product.product"]``. |
+|                                       |          | Names must match exactly (a comma       |
+|                                       |          | separated list is also accepted)        |
++---------------------------------------+----------+-----------------------------------------+
 
 Outbound Webhook Rules
 ----------------------
@@ -343,7 +334,9 @@ Use ``field{subfield1,subfield2}`` to expand relational fields inline.
 5. ``/api/call_function`` - call a method on a record
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- ``method`` *(str)*: method name
+- ``method`` *(str)*: method name. Only public methods can be called,
+  same as RPC: names starting with ``_`` and methods marked
+  ``@api.private`` (e.g. ``sudo``) are refused
 - ``parameter`` *(dict, optional)*: keyword arguments
 - ``context`` *(dict, optional)*: merged into ``env.context`` before the
   call
