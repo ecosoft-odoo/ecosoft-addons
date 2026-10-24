@@ -4,11 +4,11 @@ name: pre-commit
 on:
   pull_request:
     branches:
-      - "18.0*"
+      - "20.0*"
   push:
     branches:
-      - "18.0"
-      - "18.0-ocabot-*"
+      - "20.0"
+      - "20.0-ocabot-*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
