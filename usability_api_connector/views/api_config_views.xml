@@ -30,7 +30,7 @@
                         invisible="active"
                     />
                     <div class="oe_title">
-                        <label class="oe_edit_only" for="name" string="API Name" />
+                        <label for="name" string="API Name" />
                         <h1>
                             <field name="name" placeholder="API Name" />
                         </h1>
@@ -54,11 +54,7 @@
                             <label for="disable_ssl" />
                             <div>
                                 <div class="o_row">
-                                    <field
-                                        name="disable_ssl"
-                                        class="oe_inline"
-                                        options="{'no_create': True}"
-                                    />
+                                    <field name="disable_ssl" class="oe_inline" />
                                     <span
                                         class="oe_inline text-danger"
                                         invisible="not disable_ssl"

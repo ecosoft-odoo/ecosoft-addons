@@ -10,7 +10,7 @@ class ApiConfig(models.Model):
     _description = "API Configuration"
 
     name = fields.Char(required=True, translate=True)
-    code = fields.Char()
+    code = fields.Char(copy=False)
     api_type = fields.Selection(
         selection=[
             ("xmlrpc", "XML-RPC"),
@@ -109,5 +109,11 @@ class ApiConfig(models.Model):
         "  'errors.0'             - {'errors': ['first error', ...]}",
     )
 
+    _code_uniq = models.Constraint(
+        "UNIQUE(code)",
+        "The API code must be unique.",
+    )
+
     def action_test_call_api(self):
+        self.ensure_one()
         return self.action_call_api(self.code)

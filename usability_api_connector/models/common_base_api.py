@@ -78,14 +78,17 @@ class CommonBaseApi(models.AbstractModel):
 
     @api.depends("api_log_ids")
     def _compute_api_log_count(self):
-        counts = self.env["api.connector.log"].read_group(
-            [("res_model", "=", self._name), ("res_id", "in", self.ids)],
-            ["res_id"],
-            ["res_id"],
+        counts = dict(
+            self.env["api.connector.log"]
+            .sudo()
+            ._read_group(
+                [("res_model", "=", self._name), ("res_id", "in", self.ids)],
+                ["res_id"],
+                ["__count"],
+            )
         )
-        count_map = {r["res_id"]: r["res_id_count"] for r in counts}
         for rec in self:
-            rec.api_log_count = count_map.get(rec.id, 0)
+            rec.api_log_count = counts.get(rec._origin.id, 0)
 
     def action_view_api_logs(self):
         self.ensure_one()
@@ -138,10 +141,10 @@ class CommonBaseApi(models.AbstractModel):
             return text
         text = str(text)
         if limit is None:
-            limit = int(
+            limit = (
                 self.env["ir.config_parameter"]
                 .sudo()
-                .get_param("api_connector.log_limit", "0")
+                .get_int("api_connector.log_limit")
             )
         return text[:limit] if limit > 0 else text
 
@@ -161,6 +164,7 @@ class CommonBaseApi(models.AbstractModel):
             ),
         }
 
+    @api.private
     def get_login(self, api_data, ssl_context):
         """
         Handle authentication for REST and XMLRPC
@@ -187,13 +191,6 @@ class CommonBaseApi(models.AbstractModel):
             )
             response.raise_for_status()
             token = response.cookies.get("session_id")
-            if not token:
-                raise ValidationError(
-                    self.env._(
-                        "Authentication failed: Invalid database, username or password."
-                    )
-                )
-
         elif api_data.api_type == "xmlrpc":
             common = xmlrpc.client.ServerProxy(
                 f"{api_data.endpoint_url}/xmlrpc/2/common",
@@ -202,20 +199,18 @@ class CommonBaseApi(models.AbstractModel):
             token = common.authenticate(
                 api_data.auth_db, api_data.auth_username, api_data.auth_password, {}
             )
-            # Authentication failed.
-            if not token:
-                raise ValidationError(
-                    self.env._(
-                        "Authentication failed: Invalid database, username or password."
-                    )
-                )
-
         else:
             raise ValidationError(
-                self.env._("Unsupported API type: %s") % api_data.api_type
+                self.env._("Unsupported API type: %s", api_data.api_type)
             )
-        # Update token
-        api_data.write({"auth_token": token})
+        if not token:
+            raise ValidationError(
+                self.env._(
+                    "Authentication failed: Invalid database, username or password."
+                )
+            )
+        # Configurations are admin-only, callers may be regular users
+        api_data.sudo().write({"auth_token": token})
         return token
 
     # ----------------------------------------------------------
@@ -226,9 +221,9 @@ class CommonBaseApi(models.AbstractModel):
         payload = payload or {}
         try:
             json_context = json.loads(api_data.execute_context or "{}")
-        except Exception as e:
+        except ValueError as e:
             raise ValidationError(
-                self.env._(f"execute_context is not valid JSON: {e}")
+                self.env._("Execute Context is not valid JSON: %s", e)
             ) from e
 
         result = models.execute_kw(
@@ -248,21 +243,19 @@ class CommonBaseApi(models.AbstractModel):
     def _execute_rest_api(self, api_data, auth_token, payload=None, params=None):
         payload = payload or {}
         headers = safe_eval(
-            api_data.headers or "{}",
-            globals_dict=self._get_header_globals_dict(auth_token),
+            api_data.headers or "{}", self._get_header_globals_dict(auth_token)
         )
         method = (api_data.method or "get").upper()
         if method in ("GET", "DELETE"):
-            merged_params = {**(payload or {}), **(params or {})}
-            kwargs = {"params": merged_params}
+            kwargs = {"params": {**payload, **(params or {})}}
         else:
-            if getattr(api_data, "is_form_data", False):
+            if api_data.is_form_data:
                 headers.pop("Content-Type", None)
                 # Form data only supports strings;
                 # auto-serialize nested dict/list to JSON
                 kwargs = {
                     "data": {
-                        k: json.dumps(v) if isinstance(v, (dict | list)) else v
+                        k: json.dumps(v) if isinstance(v, dict | list) else v
                         for k, v in payload.items()
                     }
                 }
@@ -270,6 +263,8 @@ class CommonBaseApi(models.AbstractModel):
                 kwargs = {"json": payload}
             if params:
                 kwargs["params"] = params
+        if api_data.disable_ssl:
+            kwargs["verify"] = False
         try:
             url = f"{api_data.endpoint_url}{api_data.route_path}"
             result = requests.request(
@@ -282,9 +277,9 @@ class CommonBaseApi(models.AbstractModel):
             result.raise_for_status()
             return result
         except (requests.Timeout, requests.ConnectionError) as e:
-            raise ValidationError(self.env._("Connection error: %s") % e) from e
+            raise ValidationError(self.env._("Connection error: %s", e)) from e
         except requests.HTTPError as e:
-            message = self.env._("HTTP error: %s") % e
+            message = self.env._("HTTP error: %s", e)
             response_text = getattr(e.response, "text", "")
             if response_text:
                 response_text = self._truncate_text(
@@ -327,9 +322,10 @@ class CommonBaseApi(models.AbstractModel):
             return {"is_success": False, "message": str(e)}
 
         # Retry on session expired
+        error = data.get("error") if isinstance(data, dict) else None
         if (
-            isinstance(data, dict)
-            and data.get("error", {}).get("message") == "Odoo Session Expired"
+            isinstance(error, dict)
+            and error.get("message") == "Odoo Session Expired"
             and api_data.auth_method != "static_token"
         ):
             auth_token = self.get_login(api_data, ssl_context)
@@ -353,7 +349,12 @@ class CommonBaseApi(models.AbstractModel):
     def _connect_system(self, api_data, auth_token, payload, ssl_context, params=None):
         if api_data.endpoint_system == "external":
             return self._connect_external(api_data, auth_token, payload, params=params)
-        return {"is_success": False, "message": "Not Implemented yet."}
+        return {
+            "is_success": False,
+            "message": self.env._(
+                "Endpoint system '%s' is not supported.", api_data.endpoint_system
+            ),
+        }
 
     def _execute_api_request(
         self, api_data, auth_token, payload, ssl_context, params=None
@@ -458,7 +459,7 @@ class CommonBaseApi(models.AbstractModel):
         - Nested structures are accessed via dot-notation key path.
         """
         # Primitive types (bool, int, str, None)
-        if not isinstance(result, (dict | list)):
+        if not isinstance(result, dict | list):
             if success_value:
                 return str(result) == success_value
             return bool(result)
@@ -489,7 +490,7 @@ class CommonBaseApi(models.AbstractModel):
         success_key, success_value, message_key = self._get_result_config(api_data)
         is_success = self._is_result_success(result, success_key, success_value)
         error_msg = ""
-        if not is_success and isinstance(result, (dict | list)):
+        if not is_success and isinstance(result, dict | list):
             _, error_msg = self._get_nested_value(result, message_key)
             error_msg = error_msg or ""
 
@@ -502,68 +503,70 @@ class CommonBaseApi(models.AbstractModel):
                 result=result,
                 error_message=error_msg,
             )
-        if not is_success:
-            return 0, error_msg
-        return 1, ""
+        return is_success, error_msg
 
+    def _get_api_config(self, code_api):
+        """Return the active API configuration of ``code_api``.
+
+        Configurations hold credentials and Python code, so only
+        administrators can access them; callers read them as superuser."""
+        api_data = (
+            self.env["api.config"].sudo().search([("code", "=", code_api)], limit=1)
+        )
+        if not api_data:
+            raise ValidationError(
+                self.env._("API config not found for code: %s", code_api)
+            )
+        return api_data
+
+    def _get_auth_token(self, api_data, ssl_context):
+        """Return the token to call ``api_data`` with, logging in if needed."""
+        if not api_data.auth_required:
+            return False
+        if api_data.auth_method == "static_token":
+            if not api_data.auth_token:
+                raise ValidationError(
+                    self.env._("Static token is required but not set.")
+                )
+            return api_data.auth_token
+        return api_data.auth_token or self.get_login(api_data, ssl_context)
+
+    def _eval_api_code(self, code, field_label, globals_dict):
+        try:
+            return safe_eval(code, globals_dict)
+        except Exception as e:
+            raise ValidationError(
+                self.env._(
+                    "Invalid Python expression in '%(field)s' field.\n\n"
+                    "Error: %(error)s",
+                    field=field_label,
+                    error=e,
+                )
+            ) from e
+
+    # Configurations are read as superuser: server-side callers only
+    @api.private
     def action_call_api(self, code_api):
         api_data = None
         payload = None
         try:
-            api_data = self.env["api.config"].search([("code", "=", code_api)])
-            if not api_data:
-                raise ValidationError(
-                    self.env._("API config not found for code: %s") % code_api
-                )
-
-            auth_token = False
-            ssl_context = None
-            if api_data.disable_ssl:
-                ssl_context = ssl._create_unverified_context()
-
-            if api_data.auth_required:
-                if api_data.auth_method == "static_token":
-                    auth_token = api_data.auth_token
-                    if not auth_token:
-                        raise ValidationError(
-                            self.env._("Static token is required but not set.")
-                        )
-                else:
-                    auth_token = api_data.auth_token or self.get_login(
-                        api_data, ssl_context
-                    )
-                    if not auth_token:
-                        raise ValidationError(
-                            self.env._("No valid authentication token.")
-                        )
-
-            try:
-                payload = safe_eval(
-                    api_data.python_code or "{}",
-                    globals_dict=self._get_payload_globals_dict(),
-                )
-            except Exception as e:
-                raise ValidationError(
-                    self.env._(
-                        "Invalid Python expression in 'JSON / Payload' field.\n\n"
-                        "Error: %s"
-                    )
-                    % e
-                ) from e
+            api_data = self._get_api_config(code_api)
+            ssl_context = (
+                ssl._create_unverified_context() if api_data.disable_ssl else None
+            )
+            auth_token = self._get_auth_token(api_data, ssl_context)
+            # Evaluate once, the globals may be costly (e.g. render a report)
+            globals_dict = self._get_payload_globals_dict()
+            payload = self._eval_api_code(
+                api_data.python_code or "{}",
+                self.env._("JSON / Payload"),
+                globals_dict,
+            )
             params = None
             if api_data.params_code:
-                try:
-                    params = safe_eval(
-                        api_data.params_code,
-                        globals_dict=self._get_payload_globals_dict(),
-                    )
-                except Exception as e:
-                    raise ValidationError(
-                        self.env._(
-                            "Invalid Python expression in 'Params' field.\n\nError: %s"
-                        )
-                        % e
-                    ) from e
+                params = self._eval_api_code(
+                    api_data.params_code, self.env._("Params"), globals_dict
+                )
             result = self._execute_api_request(
                 api_data, auth_token, payload, ssl_context, params=params
             )
@@ -590,15 +593,17 @@ class CommonBaseApi(models.AbstractModel):
 
         except Exception as e:
             _logger.exception("Call API Error")
+            error_msg = str(e)
             self._create_api_log(
                 api_data=api_data,
                 payload=payload,
                 state="failed",
-                result=str(e),
+                result=error_msg,
+                error_message=error_msg,
             )
-            self._write_failed_state(str(e))
-            self._hook_on_failed(code_api, str(e))
-            return self._notify_user("danger", str(e))
+            self._write_failed_state(error_msg)
+            self._hook_on_failed(code_api, error_msg)
+            return self._notify_user("danger", error_msg)
 
     def _create_api_log(
         self,
@@ -609,22 +614,26 @@ class CommonBaseApi(models.AbstractModel):
         error_message=None,
     ):
         """Create an API call log record."""
-        log_model = self.env["api.connector.log"].sudo()
-        res_id = self.id if self._name != "api.connector.log" else 0
-        log_model.create(
-            {
-                "api_code": api_data.code if api_data else "N/A",
-                "api_name": api_data.name if api_data else "N/A",
-                "end_point": api_data.endpoint_system if api_data else "N/A",
-                "res_model": self._name,
-                "res_id": res_id,
-                "state": state,
-                "payload": self._truncate_text(self._format_log_content(payload))
-                if payload is not None
-                else False,
-                "result": self._truncate_text(self._format_log_content(result))
-                if result is not None
-                else False,
-                "error_message": error_message,
-            }
+
+        def log_content(value):
+            if value is None:
+                return False
+            return self._truncate_text(self._format_log_content(value))
+
+        return (
+            self.env["api.connector.log"]
+            .sudo()
+            .create(
+                {
+                    "api_code": api_data.code if api_data else "N/A",
+                    "api_name": api_data.name if api_data else "N/A",
+                    "end_point": api_data.endpoint_system if api_data else "N/A",
+                    "res_model": self._name,
+                    "res_id": self.id if self._name != "api.connector.log" else 0,
+                    "state": state,
+                    "payload": log_content(payload),
+                    "result": log_content(result),
+                    "error_message": error_message,
+                }
+            )
         )
