@@ -169,9 +169,11 @@ class AccountPayment(models.Model):
                     )
                 )
             if invoices and not invoices.line_ids.filtered(
-                lambda line: line.account_id.reconcile
-                and line.account_id.account_type in valid_account_types
-                and not line.reconciled
+                lambda line: (
+                    line.account_id.reconcile
+                    and line.account_id.account_type in valid_account_types
+                    and not line.reconciled
+                )
             ):
                 raise ValidationError(
                     self.env._(
@@ -195,14 +197,18 @@ class AccountPayment(models.Model):
                     )
                 )
             invoice_lines = payment.invoice_ids.line_ids.filtered(
-                lambda line: line.account_id.reconcile
-                and line.account_id.account_type in valid_account_types
-                and not line.reconciled
+                lambda line: (
+                    line.account_id.reconcile
+                    and line.account_id.account_type in valid_account_types
+                    and not line.reconciled
+                )
             )
             payment_lines = payment.move_id.line_ids.filtered(
-                lambda line: line.account_id.reconcile
-                and line.account_id.account_type in valid_account_types
-                and not line.reconciled
+                lambda line: (
+                    line.account_id.reconcile
+                    and line.account_id.account_type in valid_account_types
+                    and not line.reconciled
+                )
             )
             common_accounts = invoice_lines.account_id & payment_lines.account_id
             if invoice_lines and payment_lines and not common_accounts:
@@ -229,8 +235,10 @@ class AccountPayment(models.Model):
     def _pre_etax_validate(self):
         res = super()._pre_etax_validate()
         missing_lines = self.filtered(
-            lambda payment: not payment.tax_invoice_ids
-            and not payment.reconciled_invoice_ids.invoice_line_ids
+            lambda payment: (
+                not payment.tax_invoice_ids
+                and not payment.reconciled_invoice_ids.invoice_line_ids
+            )
         )
         if missing_lines:
             names = ", ".join(missing_lines.mapped("display_name"))

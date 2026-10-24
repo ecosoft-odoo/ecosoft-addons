@@ -328,8 +328,10 @@ class TestETax(AccountTestInvoicingCommon):
         )
         payment.action_validate()
         lines = (invoice.line_ids | payment.move_id.line_ids).filtered(
-            lambda line: line.account_id.account_type == "asset_receivable"
-            and not line.reconciled
+            lambda line: (
+                line.account_id.account_type == "asset_receivable"
+                and not line.reconciled
+            )
         )
         lines.reconcile()
         payment.write(

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="frappe_etax_connection_list_view" model="ir.ui.view">
         <field name="name">frappe.etax.connection.list.view</field>

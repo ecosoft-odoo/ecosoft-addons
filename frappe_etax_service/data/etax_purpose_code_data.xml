@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo noupdate="1">
     <!-- TIVC: Tax Invoice replacement - applicable to TIV group (388, T02, T03, T04, T05) -->
     <record id="etax_purpose_code_01" model="etax.purpose.code">

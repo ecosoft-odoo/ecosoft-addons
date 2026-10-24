@@ -74,9 +74,11 @@ class ETaxServiceMixin(models.AbstractModel):
 
     def _check_etax_email(self):
         missing = self.filtered(
-            lambda record: record.company_id.is_send_etax_email
-            and record.company_id.require_etax_email
-            and not (record.partner_id.email_etax or "").strip()
+            lambda record: (
+                record.company_id.is_send_etax_email
+                and record.company_id.require_etax_email
+                and not (record.partner_id.email_etax or "").strip()
+            )
         )
         if missing:
             raise ValidationError(
@@ -313,7 +315,7 @@ class ETaxServiceMixin(models.AbstractModel):
             try:
                 with self.env.cr.savepoint():
                     record.update_processing_document()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 _logger.exception(
                     "API Error: run_update_processing_document() for %s,%s",
                     record._name,

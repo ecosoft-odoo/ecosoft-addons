@@ -202,9 +202,11 @@ class AccountMove(models.Model):
         """Return product lines included in the invoice e-Tax payload."""
         self.ensure_one()
         return self.invoice_line_ids.filtered(
-            lambda line: line.display_type == "product"
-            and (line.price_unit > 0 or line.price_subtotal < 0)
-            and not line.skip_etax
+            lambda line: (
+                line.display_type == "product"
+                and (line.price_unit > 0 or line.price_subtotal < 0)
+                and not line.skip_etax
+            )
         )
 
     def _get_etax_line_amounts(self):
