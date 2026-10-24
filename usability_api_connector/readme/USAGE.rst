@@ -1,3 +1,7 @@
+API configurations hold credentials and Python code, so only administrators
+(**Settings** access) can create or change them. Regular users can still
+trigger API calls from records and read the outbound API logs.
+
 To use this method:
 
 1. Go to menu **Settings > Technical > Web Services > API Exports**.

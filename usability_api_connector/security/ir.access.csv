@@ -1,0 +1,4 @@
+id,name,model_id,group_id/id,operation,domain
+access_api_config_system,api.config system,api.config,base.group_system,crud,
+access_api_connector_log_user,api.connector.log user,api.connector.log,base.group_user,r,
+access_api_connector_log_system,api.connector.log system,api.connector.log,base.group_system,crud,
