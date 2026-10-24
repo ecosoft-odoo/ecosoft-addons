@@ -190,8 +190,7 @@ class CommonBaseApi(models.AbstractModel):
             if not token:
                 raise ValidationError(
                     self.env._(
-                        "Authentication failed: "
-                        "Invalid database, username or password."
+                        "Authentication failed: Invalid database, username or password."
                     )
                 )
 
@@ -207,8 +206,7 @@ class CommonBaseApi(models.AbstractModel):
             if not token:
                 raise ValidationError(
                     self.env._(
-                        "Authentication failed: "
-                        "Invalid database, username or password."
+                        "Authentication failed: Invalid database, username or password."
                     )
                 )
 
@@ -562,8 +560,7 @@ class CommonBaseApi(models.AbstractModel):
                 except Exception as e:
                     raise ValidationError(
                         self.env._(
-                            "Invalid Python expression in 'Params' field.\n\n"
-                            "Error: %s"
+                            "Invalid Python expression in 'Params' field.\n\nError: %s"
                         )
                         % e
                     ) from e
