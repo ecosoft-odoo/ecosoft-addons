@@ -25,17 +25,36 @@ Authenticate via `/web/session/authenticate` before calling any route:
 }
 ```
 
-**Alternative - API Key:** send `Authorization: Bearer <api_key>` on every request. No session call needed.
+**Alternative - API Key:** send `Authorization: Bearer <api_key>` (or the
+`x-api-key: <api_key>` header) on every request. No session call needed.
+Create the key in *Preferences > Account Security > API Keys* with the `rpc` scope.
+When the server hosts several databases, also send `X-Odoo-Database: <db_name>`,
+since there is no session to tell which one to use.
 
 ### Relational Field Format
 
 | Field type | Format | Example |
 |---|---|---|
-| `many2one` | `{"<lookup_field>": "<value>"}` | `{"name": "Customer A"}` or `{"id": 5}` |
-| `many2many` | `{"mode": "add"\|"replace", "records": [...]}` (`mode` defaults to `"replace"`) | `{"records": [{"name": "Tag1"}]}` |
+| `many2one` | a lookup `{"<field>": "<value>", ...}` | `{"name": "Customer A"}` or `{"id": 5}` |
+| `many2many` | `{"mode": "add"\|"replace", "records": [<lookup>, ...]}` (`mode` defaults to `"replace"`) | `{"records": [{"name": "Tag1"}]}` |
 | `one2many` | `[{<field>: <value>, ...}, ...]` | `[{"product_id": {"name": "A"}, "qty": 1}]` |
 
-Multiple `many2many` items sharing the same lookup field are batched into a single DB query.
+A lookup may give several fields, like `search_key`: all must match, a list
+value matches any of its items, e.g. `{"name": "VAT 7%", "type_tax_use": "sale"}`.
+Each lookup must find exactly one record, for many2one and for every
+`many2many` item: otherwise the call fails, telling which lookup found no
+match or several (add a field, or give the `id`). `auto_create` values are
+created when a lookup finds nothing. `many2many` items with one field are
+searched together, in one query per field.
+
+Lookups of fields that check the company (`check_company=True`, e.g. taxes,
+journals, products or partners on most documents) use the same company scope
+as Odoo: records of the payload `company_id` (a value or a lookup, e.g.
+`{"name": "Company B"}`), else of the user's current company, and shared
+records without company. One2many lines use the company of their parent.
+A record of another company can be given by `{"id": ...}`, which is never
+company scoped. This replaces the 18.0 `webhook.ignore_checkcompany_model`
+parameter, which was needed because shared records were not found.
 
 ### API Routes
 
@@ -103,6 +122,48 @@ Pass optional `callback_url` to enable outbound push when the record's state cha
 }
 ```
 
+#### Returned fields (`result_field`)
+
+The three routes above accept an optional `result_field` in `vals`: the fields
+to read from the created or updated records, after the write. It uses the
+`search_data` syntax, so relational fields can be expanded with
+`field{subfield1,subfield2}`, at any depth.
+
+```json
+"result_field": ["name", "partner_id{name,vat}", "order_line{product_id{default_code},price_unit}"]
+```
+
+The values are always returned in `records`, on every route: a list with one
+item per created or updated record (one for `create_data`, empty when
+`update_data` matches nothing). `result` only holds the ids, and for updates
+the `search_key` values sent.
+
+```json
+{
+  "is_success": true,
+  "result": {"id": [42], "name": "SO042"},
+  "records": [
+    {
+      "id": 42,
+      "name": "SO042",
+      "partner_id": [{"id": 7, "name": "Customer A", "vat": "0105551234567"}],
+      "order_line": [{"id": 90, "product_id": [{"id": 3, "default_code": "A1"}], "price_unit": 100.0}]
+    }
+  ]
+}
+```
+
+- A plain many2one is returned as `[id, "display name"]`, an expanded one as
+  a list of one dict (empty when not set), like `search_data`.
+- Records and their related records are read in one query per relation, not
+  per record.
+- Upgrading from 18.0: `create_data` returned the values in `result`, read
+  them from `records[0]` instead.
+- The fields are checked before writing: an unknown field, a sub-field of a
+  non relational field or unbalanced braces fail the call
+  (`is_success: false`, the bad path in `messages`) and nothing is created or
+  updated.
+
 #### 4. `/api/search_data` - query records
 
 Use `field{subfield1,subfield2}` to expand relational fields inline.
@@ -169,6 +230,7 @@ In any private addon, add one `_inherit` line:
 
 ```python
 from odoo import models
+
 
 class SaleOrder(models.Model):
     _name = "sale.order"
@@ -285,7 +347,23 @@ Pass `callback_url` in the inbound `create_data` request. Odoo stores it linked 
 }
 ```
 
-When the SO is confirmed → Odoo automatically POSTs to `https://ext-system/webhook/so-status`.
+When the SO is confirmed → Odoo automatically POSTs to `https://ext-system/webhook/so-status`,
+provided the rule's **Allowed Callback URL** allows it (e.g. `https://ext-system/webhook`).
+
+### Access Rights
+
+- API logs: internal users can read them, only administrators can change them.
+- Outbound webhook rules (they hold the `Authorization` header) and the
+  `callback_url` of records are restricted to administrators. Webhooks still
+  fire on writes made by regular users.
+- A callback URL sent by an API caller is only called when it is inside the
+  rule's **Allowed Callback URL** (same scheme and host, path inside its path),
+  so the payload and the `Authorization` header cannot be sent to a server
+  chosen by the caller, nor to internal addresses. URLs with user info,
+  backslashes, whitespace or encoded `.`, `/`, `\` in the path are refused,
+  and redirects answered by a callback URL are not followed (logged as
+  failed). Rules migrated from 18.0 with Endpoint Source = Record Callback URL
+  stop sending until this field is filled.
 
 ### Outbound Logs
 

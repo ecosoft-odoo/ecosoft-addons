@@ -3,14 +3,14 @@
 
 {
     "name": "REST API for Webhook",
-    "version": "18.0.4.2.0",
+    "version": "20.0.1.0.0",
     "license": "AGPL-3",
     "category": "Tools",
     "author": "Ecosoft, Odoo Community Association (OCA)",
     "website": "https://github.com/ecosoft-odoo/ecosoft-addons",
     "depends": ["base", "mail"],
     "data": [
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
         "data/config_parameter.xml",
         "data/ir_cron.xml",
         "views/api_log.xml",

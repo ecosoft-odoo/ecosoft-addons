@@ -400,8 +400,9 @@ button) when preview limit exceeded</li>
 matching the domain</li>
 <li><strong>Endpoint source</strong>: static URL per rule, or per-record
 <tt class="docutils literal">callback_url</tt> passed by the external system at create time</li>
-<li><strong>Payload fields</strong>: JSON list supporting <tt class="docutils literal">field{sub1,sub2}</tt>
-expansion for relational fields - same syntax as <tt class="docutils literal">search_data</tt></li>
+<li><strong>Payload fields</strong>: JSON object with <tt class="docutils literal">{field.path}</tt> templates,
+formats (<tt class="docutils literal">:label</tt>, <tt class="docutils literal">:join</tt>, <tt class="docutils literal">:date</tt>, <tt class="docutils literal">:text</tt>), <tt class="docutils literal">_webhook_*</tt>
+method calls and one2many/many2many line expansion</li>
 <li>Outbound calls logged in API Logs (<tt class="docutils literal">log_type = send</tt>) with
 success/failed state</li>
 </ul>
@@ -425,31 +426,33 @@ success/failed state</li>
 <li><a class="reference internal" href="#api-create-data-create-a-new-record" id="toc-entry-11">1. <tt class="docutils literal">/api/create_data</tt> - create a new record</a></li>
 <li><a class="reference internal" href="#api-create-update-data-update-if-found-create-if-not" id="toc-entry-12">2. <tt class="docutils literal">/api/create_update_data</tt> - update if found, create if not</a></li>
 <li><a class="reference internal" href="#api-update-data-update-an-existing-record" id="toc-entry-13">3. <tt class="docutils literal">/api/update_data</tt> - update an existing record</a></li>
-<li><a class="reference internal" href="#api-search-data-query-records" id="toc-entry-14">4. <tt class="docutils literal">/api/search_data</tt> - query records</a></li>
-<li><a class="reference internal" href="#api-call-function-call-a-method-on-a-record" id="toc-entry-15">5. <tt class="docutils literal">/api/call_function</tt> - call a method on a record</a></li>
+<li><a class="reference internal" href="#returned-fields-result-field" id="toc-entry-14">Returned fields (<tt class="docutils literal">result_field</tt>)</a></li>
+<li><a class="reference internal" href="#api-search-data-query-records" id="toc-entry-15">4. <tt class="docutils literal">/api/search_data</tt> - query records</a></li>
+<li><a class="reference internal" href="#api-call-function-call-a-method-on-a-record" id="toc-entry-16">5. <tt class="docutils literal">/api/call_function</tt> - call a method on a record</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#attaching-files" id="toc-entry-16">Attaching Files</a></li>
+<li><a class="reference internal" href="#attaching-files" id="toc-entry-17">Attaching Files</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#outbound-odoo-external" id="toc-entry-17">Outbound (Odoo → External)</a><ul>
-<li><a class="reference internal" href="#step-1-add-mixin-to-the-target-model" id="toc-entry-18">Step 1 - Add mixin to the target model</a></li>
-<li><a class="reference internal" href="#step-2-configure-an-outbound-webhook-rule" id="toc-entry-19">Step 2 - Configure an Outbound Webhook Rule</a></li>
-<li><a class="reference internal" href="#payload-fields" id="toc-entry-20">Payload Fields</a><ul>
-<li><a class="reference internal" href="#expanding-one2many-many2many-fields-line-items" id="toc-entry-21">Expanding one2many/many2many fields (line items)</a></li>
+<li><a class="reference internal" href="#outbound-odoo-external" id="toc-entry-18">Outbound (Odoo → External)</a><ul>
+<li><a class="reference internal" href="#step-1-add-mixin-to-the-target-model" id="toc-entry-19">Step 1 - Add mixin to the target model</a></li>
+<li><a class="reference internal" href="#step-2-configure-an-outbound-webhook-rule" id="toc-entry-20">Step 2 - Configure an Outbound Webhook Rule</a></li>
+<li><a class="reference internal" href="#payload-fields" id="toc-entry-21">Payload Fields</a><ul>
+<li><a class="reference internal" href="#expanding-one2many-many2many-fields-line-items" id="toc-entry-22">Expanding one2many/many2many fields (line items)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#per-record-callback-url" id="toc-entry-22">Per-record Callback URL</a></li>
-<li><a class="reference internal" href="#outbound-logs" id="toc-entry-23">Outbound Logs</a></li>
+<li><a class="reference internal" href="#per-record-callback-url" id="toc-entry-23">Per-record Callback URL</a></li>
+<li><a class="reference internal" href="#access-rights" id="toc-entry-24">Access Rights</a></li>
+<li><a class="reference internal" href="#outbound-logs" id="toc-entry-25">Outbound Logs</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-24">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-25">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-26">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-27">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-28">Maintainers</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-26">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-27">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-28">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-29">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-30">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -462,9 +465,9 @@ success/failed state</li>
 the following keys:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="43%" />
-<col width="11%" />
-<col width="46%" />
+<col width="48%" />
+<col width="13%" />
+<col width="39%" />
 </colgroup>
 <thead valign="bottom">
 <tr><th class="head">Key</th>
@@ -475,18 +478,21 @@ the following keys:</p>
 <tbody valign="top">
 <tr><td><tt class="docutils literal">webhook.preview_limit</tt></td>
 <td><tt class="docutils literal">2000</tt></td>
-<td>Maximum characters stored in the
-preview fields. Payloads longer than
-this are also saved as a full JSON
-attachment.</td>
+<td>Maximum characters stored
+in the preview fields.
+Payloads longer than this
+are also saved as a full
+JSON attachment.</td>
 </tr>
 <tr><td><tt class="docutils literal">webhook.create_data_log</tt></td>
 <td><tt class="docutils literal">True</tt></td>
-<td>Enable logging for <tt class="docutils literal">/api/create_data</tt></td>
+<td>Enable logging for
+<tt class="docutils literal">/api/create_data</tt></td>
 </tr>
 <tr><td><tt class="docutils literal">webhook.update_data_log</tt></td>
 <td><tt class="docutils literal">True</tt></td>
-<td>Enable logging for <tt class="docutils literal">/api/update_data</tt></td>
+<td>Enable logging for
+<tt class="docutils literal">/api/update_data</tt></td>
 </tr>
 <tr><td><tt class="docutils literal">webhook.create_update_data_log</tt></td>
 <td><tt class="docutils literal">True</tt></td>
@@ -495,7 +501,8 @@ attachment.</td>
 </tr>
 <tr><td><tt class="docutils literal">webhook.search_data_log</tt></td>
 <td><tt class="docutils literal">True</tt></td>
-<td>Enable logging for <tt class="docutils literal">/api/search_data</tt></td>
+<td>Enable logging for
+<tt class="docutils literal">/api/search_data</tt></td>
 </tr>
 <tr><td><tt class="docutils literal">webhook.call_function_log</tt></td>
 <td><tt class="docutils literal">True</tt></td>
@@ -504,21 +511,15 @@ attachment.</td>
 </tr>
 <tr><td><tt class="docutils literal">webhook.rollback_state_failed</tt></td>
 <td><tt class="docutils literal">1</tt></td>
-<td>Roll back the transaction when the API
-response is not successful</td>
+<td>Roll back the transaction
+when the API response is
+not successful</td>
 </tr>
 <tr><td><tt class="docutils literal">webhook.rollback_except</tt></td>
 <td><tt class="docutils literal">1</tt></td>
-<td>Roll back the transaction when an
-unhandled exception occurs</td>
-</tr>
-<tr><td><tt class="docutils literal">webhook.ignore_checkcompany_model</tt></td>
-<td><tt class="docutils literal">[]</tt></td>
-<td>JSON list of model names excluded from
-company-scoped record lookup, e.g.
-<tt class="docutils literal">[&quot;res.partner&quot;, &quot;product.product&quot;]</tt>.
-Names must match exactly (a comma
-separated list is also accepted)</td>
+<td>Roll back the transaction
+when an unhandled exception
+occurs</td>
 </tr>
 </tbody>
 </table>
@@ -554,6 +555,15 @@ stored from the inbound request.</td>
 </tr>
 <tr><td><strong>Endpoint URL</strong></td>
 <td>Required when Endpoint Source is <tt class="docutils literal">Static URL</tt>.</td>
+</tr>
+<tr><td><strong>Allowed Callback URL</strong></td>
+<td>Required when Endpoint Source is
+<tt class="docutils literal">Record Callback URL</tt>. The callback URL given by
+the caller is only called when it has the same scheme
+and host (port included) and its path is inside this
+path, e.g. <tt class="docutils literal"><span class="pre">https://partner.example.com/webhook</span></tt>
+allows <tt class="docutils literal"><span class="pre">https://partner.example.com/webhook/so/12</span></tt>.
+Other URLs are not called and are logged as failed.</td>
 </tr>
 <tr><td><strong>Payload Fields</strong></td>
 <td>A JSON object. Static values are sent as-is;
@@ -658,16 +668,20 @@ outbound push</li>
   </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span>
 </pre>
-<p><strong>Alternative - API Key:</strong> send <tt class="docutils literal">Authorization: Bearer &lt;api_key&gt;</tt> on
-every request. No session call needed.</p>
+<p><strong>Alternative - API Key:</strong> send <tt class="docutils literal">Authorization: Bearer &lt;api_key&gt;</tt> (or
+the <tt class="docutils literal"><span class="pre">x-api-key:</span> &lt;api_key&gt;</tt> header) on every request. No session call
+needed. Create the key in <em>Preferences &gt; Account Security &gt; API Keys</em>
+with the <tt class="docutils literal">rpc</tt> scope. When the server hosts several databases, also
+send <tt class="docutils literal"><span class="pre">X-Odoo-Database:</span> &lt;db_name&gt;</tt>, since there is no session to tell
+which one to use.</p>
 </div>
 <div class="section" id="relational-field-format">
 <h3><a class="toc-backref" href="#toc-entry-9">Relational Field Format</a></h3>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="44%" />
-<col width="42%" />
+<col width="12%" />
+<col width="49%" />
+<col width="39%" />
 </colgroup>
 <thead valign="bottom">
 <tr><th class="head">Field type</th>
@@ -677,11 +691,11 @@ every request. No session call needed.</p>
 </thead>
 <tbody valign="top">
 <tr><td><tt class="docutils literal">many2one</tt></td>
-<td><tt class="docutils literal"><span class="pre">{&quot;&lt;lookup_field&gt;&quot;:</span> <span class="pre">&quot;&lt;value&gt;&quot;}</span></tt></td>
+<td>a lookup <tt class="docutils literal"><span class="pre">{&quot;&lt;field&gt;&quot;:</span> <span class="pre">&quot;&lt;value&gt;&quot;,</span> <span class="pre">...}</span></tt></td>
 <td><tt class="docutils literal">{&quot;name&quot;: &quot;Customer A&quot;}</tt> or <tt class="docutils literal">{&quot;id&quot;: 5}</tt></td>
 </tr>
 <tr><td><tt class="docutils literal">many2many</tt></td>
-<td><tt class="docutils literal">{&quot;mode&quot;: <span class="pre">&quot;add&quot;|&quot;replace&quot;,</span> &quot;records&quot;: <span class="pre">[...]}</span></tt>
+<td><tt class="docutils literal">{&quot;mode&quot;: <span class="pre">&quot;add&quot;|&quot;replace&quot;,</span> &quot;records&quot;: [&lt;lookup&gt;, <span class="pre">...]}</span></tt>
 (<tt class="docutils literal">mode</tt> defaults to <tt class="docutils literal">&quot;replace&quot;</tt>)</td>
 <td><tt class="docutils literal">{&quot;records&quot;: <span class="pre">[{&quot;name&quot;:</span> <span class="pre">&quot;Tag1&quot;}]}</span></tt></td>
 </tr>
@@ -691,8 +705,23 @@ every request. No session call needed.</p>
 </tr>
 </tbody>
 </table>
-<p>Multiple <tt class="docutils literal">many2many</tt> items sharing the same lookup field are batched
-into a single DB query.</p>
+<p>A lookup may give several fields, like <tt class="docutils literal">search_key</tt>: all must match, a
+list value matches any of its items, e.g.
+<tt class="docutils literal">{&quot;name&quot;: &quot;VAT <span class="pre">7%&quot;,</span> &quot;type_tax_use&quot;: &quot;sale&quot;}</tt>. Each lookup must find
+exactly one record, for many2one and for every <tt class="docutils literal">many2many</tt> item:
+otherwise the call fails, telling which lookup found no match or several
+(add a field, or give the <tt class="docutils literal">id</tt>). <tt class="docutils literal">auto_create</tt> values are created
+when a lookup finds nothing. <tt class="docutils literal">many2many</tt> items with one field are
+searched together, in one query per field.</p>
+<p>Lookups of fields that check the company (<tt class="docutils literal">check_company=True</tt>, e.g.
+taxes, journals, products or partners on most documents) use the same
+company scope as Odoo: records of the payload <tt class="docutils literal">company_id</tt> (a value or
+a lookup, e.g. <tt class="docutils literal">{&quot;name&quot;: &quot;Company B&quot;}</tt>), else of the user’s current
+company, and shared records without company. One2many lines use the
+company of their parent. A record of another company can be given by
+<tt class="docutils literal">{&quot;id&quot;: <span class="pre">...}</span></tt>, which is never company scoped. This replaces the 18.0
+<tt class="docutils literal">webhook.ignore_checkcompany_model</tt> parameter, which was needed
+because shared records were not found.</p>
 </div>
 <div class="section" id="api-routes">
 <h3><a class="toc-backref" href="#toc-entry-10">API Routes</a></h3>
@@ -760,8 +789,48 @@ state changes later.</p>
 </span><span class="p">}</span>
 </pre>
 </div>
+<div class="section" id="returned-fields-result-field">
+<h4><a class="toc-backref" href="#toc-entry-14">Returned fields (<tt class="docutils literal">result_field</tt>)</a></h4>
+<p>The three routes above accept an optional <tt class="docutils literal">result_field</tt> in <tt class="docutils literal">vals</tt>:
+the fields to read from the created or updated records, after the write.
+It uses the <tt class="docutils literal">search_data</tt> syntax, so relational fields can be expanded
+with <tt class="docutils literal">field{subfield1,subfield2}</tt>, at any depth.</p>
+<pre class="code json literal-block">
+<span class="nt">&quot;result_field&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;partner_id{name,vat}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;order_line{product_id{default_code},price_unit}&quot;</span><span class="p">]</span>
+</pre>
+<p>The values are always returned in <tt class="docutils literal">records</tt>, on every route: a list
+with one item per created or updated record (one for <tt class="docutils literal">create_data</tt>,
+empty when <tt class="docutils literal">update_data</tt> matches nothing). <tt class="docutils literal">result</tt> only holds the
+ids, and for updates the <tt class="docutils literal">search_key</tt> values sent.</p>
+<pre class="code json literal-block">
+<span class="p">{</span><span class="w">
+  </span><span class="nt">&quot;is_success&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">42</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SO042&quot;</span><span class="p">},</span><span class="w">
+  </span><span class="nt">&quot;records&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SO042&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;partner_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Customer A&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;vat&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0105551234567&quot;</span><span class="p">}],</span><span class="w">
+      </span><span class="nt">&quot;order_line&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">90</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;product_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;default_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A1&quot;</span><span class="p">}],</span><span class="w"> </span><span class="nt">&quot;price_unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">100.0</span><span class="p">}]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+<ul class="simple">
+<li>A plain many2one is returned as <tt class="docutils literal">[id, &quot;display name&quot;]</tt>, an expanded
+one as a list of one dict (empty when not set), like <tt class="docutils literal">search_data</tt>.</li>
+<li>Records and their related records are read in one query per relation,
+not per record.</li>
+<li>Upgrading from 18.0: <tt class="docutils literal">create_data</tt> returned the values in
+<tt class="docutils literal">result</tt>, read them from <tt class="docutils literal">records[0]</tt> instead.</li>
+<li>The fields are checked before writing: an unknown field, a sub-field
+of a non relational field or unbalanced braces fail the call
+(<tt class="docutils literal">is_success: false</tt>, the bad path in <tt class="docutils literal">messages</tt>) and nothing is
+created or updated.</li>
+</ul>
+</div>
 <div class="section" id="api-search-data-query-records">
-<h4><a class="toc-backref" href="#toc-entry-14">4. <tt class="docutils literal">/api/search_data</tt> - query records</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-15">4. <tt class="docutils literal">/api/search_data</tt> - query records</a></h4>
 <p>Use <tt class="docutils literal">field{subfield1,subfield2}</tt> to expand relational fields inline.</p>
 <pre class="code json literal-block">
 <span class="p">{</span><span class="w">
@@ -784,7 +853,7 @@ state changes later.</p>
 </pre>
 </div>
 <div class="section" id="api-call-function-call-a-method-on-a-record">
-<h4><a class="toc-backref" href="#toc-entry-15">5. <tt class="docutils literal">/api/call_function</tt> - call a method on a record</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-16">5. <tt class="docutils literal">/api/call_function</tt> - call a method on a record</a></h4>
 <ul class="simple">
 <li><tt class="docutils literal">method</tt> <em>(str)</em>: method name. Only public methods can be called,
 same as RPC: names starting with <tt class="docutils literal">_</tt> and methods marked
@@ -810,7 +879,7 @@ call</li>
 </div>
 </div>
 <div class="section" id="attaching-files">
-<h3><a class="toc-backref" href="#toc-entry-16">Attaching Files</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-17">Attaching Files</a></h3>
 <p>Add <tt class="docutils literal">attachment_ids</tt> at any payload level:</p>
 <pre class="code json literal-block">
 <span class="nt">&quot;attachment_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;filename&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;datas&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;base64&gt;&quot;</span><span class="p">}]</span>
@@ -819,15 +888,16 @@ call</li>
 </div>
 <hr class="docutils" />
 <div class="section" id="outbound-odoo-external">
-<h2><a class="toc-backref" href="#toc-entry-17">Outbound (Odoo → External)</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-18">Outbound (Odoo → External)</a></h2>
 <p>When Odoo performs an action (confirm, validate, etc.), the outbound
 webhook automatically POSTs updated record data back to the external
 system - no per-model code required.</p>
 <div class="section" id="step-1-add-mixin-to-the-target-model">
-<h3><a class="toc-backref" href="#toc-entry-18">Step 1 - Add mixin to the target model</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-19">Step 1 - Add mixin to the target model</a></h3>
 <p>In any private addon, add one <tt class="docutils literal">_inherit</tt> line:</p>
 <pre class="code python literal-block">
 <span class="kn">from</span><span class="w"> </span><span class="nn">odoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span><span class="w">
+
 
 </span><span class="k">class</span><span class="w"> </span><span class="nc">SaleOrder</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span><span class="w">
 </span>    <span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;sale.order&quot;</span><span class="w">
@@ -836,7 +906,7 @@ system - no per-model code required.</p>
 <p>All outbound behaviour is driven by rules configured in the UI.</p>
 </div>
 <div class="section" id="step-2-configure-an-outbound-webhook-rule">
-<h3><a class="toc-backref" href="#toc-entry-19">Step 2 - Configure an Outbound Webhook Rule</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-20">Step 2 - Configure an Outbound Webhook Rule</a></h3>
 <p>Go to <em>Settings &gt; Technical &gt; API Configuration &gt; Outbound Webhook
 Rules</em>. See <tt class="docutils literal">CONFIGURE.md</tt> for the full field reference.</p>
 <p><strong>Trigger domain examples:</strong></p>
@@ -856,7 +926,7 @@ prevents re-triggering when unrelated fields are edited on an
 already-matching record.</p>
 </div>
 <div class="section" id="payload-fields">
-<h3><a class="toc-backref" href="#toc-entry-20">Payload Fields</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-21">Payload Fields</a></h3>
 <p><tt class="docutils literal">payload_fields</tt> is always a JSON object. Two kinds of values are
 supported:</p>
 <ul class="simple">
@@ -887,7 +957,7 @@ itself, not its name.</li>
 </pre>
 <p>Leave <tt class="docutils literal">payload_fields</tt> empty to send <tt class="docutils literal">{&quot;id&quot;: &lt;record_id&gt;}</tt> only.</p>
 <div class="section" id="expanding-one2many-many2many-fields-line-items">
-<h4><a class="toc-backref" href="#toc-entry-21">Expanding one2many/many2many fields (line items)</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-22">Expanding one2many/many2many fields (line items)</a></h4>
 <p>To send a list of objects (e.g. sale order lines), use a key matching
 the field name, with a <strong>one-item array</strong> as its value - that single
 item is the per-line template, applied once for every related record:</p>
@@ -927,7 +997,7 @@ as a literal value.</p>
 </div>
 </div>
 <div class="section" id="per-record-callback-url">
-<h3><a class="toc-backref" href="#toc-entry-22">Per-record Callback URL</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-23">Per-record Callback URL</a></h3>
 <p>Pass <tt class="docutils literal">callback_url</tt> in the inbound <tt class="docutils literal">create_data</tt> request. Odoo
 stores it linked to the created record. When the outbound rule fires
 with <em>Endpoint Source = Record Callback URL</em>, the system looks up that
@@ -947,10 +1017,30 @@ URL and POSTs to it.</p>
 </span><span class="p">}</span>
 </pre>
 <p>When the SO is confirmed → Odoo automatically POSTs to
-<tt class="docutils literal"><span class="pre">https://ext-system/webhook/so-status</span></tt>.</p>
+<tt class="docutils literal"><span class="pre">https://ext-system/webhook/so-status</span></tt>, provided the rule’s <strong>Allowed
+Callback URL</strong> allows it (e.g. <tt class="docutils literal"><span class="pre">https://ext-system/webhook</span></tt>).</p>
+</div>
+<div class="section" id="access-rights">
+<h3><a class="toc-backref" href="#toc-entry-24">Access Rights</a></h3>
+<ul class="simple">
+<li>API logs: internal users can read them, only administrators can change
+them.</li>
+<li>Outbound webhook rules (they hold the <tt class="docutils literal">Authorization</tt> header) and
+the <tt class="docutils literal">callback_url</tt> of records are restricted to administrators.
+Webhooks still fire on writes made by regular users.</li>
+<li>A callback URL sent by an API caller is only called when it is inside
+the rule’s <strong>Allowed Callback URL</strong> (same scheme and host, path inside
+its path), so the payload and the <tt class="docutils literal">Authorization</tt> header cannot be
+sent to a server chosen by the caller, nor to internal addresses. URLs
+with user info, backslashes, whitespace or encoded <tt class="docutils literal">.</tt>, <tt class="docutils literal">/</tt>, <tt class="docutils literal">\</tt>
+in the path are refused, and redirects answered by a callback URL are
+not followed (logged as failed). Rules migrated from 18.0 with
+Endpoint Source = Record Callback URL stop sending until this field is
+filled.</li>
+</ul>
 </div>
 <div class="section" id="outbound-logs">
-<h3><a class="toc-backref" href="#toc-entry-23">Outbound Logs</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-25">Outbound Logs</a></h3>
 <p>All outbound calls appear in <em>API Logs</em> with <strong>Log Type = Send</strong>. Failed
 calls are marked <tt class="docutils literal">state = failed</tt> with the error in the response
 preview.</p>
@@ -958,7 +1048,7 @@ preview.</p>
 </div>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-24">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-26">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -966,15 +1056,15 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-25">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-27">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-26">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-28">Authors</a></h2>
 <ul class="simple">
 <li>Ecosoft</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-27">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-29">Contributors</a></h2>
 <ul class="simple">
 <li>Kitti Upariphutthiphong <a class="reference external" href="mailto:kittiu&#64;ecosoft.co.th">kittiu&#64;ecosoft.co.th</a></li>
 <li>Saran Lim. <a class="reference external" href="mailto:saranl&#64;ecosoft.co.th">saranl&#64;ecosoft.co.th</a></li>
@@ -982,7 +1072,7 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-28">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-30">Maintainers</a></h2>
 <p>This module is part of the <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/tree/20.0/usability_webhooks">ecosoft-odoo/ecosoft-addons</a> project on GitHub.</p>
 <p>You are welcome to contribute.</p>
 </div>
