@@ -4,10 +4,10 @@
 import json
 import logging
 import re
+from collections import defaultdict
 
 from odoo import fields, models
 from odoo.tools import html2plaintext
-from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
 
@@ -20,7 +20,9 @@ class WebhookOutboundMixin(models.AbstractModel):
     _name = "webhook.outbound.mixin"
     _description = "Outbound Webhook Mixin"
 
-    callback_url = fields.Char(readonly=True, copy=False)
+    # Admin only: whoever sets it receives the payload and the rule's
+    # Authorization header
+    callback_url = fields.Char(readonly=True, copy=False, groups="base.group_system")
     webhook_last_state = fields.Selection(
         selection=[("done", "Success"), ("failed", "Failed")],
         string="Last Webhook Status",
@@ -42,60 +44,59 @@ class WebhookOutboundMixin(models.AbstractModel):
         return res
 
     def _collect_trigger_candidates(self, vals):
-        """Before write: return [(rec, rule, domain), ...] where domain fields overlap
-        vals."""
-        Rule = self.env["webhook.outbound.rule"]
-        rules = Rule.search([("model_name", "=", self._name), ("active", "=", True)])
-        candidates = []
-        for rule in rules:
-            if not rule.trigger_domain:
-                continue
-            try:
-                domain = safe_eval(rule.trigger_domain)
-            except Exception:
-                _logger.warning(
-                    "webhook.outbound.rule '%s': invalid trigger_domain", rule.name
-                )
-                continue
-            domain_fields = self._extract_domain_fields(domain)
+        """Before write: return [(records, rule, domain), ...] for the rules
+        whose domain fields overlap vals."""
+        Rule = self.env["webhook.outbound.rule"].sudo()
+        specs = [
+            (rule_id, domain)
+            for rule_id, domain, domain_fields in Rule._get_trigger_specs(self._name)
             # Only relevant when at least one domain field is being written
-            if not domain_fields.intersection(vals.keys()):
-                continue
-            for rec in self:
-                candidates.append((rec, rule, domain))
-        return candidates
-
-    def _extract_domain_fields(self, domain):
-        """Extract top-level field names from domain leaves."""
-        fields = set()
-        for item in domain:
-            if isinstance(item, list | tuple) and len(item) == 3:
-                # Handle dotted paths like 'partner_id.name' → 'partner_id'
-                fields.add(str(item[0]).split(".")[0])
-        return fields
+            if domain_fields.intersection(vals)
+        ]
+        # Rules share their prefetch, their fields are read at once
+        rules = Rule.browse(rule_id for rule_id, _domain in specs)
+        return [
+            (self, rule, domain)
+            for rule, (_rule_id, domain) in zip(rules, specs, strict=True)
+        ]
 
     def _filter_by_domain(self, candidates):
         """After write: keep only (rec, rule) pairs where record now matches domain."""
         pairs = []
-        for rec, rule, domain in candidates:
+        for records, rule, domain in candidates:
             try:
-                if rec.filtered_domain(domain):
-                    pairs.append((rec, rule))
+                matched = records.filtered_domain(domain)
             except Exception:
                 _logger.warning(
-                    "webhook.outbound.rule '%s': domain eval failed on %s(%s)",
+                    "webhook.outbound.rule '%s': domain eval failed on %s%s",
                     rule.name,
-                    rec._name,
-                    rec.id,
+                    records._name,
+                    records.ids,
+                    exc_info=True,
                 )
+                continue
+            pairs.extend((rec, rule) for rec in matched)
         return pairs
 
     def _dispatch_outbound_webhooks(self, trigger_pairs):
         Service = self.env["webhook.outbound.service"].with_context(
             _webhook_outbound_dispatching=True
         )
+        callback_urls = self._get_callback_urls(
+            self.browse(
+                {
+                    rec.id
+                    for rec, rule in trigger_pairs
+                    if rule.endpoint_source == "record"
+                }
+            )
+        )
+        last_states = {}
         for rec, rule in trigger_pairs:
-            url = self._resolve_endpoint(rec, rule)
+            if rule.endpoint_source == "static":
+                url = rule.endpoint_url
+            else:
+                url = callback_urls.get(rec.id)
             if not url:
                 _logger.warning(
                     "webhook.outbound.rule '%s': no endpoint URL for %s(%s)",
@@ -104,31 +105,44 @@ class WebhookOutboundMixin(models.AbstractModel):
                     rec.id,
                 )
                 continue
-            payload = self._build_payload(rec, rule)
-            log = Service._push(rec, url, payload, rule)
-            rec.with_context(_webhook_outbound_dispatching=True).write(
-                {
-                    "webhook_last_state": log.state,
-                    "webhook_last_sent_date": fields.Datetime.now(),
-                }
+            if rule.endpoint_source == "record" and not rule._is_callback_url_allowed(
+                url
+            ):
+                log = Service._refuse_callback_url(rec, url, rule)
+            else:
+                payload = self._build_payload(rec, rule)
+                log = Service._push(rec, url, payload, rule)
+            last_states[rec.id] = log.state
+        # One write per state, the last rule sent wins
+        ids_by_state = defaultdict(list)
+        for rec_id, state in last_states.items():
+            ids_by_state[state].append(rec_id)
+        now = fields.Datetime.now()
+        for state, rec_ids in ids_by_state.items():
+            self.browse(rec_ids).with_context(_webhook_outbound_dispatching=True).write(
+                {"webhook_last_state": state, "webhook_last_sent_date": now}
             )
 
-    def _resolve_endpoint(self, rec, rule):
-        if rule.endpoint_source == "static":
-            return rule.endpoint_url or None
-        if rec.callback_url:
-            return rec.callback_url
-        log = self.env["api.log"].search(
-            [
-                ("res_model", "=", rec._name),
-                ("res_id", "=", rec.id),
-                ("log_type", "=", "receive"),
-                ("callback_url", "!=", False),
-            ],
-            limit=1,
-            order="id desc",
-        )
-        return log.callback_url or None
+    def _get_callback_urls(self, records):
+        """{record id: callback URL}: the record's callback_url, or else the one
+        of its latest received API log. Logs are searched once for all records."""
+        urls = {rec.id: rec.callback_url for rec in records.sudo() if rec.callback_url}
+        missing = [rec_id for rec_id in records.ids if rec_id not in urls]
+        if missing:
+            Log = self.env["api.log"].sudo()
+            latest = Log._read_group(
+                [
+                    ("res_model", "=", records._name),
+                    ("res_id", "in", missing),
+                    ("log_type", "=", "receive"),
+                    ("callback_url", "!=", False),
+                ],
+                ["res_id"],
+                ["id:max"],
+            )
+            for log in Log.browse(log_id for _res_id, log_id in latest):
+                urls[log.res_id] = log.callback_url
+        return urls
 
     def _resolve_field_value(self, rec, val):
         """Resolve one payload template. Three forms are supported, any
@@ -179,6 +193,7 @@ class WebhookOutboundMixin(models.AbstractModel):
                 val,
                 rec._name,
                 rec.id,
+                exc_info=True,
             )
             return None
 
@@ -198,6 +213,7 @@ class WebhookOutboundMixin(models.AbstractModel):
                 method_name,
                 rec._name,
                 rec.id,
+                exc_info=True,
             )
             return None
 
@@ -210,7 +226,12 @@ class WebhookOutboundMixin(models.AbstractModel):
         for part in parts[:-1]:
             records = records.mapped(part)
         field = records._fields[parts[-1]]
-        values = [val for val in records.mapped(parts[-1]) if val or val == 0]
+        # Unset values are False, except for booleans; keep 0
+        values = [
+            val
+            for val in records.mapped(parts[-1])
+            if val or (val == 0 and val is not False) or field.type == "boolean"
+        ]
         values = self._format_payload_values(field, values, fmt)
         if fmt == "join" or len(values) > 1:
             return ", ".join(str(val) for val in values)
@@ -263,6 +284,7 @@ class WebhookOutboundMixin(models.AbstractModel):
                     key,
                     rec._name,
                     rec.id,
+                    exc_info=True,
                 )
                 return []
             return [self._resolve_payload_value(item, val[0]) for item in items]
@@ -275,7 +297,9 @@ class WebhookOutboundMixin(models.AbstractModel):
             raw = json.loads(rule.payload_fields)
         except Exception:
             _logger.warning(
-                "webhook.outbound.rule '%s': invalid payload_fields JSON", rule.name
+                "webhook.outbound.rule '%s': invalid payload_fields JSON",
+                rule.name,
+                exc_info=True,
             )
             return {"id": rec.id}
         if not isinstance(raw, dict):

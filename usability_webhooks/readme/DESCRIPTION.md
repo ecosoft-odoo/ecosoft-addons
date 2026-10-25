@@ -19,5 +19,5 @@ and config-driven outbound push notifications.
 - `webhook.outbound.mixin` - add to any model with a single `_inherit` line; no per-model code required
 - **Trigger domain**: full Odoo domain expression evaluated after `write()`; webhook fires only when a record transitions into matching the domain
 - **Endpoint source**: static URL per rule, or per-record `callback_url` passed by the external system at create time
-- **Payload fields**: JSON list supporting `field{sub1,sub2}` expansion for relational fields - same syntax as `search_data`
+- **Payload fields**: JSON object with `{field.path}` templates, formats (`:label`, `:join`, `:date`, `:text`), `_webhook_*` method calls and one2many/many2many line expansion
 - Outbound calls logged in API Logs (`log_type = send`) with success/failed state

@@ -12,7 +12,6 @@ Go to *Settings > Technical > Parameters > System Parameters* to adjust the foll
 | `webhook.call_function_log` | `True` | Enable logging for `/api/call_function` |
 | `webhook.rollback_state_failed` | `1` | Roll back the transaction when the API response is not successful |
 | `webhook.rollback_except` | `1` | Roll back the transaction when an unhandled exception occurs |
-| `webhook.ignore_checkcompany_model` | `[]` | JSON list of model names excluded from company-scoped record lookup, e.g. `["res.partner", "product.product"]`. Names must match exactly (a comma separated list is also accepted) |
 
 ## Outbound Webhook Rules
 
@@ -24,6 +23,7 @@ Go to *Settings > Technical > API Configuration > Outbound Webhook Rules* to con
 | **Trigger Domain** | Odoo domain evaluated after `write()`. Webhook fires when a record transitions into matching the domain. Uses the domain widget - select a model first to get field suggestions. |
 | **Endpoint Source** | `Static URL` - always POST to the configured URL. `Record Callback URL` - use the `callback_url` stored from the inbound request. |
 | **Endpoint URL** | Required when Endpoint Source is `Static URL`. |
+| **Allowed Callback URL** | Required when Endpoint Source is `Record Callback URL`. The callback URL given by the caller is only called when it has the same scheme and host (port included) and its path is inside this path, e.g. `https://partner.example.com/webhook` allows `https://partner.example.com/webhook/so/12`. Other URLs are not called and are logged as failed. |
 | **Payload Fields** | A JSON object. Static values are sent as-is; `{field.path}` templates are resolved from the record (dotted paths supported, e.g. `{partner_id.name}`), recursively at any nesting level. A one2many/many2many field can be expanded into a list of objects: give the key matching the field name a one-item array as value, e.g. `"order_line": [{"product": "{product_id.name}"}]`. Leave empty to send `{"id": <record_id>}` only. |
 | **Authorization Header** | Optional `Authorization` header value sent with every outbound request, e.g. `Bearer <token>`. |
 

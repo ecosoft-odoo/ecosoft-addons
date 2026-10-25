@@ -1,15 +1,18 @@
 # Copyright 2022 Ecosoft Co., Ltd (http://ecosoft.co.th/)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
-import ast
 import json
+import logging
+import re
 import traceback
 
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import Unauthorized
 
 from odoo import http
 from odoo.http import request
 from odoo.tools import json_default
+
+_logger = logging.getLogger(__name__)
 
 
 class WebhookController(http.Controller):
@@ -21,9 +24,9 @@ class WebhookController(http.Controller):
         return getattr(request.env["webhook.utils"], function)(model, vals)
 
     def _create_api_logs(self, model, vals, function):
-        ICP = request.env["ir.config_parameter"]
-        rollback_state_failed = ICP.sudo().get_param("webhook.rollback_state_failed")
-        rollback_except = ICP.sudo().get_param("webhook.rollback_except")
+        ICP = request.env["ir.config_parameter"].sudo()
+        rollback_state_failed = ICP.get_bool("webhook.rollback_state_failed")
+        rollback_except = ICP.get_bool("webhook.rollback_except")
 
         # Dump before the call (payload may change), only when log is needed
         data_str = json.dumps(vals) if vals.get("is_create_log") else ""
@@ -37,6 +40,9 @@ class WebhookController(http.Controller):
             if not res.get("is_success") and rollback_state_failed:
                 request.env.cr.rollback()
         except Exception:
+            _logger.warning(
+                "Webhook /api/%s failed on %s", function, model, exc_info=True
+            )
             res = {
                 "is_success": False,
                 "messages": traceback.format_exc(),
@@ -49,19 +55,27 @@ class WebhookController(http.Controller):
 
         log = None
         if vals.get("is_create_log"):
-            log = request.env["api.log"].create(
-                {
-                    "model": model,
-                    "route": f"/api/{function}",
-                    "function_name": function,
-                    "state": state,
-                }
+            log = (
+                request.env["api.log"]
+                .sudo()
+                .with_context(tracking_disable=True)
+                .create(
+                    {
+                        "model": model,
+                        "route": f"/api/{function}",
+                        "function_name": function,
+                        "state": state,
+                    }
+                )
             )
             log._save_payload(
                 data_str,
                 json.dumps(res, ensure_ascii=False, default=json_default),
             )
-        self._link_callback_url(model, vals, res, log)
+        # Ids returned by call_function/search_data are not checked: never
+        # link them, the callback URL is written as superuser
+        if function in ("create_data", "update_data", "create_update_data"):
+            self._link_callback_url(model, vals, res, log)
         return res
 
     def _link_callback_url(self, model, vals, res, log=None):
@@ -69,90 +83,95 @@ class WebhookController(http.Controller):
         This enables outbound webhooks to find the correct endpoint per record.
         """
         callback_url = vals.get("callback_url")
-        if not callback_url:
-            return
-        res_id = None
         result = res.get("result")
-        if isinstance(result, dict):
-            res_id = result.get("id")
-        if not res_id:
+        if not callback_url or not isinstance(result, dict):
             return
-        linkage = {"res_model": model, "res_id": res_id, "callback_url": callback_url}
-        if log:
-            log.write(linkage)
-        else:
-            request.env["api.log"].create(
-                {
-                    "model": model,
-                    "log_type": "receive",
-                    "state": "done" if res.get("is_success") else "failed",
-                    **linkage,
-                }
-            )
-        rec = request.env[model].sudo().browse(res_id)
-        if "callback_url" in rec._fields:
-            rec.with_context(_webhook_outbound_dispatching=True).write(
+        # create_data returns one id, update_data a list of ids
+        res_ids = result.get("id")
+        if not isinstance(res_ids, list):
+            res_ids = [res_ids] if res_ids else []
+        if not res_ids:
+            return
+        if len(res_ids) == 1:
+            linkage = {
+                "res_model": model,
+                "res_id": res_ids[0],
+                "callback_url": callback_url,
+            }
+            if log:
+                log.write(linkage)
+            else:
+                request.env["api.log"].sudo().with_context(
+                    tracking_disable=True
+                ).create(
+                    {
+                        "model": model,
+                        "log_type": "receive",
+                        "state": "done" if res.get("is_success") else "failed",
+                        **linkage,
+                    }
+                )
+        records = request.env[model].sudo().browse(res_ids)
+        if "callback_url" in records._fields:
+            records.with_context(_webhook_outbound_dispatching=True).write(
                 {"callback_url": callback_url}
             )
 
     def _set_create_logs(self, param, vals):
-        ICP = request.env["ir.config_parameter"]
-        is_create_log = ICP.sudo().get_param(param)
-        # convert str to bool
-        is_create_log = ast.literal_eval(is_create_log.capitalize())
+        is_create_log = request.env["ir.config_parameter"].sudo().get_bool(param, True)
         vals.update({"is_create_log": is_create_log})
 
+    def _get_api_key(self):
+        """API key sent as ``Authorization: Bearer <key>`` or ``x-api-key``"""
+        headers = request.httprequest.headers
+        match = re.match(
+            r"^bearer\s+(.+)$", headers.get("Authorization", ""), re.IGNORECASE
+        )
+        return match.group(1) if match else headers.get("x-api-key")
+
     def update_session_auth(self):
-        # Check session first. if no session, use API Key
+        """Authenticate with the session, or else with an API key."""
         if request.session.uid:
             request.update_env(user=request.session.uid)
-        else:
-            # NOTE: header send only x-api-key instead of Authorization: Bearer <key>
-            # If it not standard, i will remove later
-            access_token = request.httprequest.headers.get("x-api-key")
-            if access_token:
-                user_id = request.env["res.users.apikeys"]._check_credentials(
-                    scope="rpc", key=access_token
-                )
-                if not user_id:
-                    raise BadRequest("Access token invalid")
-                request.update_env(user=user_id)
-                return
-            request.env["ir.http"]._auth_method_bearer()
+            return
+        api_key = self._get_api_key()
+        if not api_key:
+            raise Unauthorized(
+                "User not authenticated, use a session or an API Key with "
+                "a Bearer Authorization header."
+            )
+        user_id = request.env["res.users.apikeys"]._check_credentials(
+            scope="rpc", key=api_key
+        )
+        if not user_id:
+            raise Unauthorized("Invalid API key")
+        request.update_env(user=user_id)
+        request.session.can_save = False  # stateless
+
+    def _handle_api_call(self, model, vals, function):
+        """Authenticate, then run ``function`` of webhook.utils and log it"""
+        self.update_session_auth()
+        self._set_create_logs(f"webhook.{function}_log", vals)
+        return self._create_api_logs(model, vals, function)
 
     # auth="none" routes use a read-only cursor by default, which would fail on
     # first write then run the whole call again: all routes may write (api.log)
-    @http.route("/api/create_data", type="json", auth="none", readonly=False)
+    @http.route("/api/create_data", type="jsonrpc", auth="none", readonly=False)
     def create_data(self, model, vals):
-        self.update_session_auth()
-        self._set_create_logs("webhook.create_data_log", vals)
-        res = self._create_api_logs(model, vals, "create_data")
-        return res
+        return self._handle_api_call(model, vals, "create_data")
 
-    @http.route("/api/update_data", type="json", auth="none", readonly=False)
+    @http.route("/api/update_data", type="jsonrpc", auth="none", readonly=False)
     def update_data(self, model, vals):
-        self.update_session_auth()
-        self._set_create_logs("webhook.update_data_log", vals)
-        res = self._create_api_logs(model, vals, "update_data")
-        return res
+        return self._handle_api_call(model, vals, "update_data")
 
-    @http.route("/api/create_update_data", type="json", auth="none", readonly=False)
+    @http.route("/api/create_update_data", type="jsonrpc", auth="none", readonly=False)
     def create_update_data(self, model, vals):
-        self.update_session_auth()
-        self._set_create_logs("webhook.create_update_data_log", vals)
-        res = self._create_api_logs(model, vals, "create_update_data")
-        return res
+        return self._handle_api_call(model, vals, "create_update_data")
 
-    @http.route("/api/search_data", type="json", auth="none", readonly=False)
+    @http.route("/api/search_data", type="jsonrpc", auth="none", readonly=False)
     def search_data(self, model, vals):
-        self.update_session_auth()
-        self._set_create_logs("webhook.search_data_log", vals)
-        res = self._create_api_logs(model, vals, "search_data")
-        return res
+        return self._handle_api_call(model, vals, "search_data")
 
-    @http.route("/api/call_function", type="json", auth="none", readonly=False)
+    @http.route("/api/call_function", type="jsonrpc", auth="none", readonly=False)
     def call_function(self, model, vals):
-        self.update_session_auth()
-        self._set_create_logs("webhook.call_function_log", vals)
-        res = self._create_api_logs(model, vals, "call_function")
-        return res
+        return self._handle_api_call(model, vals, "call_function")

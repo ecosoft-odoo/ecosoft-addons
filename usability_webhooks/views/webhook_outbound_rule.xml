@@ -41,6 +41,12 @@
                                 invisible="endpoint_source != 'static'"
                                 required="endpoint_source == 'static'"
                             />
+                            <field
+                                name="allowed_callback_url"
+                                invisible="endpoint_source != 'record'"
+                                required="endpoint_source == 'record'"
+                                placeholder="https://partner.example.com/webhook"
+                            />
                             <field name="auth_header" />
                         </group>
                     </group>

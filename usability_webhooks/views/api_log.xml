@@ -33,7 +33,7 @@
                         <button
                             name="action_view_full_log"
                             type="object"
-                            icon="oi-search"
+                            icon="search"
                             class="oe_stat_button"
                             string="Full Log"
                             invisible="not attachment_id"
@@ -76,6 +76,8 @@
         <field name="arch" type="xml">
             <search>
                 <field name="data_preview" string="Data Preview" />
+                <field name="model" />
+                <field name="route" />
                 <filter
                     name="state_draft"
                     string="Draft"
@@ -102,23 +104,22 @@
                     string="Receive"
                     domain="[('log_type', '=', 'receive')]"
                 />
-                <group expand="1" string="Group By">
-                    <filter
-                        string="Model"
-                        name="group_by_model"
-                        context="{'group_by': 'model'}"
-                    />
-                    <filter
-                        string="State"
-                        name="group_by_state"
-                        context="{'group_by': 'state'}"
-                    />
-                    <filter
-                        string="Log Type"
-                        name="group_by_log_type"
-                        context="{'group_by': 'log_type'}"
-                    />
-                </group>
+                <separator />
+                <filter
+                    string="Model"
+                    name="group_by_model"
+                    context="{'group_by': 'model'}"
+                />
+                <filter
+                    string="State"
+                    name="group_by_state"
+                    context="{'group_by': 'state'}"
+                />
+                <filter
+                    string="Log Type"
+                    name="group_by_log_type"
+                    context="{'group_by': 'log_type'}"
+                />
             </search>
         </field>
     </record>
