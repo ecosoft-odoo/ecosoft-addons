@@ -32,6 +32,12 @@ class FrappeEtaxConnection(models.Model):
         help="Authentication token in [api_key]:[api_secret] format.",
     )
     active = fields.Boolean(default=True)
+    support_multi_reference = fields.Boolean(
+        string="Supports Multiple References",
+        help="Enable when the Frappe server maps additional reference documents "
+        "to INET ADDITIONAL_DOCUMENT. Credit/debit notes referencing more than "
+        "one tax invoice cannot be signed otherwise.",
+    )
 
     _sql_constraints = [
         (

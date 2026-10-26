@@ -49,6 +49,91 @@ class AccountMove(models.Model):
     etax_adjustment_doctype_code = fields.Char(
         compute="_compute_etax_adjustment_doctype_code",
     )
+    etax_reference_ids = fields.One2many(
+        comodel_name="account.move.etax.reference",
+        inverse_name="move_id",
+        string="e-Tax References",
+        copy=False,
+        help="Additional tax invoices referenced by this credit/debit note.",
+    )
+    etax_original_amount = fields.Monetary(
+        string="Original Total",
+        compute="_compute_etax_adjustment_amounts",
+    )
+    etax_corrected_amount = fields.Monetary(
+        string="Corrected Amount",
+        compute="_compute_etax_adjustment_amounts",
+    )
+    etax_credited_amount = fields.Monetary(
+        string="e-Tax Adjusted Amount",
+        compute="_compute_etax_credited_amount",
+        help="Untaxed amount of this invoice already reduced by credit notes.",
+    )
+    etax_allowed_product_ids = fields.Many2many(
+        comodel_name="product.product",
+        compute="_compute_etax_allowed_product_ids",
+        help="Products of the Odoo invoices referenced by this credit note.",
+    )
+
+    @api.depends(
+        "move_type",
+        "reversed_entry_id",
+        "etax_reference_ids.ref_move_id",
+    )
+    def _compute_etax_allowed_product_ids(self):
+        for rec in self:
+            ref_moves = rec.etax_reference_ids.ref_move_id
+            if rec.move_type != "out_refund" or not ref_moves:
+                rec.etax_allowed_product_ids = False
+                continue
+            rec.etax_allowed_product_ids = (
+                ref_moves | rec.reversed_entry_id
+            ).invoice_line_ids.product_id
+
+    @api.depends(
+        "amount_untaxed",
+        "debit_origin_id",
+        "reversed_entry_id",
+        "replaced_entry_id",
+        "etax_reference_ids.amount_untaxed",
+        "etax_adjustment_doctype_code",
+    )
+    def _compute_etax_adjustment_amounts(self):
+        for rec in self:
+            original = corrected = 0.0
+            if rec.etax_adjustment_doctype_code and not rec.replaced_entry_id:
+                original, _diff, corrected = rec._get_additional_amount()
+            rec.etax_original_amount = original or 0.0
+            rec.etax_corrected_amount = corrected or 0.0
+
+    def _compute_etax_credited_amount(self):
+        ids = [rec_id for rec_id in self.ids if isinstance(rec_id, int)]
+        refunds = (
+            self.search(
+                [
+                    ("move_type", "=", "out_refund"),
+                    ("state", "!=", "cancel"),
+                    "|",
+                    ("reversed_entry_id", "in", ids),
+                    ("etax_reference_ids.ref_move_id", "in", ids),
+                ]
+            )
+            if ids
+            else self.browse()
+        )
+        credited = dict.fromkeys(ids, 0.0)
+        for refund in refunds:
+            allocated = 0.0
+            for ref in refund.etax_reference_ids:
+                allocated += ref.credit_amount
+                if ref.ref_move_id.id in credited:
+                    credited[ref.ref_move_id.id] += ref.credit_amount
+            if refund.reversed_entry_id.id in credited:
+                credited[refund.reversed_entry_id.id] += (
+                    refund.amount_untaxed - allocated
+                )
+        for rec in self:
+            rec.etax_credited_amount = credited.get(rec.id, 0.0)
 
     @api.depends("move_type", "debit_origin_id")
     def _compute_etax_adjustment_doctype_code(self):
@@ -123,13 +208,116 @@ class AccountMove(models.Model):
                     % rec.display_name
                 )
 
+    def _check_etax_references(self):
+        for rec in self.filtered(
+            lambda m: m.etax_adjustment_doctype_code and not m.replaced_entry_id
+        ):
+            refs = rec._get_etax_references()
+            if not refs:
+                raise ValidationError(
+                    self.env._(
+                        "%s: Add at least one reference document "
+                        "in the e-Tax Info tab."
+                    )
+                    % rec.display_name
+                )
+            if any(
+                not (ref["name"] and ref["date"] and ref["amount_untaxed"] > 0)
+                for ref in refs
+            ):
+                raise ValidationError(
+                    self.env._(
+                        "%s: Each reference document needs a number, "
+                        "a date and an original untaxed amount."
+                    )
+                    % rec.display_name
+                )
+            if (
+                rec.etax_adjustment_doctype_code == "81"
+                and rec.currency_id.compare_amounts(rec.etax_corrected_amount, 0) < 0
+            ):
+                raise ValidationError(
+                    self.env._(
+                        "%(move)s: The credit amount %(amount)s exceeds "
+                        "the original total %(original)s.",
+                        move=rec.display_name,
+                        amount=rec.amount_untaxed,
+                        original=rec.etax_original_amount,
+                    )
+                )
+            if len(refs) > 1:
+                connection = rec._get_frappe_etax_connection()
+                if not connection.support_multi_reference:
+                    raise ValidationError(
+                        self.env._(
+                            "%(move)s references %(count)s documents, but "
+                            "Frappe e-Tax Connection '%(connection)s' does not "
+                            "support multiple reference documents.",
+                            move=rec.display_name,
+                            count=len(refs),
+                            connection=connection.display_name,
+                        )
+                    )
+
+    @api.constrains("invoice_line_ids", "reversed_entry_id", "etax_reference_ids")
+    def _check_etax_origin_lines(self):
+        for move in self:
+            origin_lines = move.invoice_line_ids.etax_origin_line_id
+            if not origin_lines:
+                continue
+            allowed = move.reversed_entry_id | move.etax_reference_ids.ref_move_id
+            if move.move_type != "out_refund" or origin_lines.move_id - allowed:
+                raise ValidationError(
+                    self.env._(
+                        "%s: The original invoice lines must belong to "
+                        "the referenced invoices."
+                    )
+                    % move.display_name
+                )
+
+    def _check_etax_allowed_products(self):
+        for rec in self.filtered("etax_allowed_product_ids"):
+            invalid = rec.invoice_line_ids.product_id - rec.etax_allowed_product_ids
+            if invalid:
+                raise UserError(
+                    self.env._(
+                        "%(move)s: %(products)s not found in the referenced "
+                        "invoices.",
+                        move=rec.display_name,
+                        products=", ".join(invalid.mapped("display_name")),
+                    )
+                )
+
+    def action_post(self):
+        self._check_etax_allowed_products()
+        return super().action_post()
+
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        reverse_moves = super()._reverse_moves(default_values_list, cancel)
+        for move, reverse_move in zip(self, reverse_moves, strict=False):
+            if reverse_move.move_type != "out_refund":
+                continue
+            origin_lines = move.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            ).sorted(lambda line: (line.sequence, line.id))
+            reverse_lines = reverse_move.invoice_line_ids.filtered(
+                lambda line: line.display_type == "product"
+            ).sorted(lambda line: (line.sequence, line.id))
+            for origin_line, reverse_line in zip(
+                origin_lines, reverse_lines, strict=False
+            ):
+                reverse_line.etax_origin_line_id = origin_line
+        return reverse_moves
+
     def _pre_etax_validate(self):
         self._check_etax_refund_reason()
+        self._check_etax_references()
         return super()._pre_etax_validate()
 
     def action_call_api(self, code_api):
         if code_api == self._etax_sign_api_code:
             self._check_etax_refund_reason()
+            self._check_etax_references()
         return super().action_call_api(code_api)
 
     @api.depends(
@@ -159,6 +347,23 @@ class AccountMove(models.Model):
         if self.is_credit_payment_entry:
             self.ref = self.create_purpose
 
+    def _get_etax_references(self):
+        self.ensure_one()
+        refs = []
+        origin = self.debit_origin_id or self.reversed_entry_id
+        if origin:
+            refs.append(
+                {
+                    "name": origin.name,
+                    "date": origin.invoice_date,
+                    "type_code": origin.etax_doctype_code,
+                    "document_name": origin.etax_doctype_id.doctype_code_id.name,
+                    "amount_untaxed": origin.amount_untaxed,
+                }
+            )
+        refs += [ref._prepare_etax_reference() for ref in self.etax_reference_ids]
+        return refs
+
     def _get_etax_document_data(self):
         """Prepare invoice references, adjustments and signed line amounts."""
         data = super()._get_etax_document_data()
@@ -167,28 +372,10 @@ class AccountMove(models.Model):
             {
                 "document_issue_dtm": self.invoice_date
                 and self.invoice_date.strftime("%Y-%m-%dT%H:%M:%S"),
-                "ref_document_id": self.debit_origin_id.name
-                or self.reversed_entry_id.name
-                or self.replaced_entry_id.name,
-                "ref_document_issue_dtm": (
-                    self.debit_origin_id.invoice_date
-                    and self.debit_origin_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S")
-                )
-                or (
-                    self.reversed_entry_id.invoice_date
-                    and self.reversed_entry_id.invoice_date.strftime(
-                        "%Y-%m-%dT%H:%M:%S"
-                    )
-                )
-                or (
-                    self.replaced_entry_id.invoice_date
-                    and self.replaced_entry_id.invoice_date.strftime(
-                        "%Y-%m-%dT%H:%M:%S"
-                    )
-                ),
-                "ref_document_type_code": self.debit_origin_id.etax_doctype_code
-                or self.reversed_entry_id.etax_doctype_code
-                or self.replaced_entry_id.etax_doctype_code,
+                "ref_document_id": self.replaced_entry_id.name,
+                "ref_document_issue_dtm": self.replaced_entry_id.invoice_date
+                and self.replaced_entry_id.invoice_date.strftime("%Y-%m-%dT%H:%M:%S"),
+                "ref_document_type_code": self.replaced_entry_id.etax_doctype_code,
                 "buyer_ref_document": self.payment_reference,
                 "original_amount_untaxed": original,
                 "final_amount_untaxed": self._get_etax_final_amount_untaxed(),
@@ -196,6 +383,27 @@ class AccountMove(models.Model):
                 "line_item_information": self._get_etax_line_item_information(),
             }
         )
+        refs = (
+            self._get_etax_references()
+            if self.etax_adjustment_doctype_code and not self.replaced_entry_id
+            else []
+        )
+        if refs:
+            ref_documents = [
+                {
+                    "ref_document_id": ref["name"],
+                    "ref_document_issue_dtm": ref["date"]
+                    and ref["date"].strftime("%Y-%m-%dT%H:%M:%S"),
+                    "ref_document_type_code": ref["type_code"],
+                    "ref_document_name": ref["document_name"] or "",
+                }
+                for ref in refs
+            ]
+            data.update(ref_documents[0])
+            if len(ref_documents) > 1:
+                data["additional_ref_documents"] = ref_documents[1:]
+        if self.etax_adjustment_doctype_code == "81":
+            data["buyer_ref_document"] = ""
         return data
 
     def _get_etax_invoice_lines(self):
@@ -287,7 +495,7 @@ class AccountMove(models.Model):
         line total so down-payment allowance lines remain deducted.
         """
         self.ensure_one()
-        if self.debit_origin_id or self.reversed_entry_id:
+        if self.debit_origin_id or self.reversed_entry_id or self.etax_reference_ids:
             return self._get_additional_amount()[2]
         return self._get_etax_line_total_amount()
 
@@ -305,14 +513,18 @@ class AccountMove(models.Model):
             f38_line_total_amount = corrected_amount_untaxed
         """
         original_amount_untaxed = corrected_amount_untaxed = diff_amount_untaxed = False
-        if self.debit_origin_id:
-            original_amount_untaxed = self.debit_origin_id.amount_untaxed
+        refs = (
+            self._get_etax_references()
+            if self.debit_origin_id or self.reversed_entry_id or self.etax_reference_ids
+            else []
+        )
+        if refs:
+            original_amount_untaxed = sum(ref["amount_untaxed"] for ref in refs)
             diff_amount_untaxed = self.amount_untaxed
-            corrected_amount_untaxed = original_amount_untaxed + diff_amount_untaxed
-        if self.reversed_entry_id:
-            original_amount_untaxed = self.reversed_entry_id.amount_untaxed
-            diff_amount_untaxed = self.amount_untaxed
-            corrected_amount_untaxed = original_amount_untaxed - diff_amount_untaxed
+            if self.etax_adjustment_doctype_code == "80":
+                corrected_amount_untaxed = original_amount_untaxed + diff_amount_untaxed
+            else:
+                corrected_amount_untaxed = original_amount_untaxed - diff_amount_untaxed
         if self.replaced_entry_id:
             original_amount_untaxed = False
             diff_amount_untaxed = False
@@ -414,3 +626,35 @@ class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     skip_etax = fields.Boolean(default=False)
+    etax_origin_line_id = fields.Many2one(
+        comodel_name="account.move.line",
+        string="Original Invoice Line",
+        copy=False,
+        index="btree_not_null",
+        help="Invoice line reduced by this credit note line.",
+    )
+    etax_credit_line_ids = fields.One2many(
+        comodel_name="account.move.line",
+        inverse_name="etax_origin_line_id",
+        string="Credit Note Lines",
+    )
+    etax_credited_amount = fields.Monetary(
+        string="e-Tax Credited",
+        compute="_compute_etax_credited_amount",
+        store=True,
+        help="Untaxed amount reduced by non-cancelled credit notes.",
+    )
+
+    @api.depends(
+        "etax_credit_line_ids.price_subtotal",
+        "etax_credit_line_ids.move_id.state",
+    )
+    def _compute_etax_credited_amount(self):
+        for line in self:
+            credit_lines = line.etax_credit_line_ids.filtered(
+                lambda cl: cl.move_id.state != "cancel"
+                and cl.move_id.move_type == "out_refund"
+            )
+            line.etax_credited_amount = sum(
+                abs(cl.price_subtotal) for cl in credit_lines
+            )

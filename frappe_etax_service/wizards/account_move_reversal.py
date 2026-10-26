@@ -23,10 +23,23 @@ class AccountMoveReversal(models.TransientModel):
 
     @api.depends("move_ids")
     def _compute_etax_status(self):
-        etax_status = self.move_ids.mapped("etax_status")
-        if len(etax_status) > 1:
-            raise UserError(self.env._("All eTax Status should be same."))
-        return self.write({"etax_status": etax_status[-1]})
+        for rec in self:
+            statuses = set(rec.move_ids.mapped("etax_status"))
+            rec.etax_status = statuses.pop() if len(statuses) == 1 else False
+
+    def _check_same_etax_status(self):
+        for rec in self:
+            if len(set(rec.move_ids.mapped("etax_status"))) > 1:
+                raise UserError(
+                    self.env._(
+                        "All eTax Status should be same. "
+                        "Create separate documents for: %s"
+                    )
+                    % ", ".join(
+                        f"{move.name} ({move.etax_status or '-'})"
+                        for move in rec.move_ids
+                    )
+                )
 
     @api.depends("move_ids")
     def _compute_credit_note_doctype_code_ids(self):
@@ -47,6 +60,7 @@ class AccountMoveReversal(models.TransientModel):
         self.reason = self.purpose_code_id.reason
 
     def reverse_moves(self, is_modify=False):
+        self._check_same_etax_status()
         res = super().reverse_moves(is_modify)
         # Update Purpose code on Credit Note
         self.new_move_ids.write(
