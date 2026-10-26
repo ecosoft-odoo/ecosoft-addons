@@ -8,6 +8,20 @@
             <xpath expr="//field[@name='invoice_line_ids']/list" position="inside">
                 <field name="skip_etax" optional="hide" />
             </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']" position="before">
+                <field name="etax_allowed_product_ids" invisible="1" />
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="domain"
+                >parent.etax_allowed_product_ids and [('id', 'in', parent.etax_allowed_product_ids)] or context.get('default_move_type') in ('out_invoice', 'out_refund', 'out_receipt') and [('sale_ok', '=', True)] or [('purchase_ok', '=', True)]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list" position="inside">
+                <field name="etax_origin_line_id" optional="hide" readonly="1" />
+            </xpath>
             <xpath
                 expr="//field[@name='invoice_line_ids']/form/sheet/group"
                 position="inside"
@@ -155,6 +169,53 @@
                                 required="is_credit_payment_entry"
                             />
                         </group> -->
+                    </group>
+                    <group
+                        string="Reference Documents"
+                        invisible="not etax_adjustment_doctype_code or replaced_entry_id"
+                    >
+                        <field
+                            name="reversed_entry_id"
+                            string="Origin Invoice"
+                            invisible="not reversed_entry_id"
+                            readonly="1"
+                        />
+                        <field
+                            name="debit_origin_id"
+                            string="Origin Invoice"
+                            invisible="not debit_origin_id"
+                            readonly="1"
+                        />
+                    </group>
+                    <field
+                        name="etax_reference_ids"
+                        invisible="not etax_adjustment_doctype_code or replaced_entry_id"
+                        readonly="etax_status in ('success', 'processing', 'replace')"
+                    >
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle" />
+                            <field name="company_id" column_invisible="1" />
+                            <field name="commercial_partner_id" column_invisible="1" />
+                            <field name="currency_id" column_invisible="1" />
+                            <field name="ref_move_id" options="{'no_create': True}" />
+                            <field name="name" required="1" />
+                            <field name="date" required="1" />
+                            <field
+                                name="type_code_id"
+                                required="1"
+                                options="{'no_create': True, 'no_open': True}"
+                            />
+                            <field name="amount_untaxed" sum="Total" />
+                            <field name="credit_amount" optional="hide" />
+                        </list>
+                    </field>
+                    <group
+                        invisible="not etax_adjustment_doctype_code or replaced_entry_id"
+                    >
+                        <group>
+                            <field name="etax_original_amount" />
+                            <field name="etax_corrected_amount" />
+                        </group>
                     </group>
                 </page>
             </xpath>

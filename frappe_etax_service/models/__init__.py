@@ -9,4 +9,5 @@ from . import etax_purpose_code
 from . import etax_doctype
 from . import etax_service
 from . import account_move
+from . import account_move_etax_reference
 from . import account_payment

@@ -4,3 +4,4 @@ from . import etax_doctype_wizard
 from . import etax_replacement_wizard
 from . import account_move_reversal
 from . import account_debit_note
+from . import etax_multi_credit_note_wizard
