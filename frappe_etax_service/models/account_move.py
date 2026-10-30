@@ -224,6 +224,22 @@ class AccountMove(models.Model):
             amounts[line.id] = (line_base, line_tax, line_total)
         return amounts
 
+    def _get_etax_line_product_desc(self, line):
+        """Return the line label without Odoo's automatic "[code] name" line.
+
+        Lines without a product already send their label as the product name.
+        """
+        self.ensure_one()
+        product = line.product_id
+        if not product:
+            return ""
+        lang = self.partner_id.lang
+        prefix = (product.with_context(lang=lang) if lang else product).display_name
+        description = line.name or ""
+        if description == prefix or description.startswith(f"{prefix}\n"):
+            description = description[len(prefix) :]
+        return description.strip()
+
     def _get_etax_line_item_information(self):
         """Return e-Tax items shared by invoices and payment receipts."""
         self.ensure_one()
@@ -254,6 +270,7 @@ class AccountMove(models.Model):
                     {
                         "product_code": line.product_id.default_code or "",
                         "product_name": line.product_id.name or line.name,
+                        "product_desc": self._get_etax_line_product_desc(line),
                         "product_price": 0.0
                         if is_allowance
                         else round(line.price_unit, 2),
