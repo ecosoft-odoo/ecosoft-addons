@@ -100,6 +100,40 @@ class TestETaxPayload(TransactionCase):
         self.assertEqual(item["line_allowance_actual_amount"], 90)
         self.assertEqual(item["line_base_amount"], -90)
 
+    def test_product_desc_strips_automatic_name(self):
+        product = self.env["product.product"].create(
+            {"name": "Payload product", "default_code": "P-001"}
+        )
+        labels = [
+            "[P-001] Payload product\nLong product detail",
+            "[P-001] Payload product",
+            "Custom label",
+        ]
+        invoice = self.env["account.move"].new(
+            {
+                "move_type": "out_invoice",
+                "currency_id": self.env.ref("base.THB").id,
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": product.id,
+                            "name": label,
+                            "quantity": 1,
+                            "price_unit": 100,
+                        }
+                    )
+                    for label in labels
+                ]
+                + [Command.create({"name": "No product", "price_unit": 50})],
+            }
+        )
+        items = invoice._get_etax_line_item_information()
+        self.assertEqual(
+            [item["product_desc"] for item in items],
+            ["Long product detail", "", "Custom label", ""],
+        )
+        self.assertEqual(items[-1]["product_name"], "No product")
+
     def test_adjustment_and_replacement_totals(self):
         origin = self._invoice([(300, 1, {})])
         credit = self._invoice([(120, 1, {})])
