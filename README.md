@@ -21,6 +21,8 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
+[usability_webhooks](usability_webhooks/) | 16.0.2.0.0 |  | REST API for Webhook
+[usability_webhooks_queue_job](usability_webhooks_queue_job/) | 16.0.1.0.0 |  | REST API - Job Queue
 
 [//]: # (end addons)
 
