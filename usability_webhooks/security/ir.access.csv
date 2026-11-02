@@ -1,0 +1,4 @@
+id,name,model_id,group_id/id,operation,domain
+access_api_log_user,api.log user,api.log,base.group_user,r,
+access_api_log_system,api.log system,api.log,base.group_system,crud,
+access_webhook_outbound_rule_system,webhook.outbound.rule system,webhook.outbound.rule,base.group_system,crud,
