@@ -21,10 +21,22 @@ class ResCompany(models.Model):
         help="When Send Email is enabled, block signing if the customer has no "
         "e-Tax Email. Otherwise, sign without requesting email delivery.",
     )
-    replacement_lock_date = fields.Integer()
+    replacement_lock_date = fields.Integer(
+        string="Replacement Lock Day",
+        help="Day of the month after the document date until which an e-Tax "
+        "replacement can be created (1-31, the last day of shorter months is "
+        "used). 0 means day 1.",
+    )
     is_etax_configured = fields.Boolean(
         string="Enable e-Tax",
     )
+
+    @api.constrains("replacement_lock_date")
+    def _check_replacement_lock_date(self):
+        if any(not 0 <= company.replacement_lock_date <= 31 for company in self):
+            raise ValidationError(
+                self.env._("Replacement Lock Day must be between 0 and 31.")
+            )
 
     @api.constrains("frappe_etax_connection_id")
     def _check_frappe_etax_connection(self):

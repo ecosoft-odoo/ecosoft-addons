@@ -48,7 +48,7 @@
                     </setting>
                     <setting
                         id="frappe_replacement_lock_date"
-                        help="e-Tax Replacement not allowed after this date of next invoice month. For example, if replace lock date is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000."
+                        help="e-Tax Replacement not allowed after this day of the month after the document date (1-31, the last day of shorter months is used; 0 means day 1). For example, if replace lock day is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000."
                         invisible="not is_etax_configured"
                     >
                         <field name="replacement_lock_date" />

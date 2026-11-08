@@ -1,7 +1,7 @@
 # Copyright 2023 Ecosoft Co., Ltd (http://ecosoft.co.th/)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import api, fields, models
+from odoo import fields, models
 
 
 class ResConfigSettings(models.TransientModel):
@@ -28,8 +28,3 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.is_etax_configured",
         readonly=False,
     )
-
-    @api.onchange("replacement_lock_date")
-    def _onchange_replacement_lock_date(self):
-        if self.replacement_lock_date > 30:
-            self.replacement_lock_date = 1

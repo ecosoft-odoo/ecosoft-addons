@@ -1,7 +1,9 @@
 # Copyright 2023 Ecosoft., co.th
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-import datetime
+import calendar
+
+from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -40,7 +42,7 @@ class EtaxReplacementWizard(models.TransientModel):
         elif origin_ref._name == "account.payment":
             invoice_date = origin_ref.date
 
-        self._check_replacement_lock_date(invoice_date)
+        self._check_replacement_lock_date(invoice_date, origin_ref.company_id)
 
         replacement = origin_ref.create_replacement_etax()
         # Update replacement document
@@ -59,16 +61,13 @@ class EtaxReplacementWizard(models.TransientModel):
             "context": self.env.context,
         }
 
-    def _check_replacement_lock_date(self, invoice_date):
-        # Test lock date
-        lock_date = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_int("frappe_etax_service.replacement_lock_date", 1)
-        )
-        dt = (invoice_date.replace(day=1) + datetime.timedelta(days=32)).replace(
-            day=lock_date
-        )
+    def _check_replacement_lock_date(self, invoice_date, company):
+        """Replacement is allowed until the company lock day of the month
+        after the document date (last day of that month if shorter)."""
+        next_month = invoice_date.replace(day=1) + relativedelta(months=1)
+        last_day = calendar.monthrange(next_month.year, next_month.month)[1]
+        lock_day = min(max(company.replacement_lock_date, 1), last_day)
+        dt = next_month.replace(day=lock_day)
         if fields.Date.context_today(self) > dt:
             raise ValidationError(
                 self.env._(

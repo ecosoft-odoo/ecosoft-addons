@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from odoo import Command, fields
 from odoo.exceptions import ValidationError
-from odoo.tests import Form, tagged
+from odoo.tests import Form, freeze_time, tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools.safe_eval import safe_eval
 
@@ -956,3 +956,63 @@ class TestETax(AccountTestInvoicingCommon):
                             invoice.action_call_api(invoice._etax_sign_api_code)
                         )
                         call_api.assert_called_once_with(invoice._etax_sign_api_code)
+
+    def test_replacement_lock_date_from_company(self):
+        wizard = self.env["etax.replacement.wizard"]
+        company = self.env.company
+        invoice_date = fields.Date.to_date("2026-01-20")
+        cases = [
+            # lock day, last allowed day, first blocked day
+            (10, "2026-02-10", "2026-02-11"),
+            # February has no day 30: lock on its last day
+            (30, "2026-02-28", "2026-03-01"),
+            # Not configured: first day of next month
+            (0, "2026-02-01", "2026-02-02"),
+        ]
+        for lock_day, allowed, blocked in cases:
+            with self.subTest(lock_day=lock_day):
+                company.replacement_lock_date = lock_day
+                with freeze_time(allowed):
+                    wizard._check_replacement_lock_date(invoice_date, company)
+                with (
+                    freeze_time(blocked),
+                    self.assertRaisesRegex(ValidationError, "not allowed after"),
+                ):
+                    wizard._check_replacement_lock_date(invoice_date, company)
+
+    def test_replacement_wizard_uses_origin_company(self):
+        self.env.company.replacement_lock_date = 1
+        other_company = self.setup_other_company()["company"]
+        other_company.replacement_lock_date = 10
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            invoice_date="2026-01-20",
+            amounts=[100.0],
+            taxes=[],
+            post=True,
+            company=other_company,
+        )
+        wizard = self.env["etax.replacement.wizard"].create(
+            {"reason": "Wrong address", "origin_ref": f"account.move,{invoice.id}"}
+        )
+        with patch.object(
+            self.registry["account.move"],
+            "create_replacement_etax",
+            return_value=invoice,
+        ):
+            with freeze_time("2026-02-10"):
+                wizard.create_replacement()
+            with (
+                freeze_time("2026-02-11"),
+                self.assertRaisesRegex(ValidationError, "not allowed after"),
+            ):
+                wizard.create_replacement()
+
+    def test_replacement_lock_day_range(self):
+        for value in (-1, 32):
+            with (
+                self.subTest(value=value),
+                self.assertRaisesRegex(ValidationError, "between 0 and 31"),
+            ):
+                self.env.company.replacement_lock_date = value
