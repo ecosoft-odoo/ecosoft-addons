@@ -5,7 +5,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 from odoo import Command, fields
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import Form, freeze_time, tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools.safe_eval import safe_eval
@@ -1016,3 +1016,39 @@ class TestETax(AccountTestInvoicingCommon):
                 self.assertRaisesRegex(ValidationError, "between 0 and 31"),
             ):
                 self.env.company.replacement_lock_date = value
+
+    def test_note_wizards_accept_several_moves_with_same_status(self):
+        invoices = self.cust_invoice + self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[50.0],
+            taxes=[],
+            post=True,
+        )
+        invoices.filtered(lambda move: move.state == "draft").action_post()
+        invoices.write({"etax_status": "success"})
+        reversal = self.env["account.move.reversal"].with_context(
+            active_model="account.move", active_ids=invoices.ids
+        )
+        wizards = {
+            "credit note": reversal.create(
+                {
+                    "move_ids": [Command.set(invoices.ids)],
+                    "journal_id": invoices[0].journal_id.id,
+                }
+            ),
+            "debit note": self.env["account.debit.note"].create(
+                {"move_ids": [Command.set(invoices.ids)]}
+            ),
+        }
+        for name, wizard in wizards.items():
+            with self.subTest(wizard=name):
+                self.assertEqual(wizard.etax_status, "success")
+        invoices[1].etax_status = "error"
+        for name, wizard in wizards.items():
+            with (
+                self.subTest(wizard=name),
+                self.assertRaisesRegex(UserError, "should be same"),
+            ):
+                wizard.invalidate_recordset(["etax_status"])
+                _status = wizard.etax_status

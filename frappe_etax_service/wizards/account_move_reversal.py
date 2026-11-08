@@ -24,10 +24,10 @@ class AccountMoveReversal(models.TransientModel):
     @api.depends("move_ids")
     def _compute_etax_status(self):
         for wizard in self:
-            etax_status = wizard.move_ids.mapped("etax_status")
+            etax_status = set(wizard.move_ids.mapped("etax_status"))
             if len(etax_status) > 1:
                 raise UserError(self.env._("All eTax Status should be same."))
-            wizard.etax_status = etax_status[-1] if etax_status else False
+            wizard.etax_status = etax_status.pop() if etax_status else False
 
     @api.depends("move_ids")
     def _compute_credit_note_doctype_code_ids(self):
