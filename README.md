@@ -21,6 +21,7 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
+[usability_api_connector](usability_api_connector/) | 20.0.1.0.0 | <a href='https://github.com/Saran440'><img src='https://github.com/Saran440.png' width='32' height='32' style='border-radius:50%;' alt='Saran440'/></a> | Usability - API Connector
 [usability_webhooks](usability_webhooks/) | 20.0.1.0.0 |  | REST API for Webhook
 
 [//]: # (end addons)

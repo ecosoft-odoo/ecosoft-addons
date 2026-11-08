@@ -1,7 +1,8 @@
 [project]
 name = "odoo-addons-ecosoft-odoo-ecosoft-addons"
-version = "20.0.20261102.0"
+version = "20.0.20261108.0"
 dependencies = [
+    "odoo-addon-usability_api_connector==20.0.*",
     "odoo-addon-usability_webhooks==20.0.*",
 ]
 classifiers=[
