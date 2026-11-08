@@ -1,0 +1,8 @@
+id,name,model_id,group_id/id,operation,domain
+frappe_etax_connection_company_rule,Frappe e-Tax Connection: company,frappe.etax.connection,account.group_account_manager,crud,"[('company_id', 'in', company_ids)]"
+frappe_etax_connection_company_rule_1,Frappe e-Tax Connection: company,frappe.etax.connection,base.group_system,crud,"[('company_id', 'in', company_ids)]"
+access_etax_doctype_code,access_etax_doctype_code,etax.doctype.code,base.group_user,r,
+access_etax_purpose_code,access_etax_purpose_code,etax.purpose.code,base.group_user,crud,
+access_etax_doctype,access_etax_doctype,etax.doctype,base.group_user,crud,
+access_etax_doctype_wizard,access_etax_doctype_wizard,etax.doctype.wizard,base.group_user,crud,
+access_etax_replacement_wizard,access_etax_replacement_wizard,etax.replacement.wizard,base.group_user,crud,

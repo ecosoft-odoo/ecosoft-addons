@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.account</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="30" />
+        <field name="inherit_id" ref="account.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//block[@name='default_taxes_setting_container']"
+                position="after"
+            >
+                <block title="Ecosoft e-Tax Services" id="ecosoft_etax_services">
+                    <setting
+                        id="is_etax_configured"
+                        help="Enable e-Tax integration for this company."
+                    >
+                        <field name="is_etax_configured" />
+                    </setting>
+                    <setting
+                        id="frappe_send_email"
+                        help="Allow to send an email to partner after sign etax."
+                        invisible="not is_etax_configured"
+                    >
+                        <field name="is_send_etax_email" />
+                        <div class="content-group" invisible="not is_send_etax_email">
+                            <field name="require_etax_email" />
+                            <label for="require_etax_email" />
+                        </div>
+                    </setting>
+                    <setting
+                        id="frappe_etax_connection"
+                        help="Connection profile containing the Frappe server URL and authentication token."
+                        invisible="not is_etax_configured"
+                    >
+                        <field
+                            name="frappe_etax_connection_id"
+                            domain="[('company_id', '=', company_id)]"
+                            options="{'no_quick_create': True}"
+                        />
+                        <button
+                            name="%(action_frappe_etax_connection)d"
+                            type="action"
+                            string="Manage Connections"
+                            class="btn-link mt8"
+                            icon="east"
+                        />
+                    </setting>
+                    <setting
+                        id="frappe_replacement_lock_date"
+                        help="e-Tax Replacement not allowed after this day of the month after the document date (1-31, the last day of shorter months is used; 0 means day 1). For example, if replace lock day is 10 and invoice date is 20/11/2000, replacement e-Tax is not allowed after 10/12/2000."
+                        invisible="not is_etax_configured"
+                    >
+                        <field name="replacement_lock_date" />
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

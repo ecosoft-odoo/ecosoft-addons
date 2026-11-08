@@ -1,0 +1,1054 @@
+# Copyright 2025 Ecosoft Co., Ltd (http://ecosoft.co.th/)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+import json
+from unittest.mock import MagicMock, patch
+
+from odoo import Command, fields
+from odoo.exceptions import UserError, ValidationError
+from odoo.tests import Form, freeze_time, tagged
+from odoo.tests.common import TransactionCase
+from odoo.tools.safe_eval import safe_eval
+
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.addons.frappe_etax_service.models.etax_service import (
+    FRAPPE_ETAX_STATUS_FIELDS,
+    ETaxServiceMixin,
+)
+from odoo.addons.usability_api_connector.models.common_base_api import CommonBaseApi
+
+REQUESTS_PATH = "odoo.addons.usability_api_connector.models.common_base_api.requests"
+
+
+class TestFrappeEtaxConnection(TransactionCase):
+    def test_connection_normalizes_server_url(self):
+        connection = self.env["frappe.etax.connection"].create(
+            {
+                "name": "Normalized Connection",
+                "server_url": " https://etax.example.com/ ",
+                "auth_token": "api-key:api-secret",
+            }
+        )
+
+        self.assertEqual(connection.server_url, "https://etax.example.com")
+
+    def test_connection_validates_url_and_token(self):
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self.env["frappe.etax.connection"].create(
+                {
+                    "name": "Invalid URL",
+                    "server_url": "etax.example.com",
+                    "auth_token": "api-key:api-secret",
+                }
+            )
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self.env["frappe.etax.connection"].create(
+                {
+                    "name": "Invalid Token",
+                    "server_url": "https://etax.example.com",
+                    "auth_token": "missing-secret-separator",
+                }
+            )
+
+    def test_company_rejects_connection_from_other_company(self):
+        company = self.env["res.company"].create({"name": "e-Tax Company"})
+        other_company = self.env["res.company"].create({"name": "Other Company"})
+        connection = self.env["frappe.etax.connection"].create(
+            {
+                "name": "Other Company Connection",
+                "company_id": other_company.id,
+                "server_url": "https://etax.example.com",
+                "auth_token": "api-key:api-secret",
+            }
+        )
+
+        company.is_etax_configured = True
+        self.assertTrue(company.is_etax_configured)
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            company.frappe_etax_connection_id = connection
+
+    def test_settings_can_enable_etax_before_connection(self):
+        company = self.env["res.company"].create({"name": "Unconfigured e-Tax Company"})
+
+        self.env["res.config.settings"].create(
+            {
+                "company_id": company.id,
+                "is_etax_configured": True,
+            }
+        )
+
+        self.assertTrue(company.is_etax_configured)
+        self.assertFalse(company.frappe_etax_connection_id)
+
+    def test_api_operation_uses_company_connection(self):
+        connection = self.env["frappe.etax.connection"].create(
+            {
+                "name": "API Test Connection",
+                "server_url": "https://etax.example.com/",
+                "auth_token": "test-key:test-secret",
+            }
+        )
+        self.env.company.write(
+            {
+                "frappe_etax_connection_id": connection.id,
+                "is_etax_configured": True,
+            }
+        )
+        api_config = self.env.ref("frappe_etax_service.api_etax_invoice_frappe")
+        invoice = self.env["account.move"].new(
+            {
+                "move_type": "out_invoice",
+                "company_id": self.env.company.id,
+            }
+        )
+        response = MagicMock()
+
+        self.assertFalse(api_config.endpoint_url)
+        self.assertFalse(api_config.auth_required)
+        self.assertFalse(api_config.auth_token)
+
+        with patch(f"{REQUESTS_PATH}.request", return_value=response) as request:
+            result = invoice._execute_rest_api(
+                api_config,
+                False,
+                payload={"doc_data": {"value": 1}},
+            )
+
+        self.assertEqual(result, response)
+        request.assert_called_once_with(
+            method="POST",
+            url=(
+                "https://etax.example.com/"
+                "api/method/etax_inet.api.etax.sign_etax_document"
+            ),
+            headers={"Authorization": "token test-key:test-secret"},
+            timeout=30,
+            data={"doc_data": '{"value": 1}'},
+        )
+
+
+class TestPaymentETaxValidation(TransactionCase):
+    def _new_payment(self):
+        return self.env["account.payment"].new(
+            {
+                "amount": 100.0,
+                "payment_type": "inbound",
+                "partner_type": "customer",
+                "partner_id": self.env.company.partner_id.id,
+            }
+        )
+
+    def _validate_payment_lines(self, payment):
+        with patch.object(
+            ETaxServiceMixin,
+            "_pre_etax_validate",
+            return_value=None,
+        ):
+            return payment._pre_etax_validate()
+
+    def test_enable_etax_only_for_customer_receipt(self):
+        self.env.company.is_etax_configured = True
+        cases = [
+            ("inbound", "customer", True),
+            ("outbound", "customer", False),
+            ("outbound", "supplier", False),
+            ("inbound", "supplier", False),
+        ]
+        for payment_type, partner_type, expected in cases:
+            with self.subTest(payment_type=payment_type, partner_type=partner_type):
+                payment = self.env["account.payment"].new(
+                    {
+                        "amount": 100.0,
+                        "payment_type": payment_type,
+                        "partner_type": partner_type,
+                        "partner_id": self.env.company.partner_id.id,
+                        "company_id": self.env.company.id,
+                        "state": "reconciled",
+                    }
+                )
+                self.assertEqual(payment.enable_etax, expected)
+
+    def test_enable_etax_only_for_final_receipt(self):
+        self.env.company.is_etax_configured = True
+        cash_account = self.env["account.account"].create(
+            {"name": "e-Tax Cash", "code": "ETAXCASH", "account_type": "asset_cash"}
+        )
+        outstanding_account = self.env["account.account"].create(
+            {
+                "name": "e-Tax Outstanding",
+                "code": "ETAXOUT",
+                "account_type": "asset_current",
+                "reconcile": True,
+            }
+        )
+        cases = [
+            ("draft", cash_account, False),
+            ("paid", outstanding_account, False),
+            ("paid", cash_account, True),
+            ("reconciled", outstanding_account, True),
+        ]
+        for state, account, expected in cases:
+            with self.subTest(state=state, account=account.code):
+                payment = self.env["account.payment"].new(
+                    {
+                        "amount": 100.0,
+                        "payment_type": "inbound",
+                        "partner_type": "customer",
+                        "partner_id": self.env.company.partner_id.id,
+                        "company_id": self.env.company.id,
+                        "outstanding_account_id": account.id,
+                        "state": state,
+                    }
+                )
+                self.assertEqual(payment.enable_etax, expected)
+
+    def test_payment_without_lines_is_rejected(self):
+        payment = self._new_payment()
+
+        with self.assertRaisesRegex(ValidationError, "no e-Tax line items found"):
+            self._validate_payment_lines(payment)
+
+    def test_payment_with_reconciled_invoice_lines_is_allowed(self):
+        payment = self._new_payment()
+        invoice = self.env["account.move"].new(
+            {
+                "move_type": "out_invoice",
+                "invoice_line_ids": [
+                    Command.create(
+                        {
+                            "name": "Test line",
+                            "quantity": 1.0,
+                            "price_unit": 100.0,
+                        }
+                    )
+                ],
+            }
+        )
+        payment.reconciled_invoice_ids = invoice
+
+        self.assertIsNone(self._validate_payment_lines(payment))
+
+    def test_payment_with_tax_invoice_is_allowed(self):
+        payment = self._new_payment()
+        payment.tax_invoice_ids = self.env["account.move.tax.invoice"].new({})
+
+        self.assertIsNone(self._validate_payment_lines(payment))
+
+
+@tagged("post_install", "-at_install")
+class TestETax(AccountTestInvoicingCommon):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.frappe_connection = cls.env["frappe.etax.connection"].create(
+            {
+                "name": "Test Frappe Connection",
+                "server_url": "https://etax.example.com/",
+                "auth_token": "test-key:test-secret",
+            }
+        )
+        cls.env.company.write(
+            {
+                "frappe_etax_connection_id": cls.frappe_connection.id,
+                "is_etax_configured": True,
+            }
+        )
+        cls.env.company.vat = "0000000000000"
+        cls.tivc01 = cls.env.ref("frappe_etax_service.etax_purpose_code_01")
+
+        doctype_code_380 = cls.env.ref("frappe_etax_service.etax_doctype_code_380")
+        doctype_code_T01 = cls.env.ref("frappe_etax_service.etax_doctype_code_T01")
+        doctype_code_T02 = cls.env.ref("frappe_etax_service.etax_doctype_code_T02")
+        doctype_code_80 = cls.env.ref("frappe_etax_service.etax_doctype_code_80")
+        doctype_code_81 = cls.env.ref("frappe_etax_service.etax_doctype_code_81")
+
+        cls.doctype_380 = cls.env["etax.doctype"].create(
+            {
+                "name": "ใบแจ้งหนี้ (Test)",
+                "move_type": "out_invoice",
+                "doctype_code_id": doctype_code_380.id,
+            }
+        )
+        cls.doctype_T01 = cls.env["etax.doctype"].create(
+            {
+                "name": "ใบรับ (Test)",
+                "move_type": "entry",
+                "doctype_code_id": doctype_code_T01.id,
+            }
+        )
+        cls.doctype_T02 = cls.env["etax.doctype"].create(
+            {
+                "name": "ใบแจ้งหนี้/ใบกำกับภาษี (Test)",
+                "move_type": "out_invoice",
+                "doctype_code_id": doctype_code_T02.id,
+            }
+        )
+        cls.doctype_80 = cls.env["etax.doctype"].create(
+            {
+                "name": "ใบเพิ่มหนี้ (Test)",
+                "move_type": "out_invoice_debit",
+                "doctype_code_id": doctype_code_80.id,
+            }
+        )
+        cls.doctype_81 = cls.env["etax.doctype"].create(
+            {
+                "name": "ใบลดหนี้ (Test)",
+                "move_type": "out_refund",
+                "doctype_code_id": doctype_code_81.id,
+            }
+        )
+
+        cls.cust_invoice = cls.init_invoice(
+            "out_invoice",
+            partner=cls.env.ref("base.res_partner_2"),
+            amounts=[100.0],
+            taxes=[cls.tax_sale_a],
+        )
+
+    def _etax_payload(self, record, xmlid):
+        config = self.env.ref(f"frappe_etax_service.{xmlid}")
+        return safe_eval(
+            config.python_code.strip(),
+            {
+                "rec": record,
+                "env": self.env,
+                "form_type": "frappe",
+                "form_name": "Test",
+                "pdf_content": False,
+            },
+        )["doc_data"]
+
+    def _simulate_sign_success(self, move):
+        """Simulate API success by calling _hook_update_data directly."""
+        move._hook_update_data(
+            move._etax_sign_api_code,
+            {"message": {"status": "success", "transaction_code": "TX-TEST-001"}},
+        )
+
+    def _sign_via_wizard(self, invoice, doctype):
+        """Create etax.doctype.wizard and sign, with action_call_api mocked."""
+        wizard = (
+            self.env["etax.doctype.wizard"]
+            .with_context(
+                active_model="account.move",
+                active_ids=invoice.ids,
+                active_id=invoice.id,
+            )
+            .create({"etax_doctype_id": doctype.id})
+        )
+
+        def mock_action_call_api(move, code_api):
+            self._simulate_sign_success(move)
+
+        with patch.object(type(invoice), "action_call_api", mock_action_call_api):
+            wizard.sign_etax_invoice()
+
+    def _create_signed_reconciled_payment(self, partner=None):
+        partner = partner or self.env.ref("base.res_partner_2")
+        payment_date = fields.Date.today()
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=partner,
+            invoice_date=payment_date,
+            amounts=[100.0],
+            taxes=[],
+            post=True,
+        )
+        payment = self.init_payment(
+            100.0,
+            partner=partner,
+            date=payment_date,
+            post=True,
+        )
+        payment.action_validate()
+        lines = (invoice.line_ids | payment.move_id.line_ids).filtered(
+            lambda line: (
+                line.account_id.account_type == "asset_receivable"
+                and not line.reconciled
+            )
+        )
+        lines.reconcile()
+        payment.write(
+            {
+                "etax_doctype_id": self.doctype_T01.id,
+                "etax_status": "success",
+            }
+        )
+        return invoice, payment
+
+    def test_01_purpose_code_etax(self):
+        # display_name must follow {code} - {name} format
+        self.assertEqual(
+            self.tivc01.display_name, f"{self.tivc01.code} - {self.tivc01.name}"
+        )
+
+    def test_02_customer_invoice_etax(self):
+        self.assertEqual(self.cust_invoice.state, "draft")
+        self.cust_invoice.action_post()
+        self.assertEqual(self.cust_invoice.state, "posted")
+
+    def test_03_sign_invoice(self):
+        """Sign ใบแจ้งหนี้ (doctype 380)"""
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[200.0],
+            taxes=[self.tax_sale_a],
+        )
+        invoice.action_post()
+
+        self._sign_via_wizard(invoice, self.doctype_380)
+
+        self.assertEqual(invoice.etax_doctype_id, self.doctype_380)
+        self.assertEqual(invoice.etax_doctype_id.doctype_code_id.code, "380")
+        self.assertEqual(invoice.etax_status, "success")
+
+    def test_04_sign_invoice_tax_invoice(self):
+        """Sign ใบแจ้งหนี้/ใบกำกับภาษี (doctype T02)"""
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[300.0],
+            taxes=[self.tax_sale_a],
+        )
+        invoice.action_post()
+
+        self._sign_via_wizard(invoice, self.doctype_T02)
+
+        self.assertEqual(invoice.etax_doctype_id, self.doctype_T02)
+        self.assertEqual(invoice.etax_doctype_id.doctype_code_id.code, "T02")
+        self.assertEqual(invoice.etax_status, "success")
+
+    def test_05_replacement_sign_invoice(self):
+        """Replacement sign invoice - สร้าง replacement จากใบที่ sign ไปแล้ว"""
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[400.0],
+            taxes=[self.tax_sale_a],
+        )
+        invoice.action_post()
+        # Simulate already-signed invoice
+        invoice.write(
+            {"etax_doctype_id": self.doctype_380.id, "etax_status": "success"}
+        )
+
+        replacement = invoice.create_replacement_etax()
+
+        # Original must be cancelled; replacement must reference it
+        self.assertEqual(invoice.state, "cancel")
+        self.assertEqual(replacement.replaced_entry_id, invoice)
+        self.assertEqual(replacement.etax_doctype_id, self.doctype_380)
+
+        # Post and sign replacement
+        replacement.action_post()
+        self._simulate_sign_success(replacement)
+
+        # Replacement signed; original marked as replaced
+        self.assertEqual(replacement.etax_status, "success")
+        self.assertEqual(invoice.etax_status, "replace")
+
+    def test_05b_payment_replacement_reconciles_on_confirm(self):
+        invoice, payment = self._create_signed_reconciled_payment()
+        purpose = self.env.ref("frappe_etax_service.etax_purpose_code_14")
+        action = payment.action_open_replacement_wizard()
+        wizard = (
+            self.env["etax.replacement.wizard"]
+            .with_context(**action["context"])
+            .create(
+                {
+                    "purpose_code_id": purpose.id,
+                    "reason": purpose.reason,
+                }
+            )
+        )
+
+        self.assertEqual(wizard.origin_ref, payment)
+        replacement_action = wizard.create_replacement()
+        replacement = self.env["account.payment"].browse(replacement_action["res_id"])
+
+        self.assertEqual(payment.state, "canceled")
+        self.assertEqual(replacement.state, "draft")
+        self.assertEqual(replacement.replacement_origin_payment_id, payment)
+        self.assertEqual(payment.replacement_payment_ids, replacement)
+        self.assertEqual(replacement.invoice_ids, invoice)
+        self.assertEqual(invoice.payment_state, "not_paid")
+
+        replacement_date = fields.Date.add(payment.date, days=1)
+        replacement.date = replacement_date
+        replacement.action_post()
+
+        self.assertEqual(replacement.date, replacement_date)
+        self.assertEqual(replacement.reconciled_invoice_ids, invoice)
+        self.assertEqual(invoice.payment_state, "paid")
+
+    def test_05c_payment_replacement_rejects_another_partner(self):
+        invoice, payment = self._create_signed_reconciled_payment()
+        replacement = payment.create_replacement_etax()
+        replacement.partner_id = self.env.ref("base.res_partner_3")
+
+        with (
+            self.assertRaisesRegex(ValidationError, "same customer or vendor"),
+            self.cr.savepoint(),
+        ):
+            replacement.action_post()
+
+        self.assertEqual(replacement.state, "draft")
+        self.assertEqual(invoice.payment_state, "not_paid")
+
+    def test_06_sign_debit_note(self):
+        """Sign ใบเพิ่มหนี้ (doctype 80)"""
+        source_invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[500.0],
+            taxes=[self.tax_sale_a],
+        )
+        source_invoice.action_post()
+
+        debit_note = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[100.0],
+            taxes=[self.tax_sale_a],
+        )
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "80"), ("reason", "!=", False)],
+            limit=1,
+        )
+        debit_note.write(
+            {
+                "debit_origin_id": source_invoice.id,
+                "create_purpose_code": purpose.code,
+                "create_purpose": purpose.reason,
+            }
+        )
+        debit_note.action_post()
+
+        self._sign_via_wizard(debit_note, self.doctype_80)
+
+        self.assertEqual(debit_note.etax_doctype_id, self.doctype_80)
+        self.assertEqual(debit_note.etax_doctype_id.doctype_code_id.code, "80")
+        self.assertEqual(debit_note.etax_status, "success")
+
+    def test_07_sign_credit_note(self):
+        """Sign ใบลดหนี้ (doctype 81)"""
+        source_invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[500.0],
+            taxes=[self.tax_sale_a],
+        )
+        source_invoice.action_post()
+
+        credit_note = self.init_invoice(
+            "out_refund",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[100.0],
+            taxes=[self.tax_sale_a],
+        )
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        credit_note.write(
+            {
+                "reversed_entry_id": source_invoice.id,
+                "etax_refund_reason_id": purpose.id,
+                "create_purpose": purpose.reason,
+            }
+        )
+        credit_note.action_post()
+
+        self._sign_via_wizard(credit_note, self.doctype_81)
+
+        self.assertEqual(credit_note.etax_doctype_id, self.doctype_81)
+        self.assertEqual(credit_note.etax_doctype_id.doctype_code_id.code, "81")
+        self.assertEqual(credit_note.etax_status, "success")
+
+    def test_credit_note_created_before_invoice_sign_can_add_reason(self):
+        invoice = self.cust_invoice
+        invoice.action_post()
+        wizard = (
+            self.env["account.move.reversal"]
+            .with_context(
+                active_model="account.move",
+                active_ids=invoice.ids,
+            )
+            .create(
+                {
+                    "reason": "Accounting refund",
+                    "move_ids": [Command.set(invoice.ids)],
+                    "journal_id": invoice.journal_id.id,
+                }
+            )
+        )
+        wizard.reverse_moves()
+        credit_note = wizard.new_move_ids
+        self.assertFalse(credit_note.create_purpose_code)
+        credit_note.action_post()
+        self.assertFalse(credit_note.enable_etax)
+
+        self._sign_via_wizard(invoice, self.doctype_T02)
+        self.assertFalse(credit_note.enable_etax)
+        with patch(f"{REQUESTS_PATH}.request") as request:
+            with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+                credit_note.action_call_api(credit_note._etax_sign_api_code)
+            request.assert_not_called()
+        with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+            credit_note._pre_etax_validate()
+
+        credit_note.button_draft()
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        with Form(credit_note) as form:
+            form.etax_refund_reason_id = purpose
+        self.assertEqual(credit_note.create_purpose_code, purpose.code)
+        self.assertEqual(credit_note.create_purpose, purpose.reason)
+        credit_note.action_post()
+        self.assertTrue(credit_note.enable_etax)
+        payload = self._etax_payload(credit_note, "api_etax_invoice_frappe")
+        self.assertEqual(payload["create_purpose_code"], purpose.code)
+        self.assertEqual(payload["ref_document_id"], invoice.name)
+        self._sign_via_wizard(credit_note, self.doctype_81)
+        self.assertEqual(credit_note.etax_status, "success")
+
+    def test_credit_note_other_reason_requires_description(self):
+        purpose = self.env["etax.purpose.code"].create(
+            {
+                "name": "Other credit reason",
+                "code": "TEST99",
+                "etax_doctype_code_ids": [
+                    Command.set(self.doctype_81.doctype_code_id.ids)
+                ],
+            }
+        )
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        credit_note.etax_refund_reason_id = purpose
+        self.assertFalse(credit_note.create_purpose)
+        credit_note.action_post()
+        self.assertFalse(credit_note.enable_etax)
+        credit_note.button_draft()
+        credit_note.create_purpose = "   "
+        credit_note.action_post()
+        self.assertFalse(credit_note.enable_etax)
+        credit_note.button_draft()
+        credit_note.create_purpose = "Customer returned goods"
+        credit_note.action_post()
+        self.assertTrue(credit_note.enable_etax)
+
+    def test_credit_note_existing_code_and_reason_remain_usable(self):
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        credit_note.write(
+            {
+                "create_purpose_code": purpose.code,
+                "create_purpose": "Existing custom description",
+            }
+        )
+        self.assertEqual(credit_note.etax_refund_reason_id, purpose)
+        self.assertEqual(credit_note.create_purpose, "Existing custom description")
+        credit_note.action_post()
+        self.assertTrue(credit_note.enable_etax)
+        with (
+            self.assertRaisesRegex(ValidationError, "only be changed in draft"),
+            self.cr.savepoint(),
+        ):
+            credit_note.etax_refund_reason_id = False
+        credit_note.button_draft()
+        with Form(credit_note) as form:
+            form.etax_refund_reason_id = self.env["etax.purpose.code"]
+        self.assertFalse(credit_note.create_purpose_code)
+        self.assertFalse(credit_note.create_purpose)
+
+    def test_refund_reason_rejects_invoice_reason(self):
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        with (
+            self.assertRaisesRegex(
+                ValidationError, "reason for this credit/debit note"
+            ),
+            self.cr.savepoint(),
+        ):
+            credit_note.etax_refund_reason_id = self.tivc01
+
+    def test_refund_reason_form_preserves_custom_description(self):
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81"), ("reason", "!=", False)],
+            limit=1,
+        )
+        credit_note = self.init_invoice("out_refund", amounts=[100.0])
+        with Form(credit_note) as form:
+            form.etax_refund_reason_id = purpose
+            self.assertEqual(form.create_purpose, purpose.reason)
+            form.create_purpose = "Customer-specific refund description"
+        self.assertEqual(credit_note.create_purpose_code, purpose.code)
+        self.assertEqual(
+            credit_note.create_purpose, "Customer-specific refund description"
+        )
+
+    def test_debit_note_created_before_invoice_sign_can_add_reason(self):
+        invoice = self.cust_invoice
+        invoice.action_post()
+        self.assertTrue(invoice.enable_etax)
+        self.assertFalse(invoice.etax_adjustment_doctype_code)
+        wizard = self.env["account.debit.note"].create(
+            {
+                "move_ids": [Command.set(invoice.ids)],
+                "reason": "Accounting adjustment",
+                "copy_lines": True,
+            }
+        )
+        action = wizard.create_debit()
+        debit_note = self.env["account.move"].browse(action["res_id"])
+        self.assertEqual(debit_note.move_type, "out_invoice")
+        self.assertEqual(debit_note.etax_adjustment_doctype_code, "80")
+        self.assertFalse(debit_note.create_purpose_code)
+        debit_note.action_post()
+        self.assertFalse(debit_note.enable_etax)
+        self._sign_via_wizard(invoice, self.doctype_T02)
+        self.assertFalse(debit_note.enable_etax)
+        with patch(f"{REQUESTS_PATH}.request") as request:
+            with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+                debit_note.action_call_api(debit_note._etax_sign_api_code)
+            request.assert_not_called()
+        with self.assertRaisesRegex(ValidationError, "eTax Refund Reason"):
+            debit_note._pre_etax_validate()
+        debit_note.button_draft()
+        purpose = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "80"), ("reason", "!=", False)],
+            limit=1,
+        )
+        with Form(debit_note) as form:
+            form.etax_refund_reason_id = purpose
+            self.assertEqual(form.create_purpose, purpose.reason)
+            form.create_purpose = "Additional services supplied"
+        self.assertEqual(debit_note.create_purpose_code, purpose.code)
+        self.assertEqual(debit_note.create_purpose, "Additional services supplied")
+        debit_note.action_post()
+        self.assertTrue(debit_note.enable_etax)
+        payload = self._etax_payload(debit_note, "api_etax_invoice_frappe")
+        self.assertEqual(payload["create_purpose_code"], purpose.code)
+        self.assertEqual(payload["ref_document_id"], invoice.name)
+        self._sign_via_wizard(debit_note, self.doctype_80)
+        self.assertEqual(debit_note.etax_status, "success")
+
+    def test_debit_note_reason_validation(self):
+        debit_note = self.init_invoice("out_invoice", amounts=[100.0])
+        debit_note.debit_origin_id = self.cust_invoice
+        credit_reason = self.env["etax.purpose.code"].search(
+            [("etax_doctype_code_ids.code", "=", "81")], limit=1
+        )
+        with (
+            self.assertRaisesRegex(ValidationError, "credit/debit note"),
+            self.cr.savepoint(),
+        ):
+            debit_note.etax_refund_reason_id = credit_reason
+        purpose = self.env["etax.purpose.code"].create(
+            {
+                "name": "Other debit reason",
+                "code": "TEST80",
+                "etax_doctype_code_ids": [
+                    Command.set(self.doctype_80.doctype_code_id.ids)
+                ],
+            }
+        )
+        with Form(debit_note) as form:
+            form.etax_refund_reason_id = purpose
+        for description in (False, "   ", "Additional charge"):
+            debit_note.create_purpose = description
+            debit_note.action_post()
+            self.assertEqual(debit_note.enable_etax, description == "Additional charge")
+            debit_note.button_draft()
+        with Form(debit_note) as form:
+            form.etax_refund_reason_id = self.env["etax.purpose.code"]
+        self.assertFalse(debit_note.create_purpose_code)
+        self.assertFalse(debit_note.create_purpose)
+        debit_note.action_post()
+        with (
+            self.assertRaisesRegex(ValidationError, "only be changed in draft"),
+            self.cr.savepoint(),
+        ):
+            debit_note.etax_refund_reason_id = purpose
+
+    def test_original_invoice_sign_after_adjustments(self):
+        for move_type, origin_field, amount, final in (
+            ("out_refund", "reversed_entry_id", 100.0, 400.0),
+            ("out_refund", "reversed_entry_id", 500.0, 0.0),
+            ("out_invoice", "debit_origin_id", 100.0, 600.0),
+            ("out_invoice", "debit_origin_id", 500.0, 1000.0),
+        ):
+            with self.subTest(move_type=move_type, amount=amount):
+                invoice = self.init_invoice(
+                    "out_invoice",
+                    partner=self.cust_invoice.partner_id,
+                    amounts=[500.0],
+                    taxes=[self.tax_sale_a],
+                )
+                invoice.action_post()
+                original = self._etax_payload(invoice, "api_etax_invoice_frappe")
+                note = self.init_invoice(
+                    move_type,
+                    partner=invoice.partner_id,
+                    amounts=[amount],
+                    taxes=[self.tax_sale_a],
+                )
+                note[origin_field] = invoice
+                note.action_post()
+                if move_type == "out_refund":
+                    # Posting a linked refund already reconciles it in Odoo.
+                    self.assertAlmostEqual(
+                        invoice.amount_residual,
+                        invoice.amount_total * (500.0 - amount) / 500.0,
+                    )
+                self.assertTrue(invoice.enable_etax)
+                payload = self._etax_payload(invoice, "api_etax_invoice_frappe")
+                self.assertEqual(payload, original)
+                self.assertEqual(invoice.amount_untaxed, 500.0)
+                adjustment = self._etax_payload(note, "api_etax_invoice_frappe")
+                self.assertEqual(adjustment["original_amount_untaxed"], 500.0)
+                self.assertEqual(adjustment["final_amount_untaxed"], final)
+                self.assertEqual(adjustment["adjust_amount_untaxed"], amount)
+                self._sign_via_wizard(invoice, self.doctype_T02)
+                self.assertEqual(invoice.etax_status, "success")
+
+    def test_replacement_receipt_payload_has_no_adjustment(self):
+        _invoice, payment = self._create_signed_reconciled_payment()
+        replacement = payment.create_replacement_etax()
+        replacement.action_post()
+        normal = self._etax_payload(replacement, "api_etax_payment_frappe")
+        payload = self._etax_payload(replacement, "api_etax_payment_replace_frappe")
+        self.assertEqual(payload, normal)
+        self.assertEqual(payload["ref_document_id"], payment.name)
+        self.assertTrue(payload["line_item_information"])
+        for field in (
+            "original_amount_untaxed",
+            "final_amount_untaxed",
+            "adjust_amount_untaxed",
+        ):
+            self.assertIs(payload[field], False)
+
+    def test_08_update_processing_document(self):
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[100.0],
+            taxes=[self.tax_sale_a],
+        )
+        invoice.write(
+            {
+                "etax_status": "processing",
+                "etax_transaction_code": "TX-PROCESSING-001",
+            }
+        )
+        response = MagicMock()
+        response.json.return_value = {
+            "data": [
+                {
+                    "status": "Error",
+                    "transaction_code": "TX-PROCESSING-001",
+                    "error_code": "ETAX-001",
+                    "error_message": "Signing failed",
+                }
+            ]
+        }
+
+        with patch(
+            "odoo.addons.frappe_etax_service.models.etax_service.requests.get",
+            return_value=response,
+        ) as request:
+            result = invoice.update_processing_document()
+
+        self.assertTrue(result)
+        self.assertEqual(invoice.etax_status, "error")
+        self.assertEqual(invoice.etax_error_code, "ETAX-001")
+        self.assertEqual(invoice.etax_error_message, "Signing failed")
+        response.raise_for_status.assert_called_once_with()
+        request.assert_called_once_with(
+            "https://etax.example.com/api/resource/INET ETax Document",
+            headers={"Authorization": "token test-key:test-secret"},
+            params={
+                "filters": '[["transaction_code", "=", "TX-PROCESSING-001"]]',
+                "fields": json.dumps(FRAPPE_ETAX_STATUS_FIELDS),
+                "limit_page_length": 1,
+            },
+            timeout=20,
+        )
+
+    def test_09_processing_document_crons(self):
+        for xmlid, model_name in (
+            (
+                "frappe_etax_service.ir_cron_run_update_processing_document",
+                "account.move",
+            ),
+            (
+                "frappe_etax_service.ir_cron_run_update_processing_payment",
+                "account.payment",
+            ),
+        ):
+            cron = self.env.ref(xmlid)
+            self.assertEqual(cron.model_id.model, model_name)
+            self.assertEqual(cron.interval_number, 1)
+            self.assertEqual(cron.interval_type, "minutes")
+            self.assertEqual(cron.code, "model.run_update_processing_document()")
+
+    def test_10_processing_document_cron_respects_limit(self):
+        invoices = self.env["account.move"]
+        for transaction_code in ("TX-BATCH-001", "TX-BATCH-002"):
+            invoice = self.init_invoice(
+                "out_invoice",
+                partner=self.env.ref("base.res_partner_2"),
+                amounts=[100.0],
+                taxes=[self.tax_sale_a],
+            )
+            invoice.write(
+                {
+                    "etax_status": "processing",
+                    "etax_transaction_code": transaction_code,
+                }
+            )
+            invoices |= invoice
+
+        with patch.object(
+            ETaxServiceMixin,
+            "update_processing_document",
+            return_value=True,
+        ) as update:
+            processed = invoices.run_update_processing_document(
+                limit=1,
+                auto_commit=False,
+            )
+
+        self.assertEqual(processed, 1)
+        update.assert_called_once()
+
+    def test_required_etax_email(self):
+        invoice = self.cust_invoice
+        for send_email, required, email, blocked in (
+            (True, True, False, True),
+            (True, True, "   ", True),
+            (True, True, "billing@example.com", False),
+            (True, False, False, False),
+            (False, True, False, False),
+            (False, False, False, False),
+        ):
+            with self.subTest(send_email=send_email, required=required, email=email):
+                invoice.company_id.write(
+                    {
+                        "is_send_etax_email": send_email,
+                        "require_etax_email": required,
+                    }
+                )
+                invoice.partner_id.email_etax = email
+                with patch.object(
+                    CommonBaseApi, "action_call_api", return_value=True
+                ) as call_api:
+                    if blocked:
+                        with self.assertRaisesRegex(ValidationError, "e-Tax Email"):
+                            invoice.action_call_api(invoice._etax_sign_api_code)
+                        call_api.assert_not_called()
+                    else:
+                        self.assertTrue(
+                            invoice.action_call_api(invoice._etax_sign_api_code)
+                        )
+                        call_api.assert_called_once_with(invoice._etax_sign_api_code)
+
+    def test_replacement_lock_date_from_company(self):
+        wizard = self.env["etax.replacement.wizard"]
+        company = self.env.company
+        invoice_date = fields.Date.to_date("2026-01-20")
+        cases = [
+            # lock day, last allowed day, first blocked day
+            (10, "2026-02-10", "2026-02-11"),
+            # February has no day 30: lock on its last day
+            (30, "2026-02-28", "2026-03-01"),
+            # Not configured: first day of next month
+            (0, "2026-02-01", "2026-02-02"),
+        ]
+        for lock_day, allowed, blocked in cases:
+            with self.subTest(lock_day=lock_day):
+                company.replacement_lock_date = lock_day
+                with freeze_time(allowed):
+                    wizard._check_replacement_lock_date(invoice_date, company)
+                with (
+                    freeze_time(blocked),
+                    self.assertRaisesRegex(ValidationError, "not allowed after"),
+                ):
+                    wizard._check_replacement_lock_date(invoice_date, company)
+
+    def test_replacement_wizard_uses_origin_company(self):
+        self.env.company.replacement_lock_date = 1
+        other_company = self.setup_other_company()["company"]
+        other_company.replacement_lock_date = 10
+        invoice = self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            invoice_date="2026-01-20",
+            amounts=[100.0],
+            taxes=[],
+            post=True,
+            company=other_company,
+        )
+        wizard = self.env["etax.replacement.wizard"].create(
+            {"reason": "Wrong address", "origin_ref": f"account.move,{invoice.id}"}
+        )
+        with patch.object(
+            self.registry["account.move"],
+            "create_replacement_etax",
+            return_value=invoice,
+        ):
+            with freeze_time("2026-02-10"):
+                wizard.create_replacement()
+            with (
+                freeze_time("2026-02-11"),
+                self.assertRaisesRegex(ValidationError, "not allowed after"),
+            ):
+                wizard.create_replacement()
+
+    def test_replacement_lock_day_range(self):
+        for value in (-1, 32):
+            with (
+                self.subTest(value=value),
+                self.assertRaisesRegex(ValidationError, "between 0 and 31"),
+            ):
+                self.env.company.replacement_lock_date = value
+
+    def test_note_wizards_accept_several_moves_with_same_status(self):
+        invoices = self.cust_invoice + self.init_invoice(
+            "out_invoice",
+            partner=self.env.ref("base.res_partner_2"),
+            amounts=[50.0],
+            taxes=[],
+            post=True,
+        )
+        invoices.filtered(lambda move: move.state == "draft").action_post()
+        invoices.write({"etax_status": "success"})
+        reversal = self.env["account.move.reversal"].with_context(
+            active_model="account.move", active_ids=invoices.ids
+        )
+        wizards = {
+            "credit note": reversal.create(
+                {
+                    "move_ids": [Command.set(invoices.ids)],
+                    "journal_id": invoices[0].journal_id.id,
+                }
+            ),
+            "debit note": self.env["account.debit.note"].create(
+                {"move_ids": [Command.set(invoices.ids)]}
+            ),
+        }
+        for name, wizard in wizards.items():
+            with self.subTest(wizard=name):
+                self.assertEqual(wizard.etax_status, "success")
+        invoices[1].etax_status = "error"
+        for name, wizard in wizards.items():
+            with (
+                self.subTest(wizard=name),
+                self.assertRaisesRegex(UserError, "should be same"),
+            ):
+                wizard.invalidate_recordset(["etax_status"])
+                _status = wizard.etax_status
