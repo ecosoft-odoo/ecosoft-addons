@@ -19,7 +19,6 @@ class AccountMove(models.Model):
     )
     etax_payment_id = fields.Many2one(
         comodel_name="account.payment",
-        string="Etax Payment",
         help="If 'Use Credit Note on Payment' is selected, \
             Select payment for retrieve original data.",
     )
@@ -118,9 +117,9 @@ class AccountMove(models.Model):
                         "%s: To send this credit/debit note as e-Tax, "
                         "reset it to draft and select an eTax Refund Reason "
                         "and enter its description "
-                        "in the e-Tax Info tab."
+                        "in the e-Tax Info tab.",
+                        rec.display_name,
                     )
-                    % rec.display_name
                 )
 
     def _pre_etax_validate(self):
@@ -378,9 +377,12 @@ class AccountMove(models.Model):
 
     def _hook_update_data(self, code_api, result):
         res = super()._hook_update_data(code_api, result)
-        if code_api == self._etax_sign_api_code and self.etax_status == "success":
-            if self.replaced_entry_id:
-                self.replaced_entry_id.etax_status = "replace"
+        if (
+            code_api == self._etax_sign_api_code
+            and self.etax_status == "success"
+            and self.replaced_entry_id
+        ):
+            self.replaced_entry_id.etax_status = "replace"
         return res
 
     def _prepare_context_for_wizard(self, **kwargs):

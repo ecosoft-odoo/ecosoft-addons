@@ -33,13 +33,10 @@ class FrappeEtaxConnection(models.Model):
     )
     active = fields.Boolean(default=True)
 
-    _sql_constraints = [
-        (
-            "frappe_etax_connection_name_company_uniq",
-            "unique(name, company_id)",
-            "A Frappe e-Tax connection with this name already exists for the company.",
-        ),
-    ]
+    _frappe_etax_connection_name_company_uniq = models.Constraint(
+        "unique(name, company_id)",
+        "A Frappe e-Tax connection with this name already exists for the company.",
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

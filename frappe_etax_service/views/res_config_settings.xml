@@ -43,7 +43,7 @@
                             type="action"
                             string="Manage Connections"
                             class="btn-link mt8"
-                            icon="oi-arrow-right"
+                            icon="east"
                         />
                     </setting>
                     <setting

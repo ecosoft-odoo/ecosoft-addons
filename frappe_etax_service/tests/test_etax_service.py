@@ -163,7 +163,41 @@ class TestPaymentETaxValidation(TransactionCase):
                         "partner_type": partner_type,
                         "partner_id": self.env.company.partner_id.id,
                         "company_id": self.env.company.id,
-                        "state": "paid",
+                        "state": "reconciled",
+                    }
+                )
+                self.assertEqual(payment.enable_etax, expected)
+
+    def test_enable_etax_only_for_final_receipt(self):
+        self.env.company.is_etax_configured = True
+        cash_account = self.env["account.account"].create(
+            {"name": "e-Tax Cash", "code": "ETAXCASH", "account_type": "asset_cash"}
+        )
+        outstanding_account = self.env["account.account"].create(
+            {
+                "name": "e-Tax Outstanding",
+                "code": "ETAXOUT",
+                "account_type": "asset_current",
+                "reconcile": True,
+            }
+        )
+        cases = [
+            ("draft", cash_account, False),
+            ("paid", outstanding_account, False),
+            ("paid", cash_account, True),
+            ("reconciled", outstanding_account, True),
+        ]
+        for state, account, expected in cases:
+            with self.subTest(state=state, account=account.code):
+                payment = self.env["account.payment"].new(
+                    {
+                        "amount": 100.0,
+                        "payment_type": "inbound",
+                        "partner_type": "customer",
+                        "partner_id": self.env.company.partner_id.id,
+                        "company_id": self.env.company.id,
+                        "outstanding_account_id": account.id,
+                        "state": state,
                     }
                 )
                 self.assertEqual(payment.enable_etax, expected)
@@ -783,7 +817,7 @@ class TestETax(AccountTestInvoicingCommon):
                 self.assertEqual(invoice.etax_status, "success")
 
     def test_replacement_receipt_payload_has_no_adjustment(self):
-        invoice, payment = self._create_signed_reconciled_payment()
+        _invoice, payment = self._create_signed_reconciled_payment()
         replacement = payment.create_replacement_etax()
         replacement.action_post()
         normal = self._etax_payload(replacement, "api_etax_payment_frappe")

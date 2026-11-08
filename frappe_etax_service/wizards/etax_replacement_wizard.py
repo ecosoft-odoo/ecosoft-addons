@@ -61,16 +61,17 @@ class EtaxReplacementWizard(models.TransientModel):
 
     def _check_replacement_lock_date(self, invoice_date):
         # Test lock date
-        lock_date = int(
+        lock_date = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("frappe_etax_service.replacement_lock_date", 1)
+            .get_int("frappe_etax_service.replacement_lock_date", 1)
         )
         dt = (invoice_date.replace(day=1) + datetime.timedelta(days=32)).replace(
             day=lock_date
         )
-        if datetime.date.today() > dt:
+        if fields.Date.context_today(self) > dt:
             raise ValidationError(
-                self.env._("Create Replace e-Tax not allowed after %s")
-                % dt.strftime("%d/%m/%Y")
+                self.env._(
+                    "Create Replace e-Tax not allowed after %s", dt.strftime("%d/%m/%Y")
+                )
             )

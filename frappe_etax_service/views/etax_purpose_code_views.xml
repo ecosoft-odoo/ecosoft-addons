@@ -48,7 +48,7 @@
                 <field name="name" />
                 <field name="code" />
                 <field name="etax_doctype_code_ids" />
-                <group expand="0" string="Group By">
+                <group>
                     <filter
                         name="etax_doctype_code_groupby"
                         string="Doctype Code"

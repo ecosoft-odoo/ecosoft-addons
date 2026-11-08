@@ -64,7 +64,7 @@
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button
                     class="oe_stat_button"
-                    icon="fa-list-alt"
+                    icon="list_alt"
                     type="object"
                     name="action_view_api_logs"
                     invisible="api_log_count == 0"

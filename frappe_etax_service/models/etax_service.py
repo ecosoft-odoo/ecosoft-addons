@@ -82,10 +82,12 @@ class ETaxServiceMixin(models.AbstractModel):
         )
         if missing:
             raise ValidationError(
-                self.env._("Cannot sign e-Tax. Please fill in e-Tax Email for:\n%s")
-                % "\n".join(
-                    f"{record.display_name}: {record.partner_id.display_name}"
-                    for record in missing
+                self.env._(
+                    "Cannot sign e-Tax. Please fill in e-Tax Email for:\n%s",
+                    "\n".join(
+                        f"{record.display_name}: {record.partner_id.display_name}"
+                        for record in missing
+                    ),
                 )
             )
 
@@ -103,16 +105,22 @@ class ETaxServiceMixin(models.AbstractModel):
             "document_id": self.name,
             "create_purpose_code": self.create_purpose_code,
             "create_purpose": self.create_purpose,
-            "seller_branch_id": self.company_id.company_registry,
+            "seller_branch_id": self.company_id.partner_id._get_additional_identifier(
+                "TH_BRANCH_CODE"
+            )
+            or "00000",
             "source_system": self.env["ir.config_parameter"]
             .sudo()
-            .get_param("web.base.url", ""),
+            .get_str("web.base.url"),
             "send_mail": self.company_id.is_send_etax_email and "Y" or "N",
             "seller_tax_id": self.company_id.vat,
             "buyer_name": self.partner_id.name,
             "buyer_type": "TXID",
             "buyer_tax_id": self.partner_id.vat,
-            "buyer_branch_id": self.partner_id.company_registry or "00000",
+            "buyer_branch_id": self.partner_id._get_additional_identifier(
+                "TH_BRANCH_CODE"
+            )
+            or "00000",
             "buyer_email": self.partner_id.email_etax,
             "buyer_zip": self.partner_id.zip,
             "buyer_building_name": "",
@@ -152,19 +160,24 @@ class ETaxServiceMixin(models.AbstractModel):
         connection = company.sudo().frappe_etax_connection_id
         if not connection:
             raise ValidationError(
-                self.env._("Company '%s' does not have a Frappe e-Tax Connection.")
-                % company.display_name
+                self.env._(
+                    "Company '%s' does not have a Frappe e-Tax Connection.",
+                    company.display_name,
+                )
             )
         connection = connection.sudo()
         if connection.company_id != company:
             raise ValidationError(
-                self.env._("The Frappe e-Tax Connection must belong to company '%s'.")
-                % company.display_name
+                self.env._(
+                    "The Frappe e-Tax Connection must belong to company '%s'.",
+                    company.display_name,
+                )
             )
         if not connection.active:
             raise ValidationError(
-                self.env._("Frappe e-Tax Connection '%s' is archived.")
-                % connection.display_name
+                self.env._(
+                    "Frappe e-Tax Connection '%s' is archived.", connection.display_name
+                )
             )
         return connection
 
@@ -210,15 +223,16 @@ class ETaxServiceMixin(models.AbstractModel):
         report = self.env["ir.actions.report"].search([("name", "=", form_name)])
         if len(report) != 1:
             raise ValidationError(
-                self.env._("Cannot find report '%s', or multiple found") % form_name
+                self.env._("Cannot find report '%s', or multiple found", form_name)
             )
         content, _ctype = report._render_qweb_pdf(report.xml_id, res_ids=self.ids)
         return base64.b64encode(content).decode()
 
     def _prepare_etax_doc_data(self):
         raise UserError(
-            self.env._("_prepare_etax_doc_data() not implemented for model: %s")
-            % self._name
+            self.env._(
+                "_prepare_etax_doc_data() not implemented for model: %s", self._name
+            )
         )
 
     def _hook_on_failed(self, code_api, error_msg):
@@ -334,8 +348,10 @@ class ETaxServiceMixin(models.AbstractModel):
         )
         if disabled:
             raise ValidationError(
-                self.env._("e-Tax is not enabled for company '%s'.")
-                % disabled[0].company_id.display_name
+                self.env._(
+                    "e-Tax is not enabled for company '%s'.",
+                    disabled[0].company_id.display_name,
+                )
             )
         for record in self:
             record._get_frappe_etax_connection()
@@ -346,20 +362,25 @@ class ETaxServiceMixin(models.AbstractModel):
         if invalid:
             names = ", ".join(invalid.mapped("name"))
             raise ValidationError(
-                self.env._("%s: eTax status is already Processing/Success") % names
+                self.env._("%s: eTax status is already Processing/Success", names)
             )
-        # Posted for account.move, Paid for account.payment
-        invalid = self.filtered(lambda m: m.state not in ["posted", "paid"])
+        invalid = self.filtered(lambda m: not m._is_etax_state_ready())
         if invalid:
             names = ", ".join(invalid.mapped("name"))
             raise ValidationError(
-                self.env._("%s: must be posted/paid before signing eTax") % names
+                self.env._("%s: must be posted/paid before signing eTax", names)
             )
         if not self.company_id.vat:
             raise ValidationError(
-                self.env._("Company '%s' does not have a Tax ID (VAT) configured.")
-                % self.company_id.name
+                self.env._(
+                    "Company '%s' does not have a Tax ID (VAT) configured.",
+                    self.company_id.name,
+                )
             )
+
+    def _is_etax_state_ready(self):
+        self.ensure_one()
+        return self.state == "posted"
 
     def _prepare_context_for_wizard(self, **kwargs):
         context = self.env.context.copy()

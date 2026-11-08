@@ -159,6 +159,28 @@ class TestETaxPayload(TransactionCase):
         self.assertEqual(payload["form_name"], "Test")
         self.assertEqual(payload["form_type"], "odoo")
 
+    def test_branch_codes_from_identifiers(self):
+        company = self.env.company
+        company.partner_id.additional_identifiers = {"TH_BRANCH_CODE": "00003"}
+        buyer = self.env["res.partner"].create(
+            {
+                "name": "Branch buyer",
+                "country_id": self.env.ref("base.th").id,
+                "additional_identifiers": {"TH_BRANCH_CODE": "00012"},
+            }
+        )
+        invoice = self._invoice([(100, 1, {})], company_id=company.id)
+        invoice.partner_id = buyer
+        data = invoice._get_etax_document_data()
+        self.assertEqual(data["seller_branch_id"], "00003")
+        self.assertEqual(data["buyer_branch_id"], "00012")
+        # Empty branch code means head office
+        company.partner_id.additional_identifiers = {}
+        buyer.additional_identifiers = {}
+        data = invoice._get_etax_document_data()
+        self.assertEqual(data["seller_branch_id"], "00000")
+        self.assertEqual(data["buyer_branch_id"], "00000")
+
     def test_payment_and_replacement_share_document_mapping(self):
         payment = self.env["account.payment"].new({"amount": 192.6})
         payment.reconciled_invoice_ids = self._invoice([(300, 1, {}), (-120, 1, {})])

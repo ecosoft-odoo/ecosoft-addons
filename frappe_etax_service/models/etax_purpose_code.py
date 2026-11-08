@@ -9,7 +9,7 @@ class ETaxPurposeCode(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "Purpose Code follow INET convention."
     _order = "code, name"
-    _rec_names_search = ["code", "name"]
+    _rec_names_search = ("code", "name")
 
     name = fields.Char(
         required=True,

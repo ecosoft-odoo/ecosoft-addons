@@ -42,10 +42,7 @@ class ETaxDocType(models.Model):
         tracking=True,
     )
 
-    _sql_constraints = [
-        (
-            "code_uniq_per_doc",
-            "UNIQUE(name)",
-            "Form name must be unique",
-        ),
-    ]
+    _code_uniq_per_doc = models.Constraint(
+        "UNIQUE(name)",
+        "Form name must be unique",
+    )

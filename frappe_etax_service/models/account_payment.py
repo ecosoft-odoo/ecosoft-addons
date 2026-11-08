@@ -98,7 +98,12 @@ class AccountPayment(models.Model):
         )
 
     @api.depends(
-        "partner_type", "payment_type", "etax_status", "state", "is_etax_configured"
+        "partner_type",
+        "payment_type",
+        "etax_status",
+        "state",
+        "outstanding_account_id",
+        "is_etax_configured",
     )
     def _compute_enable_etax(self):
         for rec in self:
@@ -106,15 +111,26 @@ class AccountPayment(models.Model):
                 rec.partner_type == "customer"
                 and rec.payment_type == "inbound"
                 and rec.etax_status not in ("success", "processing")
-                and rec.state == "paid"
+                and rec._is_etax_state_ready()
                 and rec.company_id.is_etax_configured
             )
 
+    def _is_etax_state_ready(self):
+        """Receipt is final: matched (reconciled), or paid in cash, which
+        Odoo never moves to reconciled."""
+        self.ensure_one()
+        return self.state == "reconciled" or (
+            self.state == "paid" and self.outstanding_account_type == "asset_cash"
+        )
+
     def _hook_update_data(self, code_api, result):
         res = super()._hook_update_data(code_api, result)
-        if code_api == self._etax_sign_api_code and self.etax_status == "success":
-            if self.replacement_origin_payment_id:
-                self.replacement_origin_payment_id.etax_status = "replace"
+        if (
+            code_api == self._etax_sign_api_code
+            and self.etax_status == "success"
+            and self.replacement_origin_payment_id
+        ):
+            self.replacement_origin_payment_id.etax_status = "replace"
         return res
 
     def action_draft(self):
@@ -246,9 +262,9 @@ class AccountPayment(models.Model):
                 self.env._(
                     "%s: no e-Tax line items found. Add Tax Invoice information "
                     "or reconcile the payment with a Customer Invoice before "
-                    "signing e-Tax."
+                    "signing e-Tax.",
+                    names,
                 )
-                % names
             )
         return res
 
@@ -294,7 +310,7 @@ class AccountPayment(models.Model):
     def create_replacement_etax(self):
         """Create replacement receipt eTax"""
         self.ensure_one()
-        if not (self.state == "paid" and self.etax_status == "success"):
+        if not (self._is_etax_state_ready() and self.etax_status == "success"):
             raise ValidationError(
                 self.env._("Only posted etax payment can have a substitution")
             )
