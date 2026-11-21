@@ -545,3 +545,43 @@ class TestWebhookOutbound(TransactionCase):
         self.assertEqual(payload["data"]["key"], "nested")
         labels = dict(log._fields["state"]._description_selection(self.env))
         self.assertEqual(payload["data"]["state"], labels[log.state])
+
+    def test_23_dry_run_no_outbound(self):
+        """dry_run update matching trigger_domain -> no POST, record unchanged"""
+        log = self._new_log(state="draft")
+        vals = {"search_key": {"id": log.id}, "payload": {"state": "done"}}
+        with patch(REQUESTS_PATH) as mock_post:
+            res = self.env["webhook.utils"].dry_run("api.log", vals, "update_data")
+        self.assertTrue(res["is_success"])
+        mock_post.assert_not_called()
+        self.assertEqual(log.state, "draft")
+
+    def test_24_dry_run_client_context_cannot_send(self):
+        """call_function context can't turn off dry run guards"""
+        log = self._new_log(state="draft")
+        vals = {
+            "search_key": {"id": log.id},
+            "payload": {
+                "method": "action_webhook_done",
+                "context": {"webhook_dry_run": False},
+            },
+        }
+        with patch(REQUESTS_PATH) as mock_post:
+            self.env["webhook.utils"].dry_run("api.log", vals, "call_function")
+        mock_post.assert_not_called()
+        self.assertEqual(log.state, "draft")
+
+    def test_25_client_context_cannot_skip_outbound(self):
+        """Live call_function can't fake a dry run to skip outbound"""
+        log = self._new_log(state="draft")
+        vals = {
+            "search_key": {"id": log.id},
+            "payload": {
+                "method": "action_webhook_done",
+                "context": {"webhook_dry_run": True},
+            },
+        }
+        with patch(REQUESTS_PATH, return_value=self._mock_ok_response()) as mock_post:
+            self.env["webhook.utils"].call_function("api.log", vals)
+        mock_post.assert_called()
+        self.assertEqual(log.state, "done")

@@ -2,11 +2,15 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
 import ast
+import json
 import logging
 import re
 
-from odoo import api, models, tools
+from odoo import api, models
 from odoo.exceptions import ValidationError
+from odoo.service.model import get_public_method
+from odoo.tools import json_default
+from odoo.tools.misc import Callbacks
 
 _logger = logging.getLogger(__name__)
 
@@ -15,13 +19,27 @@ class WebhookUtils(models.AbstractModel):
     _name = "webhook.utils"
     _description = "Utils Class"
 
-    @tools.ormcache("model", "key_search", "val", "extra_domain")
+    def _with_lookup_memo(self):
+        """Give one API call its own lookup memo, like ``import_cache`` in load().
+        Never shared across requests or users, unlike an ormcache."""
+        if "webhook_lookup_memo" in self.env.context:
+            return self
+        return self.with_context(webhook_lookup_memo={})
+
     def _call_field_search_cache(self, model, key_search, val, extra_domain="[]"):
-        """Search records by an explicit field name.
-        All args must be hashable strings for ORM cache compatibility."""
-        val = ast.literal_eval(val)
-        domain = [(key_search, "in", val)] + ast.literal_eval(extra_domain)
-        return model.search(domain)
+        """Search records by an explicit field name. Found records are
+        memoized for the current API call only (see ``_with_lookup_memo``)."""
+        memo = self.env.context.get("webhook_lookup_memo")
+        # Same env = same uid, su and context (active_test, lang, companies...)
+        memo_key = (model.env, model._name, key_search, val, extra_domain)
+        if memo is not None and memo_key in memo:
+            return model.browse(memo[memo_key])
+        domain = [(key_search, "in", ast.literal_eval(val))]
+        records = model.search(domain + ast.literal_eval(extra_domain))
+        # No match is not memoized, auto_create searches again after creating
+        if memo is not None and records:
+            memo[memo_key] = records.ids
+        return records
 
     def _get_o2m_line(self, line_data_dict, line_obj):
         rec_fields = []
@@ -153,6 +171,7 @@ class WebhookUtils(models.AbstractModel):
             }
         }
         """
+        self = self._with_lookup_memo()
         data_dict = vals.get("payload", {})
         rec_dict, rec, line_all_fields = self._convert_data_to_id(model, vals)
         company_id = rec_dict.get("company_id") or self.env.company.id
@@ -160,6 +179,8 @@ class WebhookUtils(models.AbstractModel):
         obj = rec.with_context(
             api_payload=data_dict, default_company_id=company_id
         ).create(rec_dict)
+        # A new record may change any lookup result (e.g. duplicate match)
+        self.env.context["webhook_lookup_memo"].clear()
         # Create Attachment (if any)
         self._create_file_attachment(obj, data_dict, line_all_fields)
         res = {
@@ -167,8 +188,6 @@ class WebhookUtils(models.AbstractModel):
             "result": {"id": obj.id},
             "messages": self.env._("Record created successfully"),
         }
-        # Clear cache
-        self.env.registry.clear_cache()
         return res
 
     def _search_object(self, model, vals):
@@ -222,6 +241,7 @@ class WebhookUtils(models.AbstractModel):
             }
         },
         """
+        self = self._with_lookup_memo()
         data_dict = vals.get("payload", {})
         auto_create = vals.get("auto_create", {})
 
@@ -262,13 +282,11 @@ class WebhookUtils(models.AbstractModel):
         search_domain = [("id", "in", value)]
         return self.env[sub_model].search_read(search_domain, field_2many)
 
-    @tools.ormcache("key", "model_obj")
     def _get_sub_model(self, key, model_obj):
         sub_model = model_obj._fields[key].comodel_name
         return sub_model
 
     def _update_result_with_2many(self, result, result_dict, model_obj):
-        model_list = []
         for res in result:
             for key, value in res.items():
                 field_2many = result_dict.get(key)
@@ -303,10 +321,6 @@ class WebhookUtils(models.AbstractModel):
                         )
                     # Replace value with child result
                     res[key] = child_result
-                    model_list.append(sub_model)
-        # Clear caches (use set to avoid redundant clears for repeated models)
-        for model in set(model_list):
-            self.env[model].env.registry.clear_cache()
         return result
 
     @api.model
@@ -445,7 +459,6 @@ class WebhookUtils(models.AbstractModel):
         )
 
         if len(records) > 1:
-            Model.env.registry.clear_cache()
             raise ValidationError(
                 self.env._("'%(val)s' matched more than 1 record") % {"val": search_val}
             )
@@ -457,7 +470,6 @@ class WebhookUtils(models.AbstractModel):
             )
 
         if not records:
-            Model.env.registry.clear_cache()
             raise ValidationError(
                 self.env._("'%(key)s': '%(val)s' found no match.")
                 % {"key": key, "val": search_val}
@@ -508,7 +520,6 @@ class WebhookUtils(models.AbstractModel):
                 )
 
             if not records:
-                Model.env.registry.clear_cache()
                 raise ValidationError(
                     self.env._("'%(key)s': '%(val)s' found no match.")
                     % {"key": key, "val": search_vals}
@@ -751,12 +762,16 @@ class WebhookUtils(models.AbstractModel):
         if not method_name:
             raise ValidationError(self.env._("Missing 'method' in payload"))
 
+        # Dry run guard is server-owned, client context can't change it
+        context = dict(context, webhook_dry_run=self.env.context.get("webhook_dry_run"))
         rec = self._search_object(model, vals).with_context(**context)
 
         if not hasattr(rec, method_name):
             raise AttributeError(
                 f"Record(s) of model {model} has no method '{method_name}'"
             )
+        # Same guard as RPC call_kw: block private ('_' prefix / @api.private)
+        get_public_method(rec, method_name)
 
         result = getattr(rec, method_name)(**(parameter or {}))
         return {
@@ -764,3 +779,59 @@ class WebhookUtils(models.AbstractModel):
             "result": result,
             "messages": f"Function '{method_name}' called successfully",
         }
+
+    @api.private
+    @api.model
+    def dry_run(self, model, vals, function):
+        """Run ``function`` (e.g. ``create_data``) then roll back everything.
+
+        Same idea as ``base_import`` with ``dryrun=True``: the ORM runs for real
+        (defaults, computes, ``@api.constrains``, SQL constraints), so errors are
+        raised exactly as in a normal call, but nothing is persisted.
+        Outbound webhooks are not sent and the rollback and postcommit hooks
+        added during the dry run (e.g. mails sent after commit) are dropped.
+        Note: ``ir.sequence`` with ``standard`` implementation (PostgreSQL
+        sequence) still consumes numbers, use ``no_gap`` to avoid gaps.
+        """
+        _logger.info("[%s].dry_run(%s)", model, function)
+        utils = self.with_context(webhook_dry_run=True)
+        # Same guard as RPC call_kw, only public functions of webhook.utils
+        get_public_method(utils, function)
+        cr = self.env.cr
+        registry = self.env.registry
+        # Savepoint creation flushes (runs precommit hooks), snapshot after it
+        savepoint = cr.savepoint()
+        registry_invalidated = registry.registry_invalidated
+        cache_invalidated = set(registry.cache_invalidated)
+        hooks = (cr.prerollback, cr.postcommit, cr.postrollback)
+        cr.prerollback, cr.postcommit, cr.postrollback = (
+            Callbacks(),
+            Callbacks(),
+            Callbacks(),
+        )
+        try:
+            res = getattr(utils, function)(model, vals)
+            # Serialize now, the answer may hold values read lazily
+            res = json.loads(json.dumps(res, default=json_default))
+            # Run pending SQL and precommit hooks so their errors surface here
+            cr.flush()
+        finally:
+            try:
+                savepoint.close(rollback=True)
+            finally:
+                cr.prerollback, cr.postcommit, cr.postrollback = hooks
+                self._dry_run_reset_registry(registry_invalidated, cache_invalidated)
+        _logger.info("[%s].dry_run(%s): rolled back", model, function)
+        return res
+
+    def _dry_run_reset_registry(self, registry_invalidated, cache_invalidated):
+        """Same as base_import dryrun: an id created then rolled back may sit in
+        any ormcache, so clear them all, and cancel registry changes of the dry
+        run without signaling other workers. Invalidations made before the dry
+        run (``registry_invalidated``, ``cache_invalidated``) are kept."""
+        registry = self.env.registry
+        registry.clear_all_caches()
+        if not registry_invalidated:
+            registry.reset_changes()
+        registry.cache_invalidated.clear()
+        registry.cache_invalidated.update(cache_invalidated)

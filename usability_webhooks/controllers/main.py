@@ -28,9 +28,15 @@ class WebhookController(http.Controller):
         data_str = json.dumps(vals)
         state = "draft"
         res = {}
+        # Only JSON true, so a mistyped "false" never skips saving silently
+        dry_run = vals.get("dry_run") is True
 
         try:
-            res = self._call_function_api(model, vals, function)
+            if dry_run:
+                # Always run inline and roll back at the end
+                res = request.env["webhook.utils"].dry_run(model, vals, function)
+            else:
+                res = self._call_function_api(model, vals, function)
             state = "done" if res.get("is_success") else "failed"
             # Not success, rollback all data (if config in system parameter)
             if not res.get("is_success") and rollback_state_failed:
@@ -45,6 +51,9 @@ class WebhookController(http.Controller):
             # rollback all data (if config in system parameter)
             if rollback_except:
                 request.env.cr.rollback()
+
+        if dry_run:
+            res["dry_run"] = True
 
         log = None
         if vals.get("is_create_log"):
@@ -68,7 +77,7 @@ class WebhookController(http.Controller):
         This enables outbound webhooks to find the correct endpoint per record.
         """
         callback_url = vals.get("callback_url")
-        if not callback_url:
+        if not callback_url or vals.get("dry_run") is True:
             return
         res_id = None
         result = res.get("result")
