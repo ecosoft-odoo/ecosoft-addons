@@ -32,9 +32,15 @@ class WebhookController(http.Controller):
         data_str = json.dumps(vals) if vals.get("is_create_log") else ""
         state = "draft"
         res = {}
+        # Only JSON true, so a mistyped "false" never skips saving silently
+        dry_run = vals.get("dry_run") is True
 
         try:
-            res = self._call_function_api(model, vals, function)
+            if dry_run:
+                # Always run inline and roll back at the end
+                res = request.env["webhook.utils"].dry_run(model, vals, function)
+            else:
+                res = self._call_function_api(model, vals, function)
             state = "done" if res.get("is_success") else "failed"
             # Not success, rollback all data (if config in system parameter)
             if not res.get("is_success") and rollback_state_failed:
@@ -52,6 +58,9 @@ class WebhookController(http.Controller):
             # rollback all data (if config in system parameter)
             if rollback_except:
                 request.env.cr.rollback()
+
+        if dry_run:
+            res["dry_run"] = True
 
         log = None
         if vals.get("is_create_log"):
@@ -74,7 +83,12 @@ class WebhookController(http.Controller):
             )
         # Ids returned by call_function/search_data are not checked: never
         # link them, the callback URL is written as superuser
-        if function in ("create_data", "update_data", "create_update_data"):
+        # Nothing of a dry run is saved, never link its ids
+        if not dry_run and function in (
+            "create_data",
+            "update_data",
+            "create_update_data",
+        ):
             self._link_callback_url(model, vals, res, log)
         return res
 

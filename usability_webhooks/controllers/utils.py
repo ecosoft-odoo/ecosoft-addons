@@ -12,6 +12,8 @@ from odoo import Command, api, models
 from odoo.exceptions import ValidationError
 from odoo.fields import Domain
 from odoo.models import get_public_method
+from odoo.tools import json_default
+from odoo.tools.misc import Callbacks
 
 _logger = logging.getLogger(__name__)
 # Field types whose lookup values compare in Python as in the database
@@ -800,6 +802,10 @@ class WebhookUtils(models.AbstractModel):
         if not method_name:
             raise ValidationError(self.env._("Missing 'method' in payload"))
 
+        # Dry run guard is server-owned, client context can't change it
+        context = dict(
+            context, webhook_dry_run=self.env.context.get("webhook_dry_run", False)
+        )
         rec = self._search_object(model, vals).with_context(**context)
 
         # Same guard as RPC: block private ('_' prefix / @api.private) methods
@@ -812,3 +818,47 @@ class WebhookUtils(models.AbstractModel):
                 "Function '%(method)s' called successfully", method=method_name
             ),
         }
+
+    @api.private
+    @api.model
+    def dry_run(self, model, vals, function):
+        """Run ``function`` (e.g. ``create_data``) then roll back everything.
+
+        Same idea as ``base_import`` with ``dryrun=True``: the ORM runs for real
+        (defaults, computes, constraints), so errors are raised exactly as in a
+        normal call, but nothing is persisted. Rolling back the savepoint also
+        restores the ORM caches and the registry state.
+        Outbound webhooks are not sent and the rollback and postcommit hooks
+        added during the dry run (e.g. mails sent after commit) are dropped.
+        Note: ``ir.sequence`` with ``standard`` implementation (PostgreSQL
+        sequence) still consumes numbers, use ``no_gap`` to avoid gaps.
+        """
+        _logger.info("[%s].dry_run(%s)", model, function)
+        utils = self.with_context(webhook_dry_run=True)
+        # Same guard as RPC, only public functions of webhook.utils
+        func = get_public_method(utils, function)
+        cr = self.env.cr
+        # Savepoint creation flushes (runs precommit hooks) before the dry run
+        savepoint = cr.savepoint()
+        hooks = (cr.prerollback, cr.postcommit, cr.postrollback)
+        cr.prerollback, cr.postcommit, cr.postrollback = (
+            Callbacks(),
+            Callbacks(),
+            Callbacks(),
+        )
+        try:
+            # Values cached during the dry run are dropped by the rollback only
+            # if the ORM saw a write (not the case for raw SQL inserts)
+            self.env.invalidate_all(flush=False)
+            res = func(utils, model, vals)
+            # Serialize now, the answer may hold values read lazily
+            res = json.loads(json.dumps(res, default=json_default))
+            # Run pending SQL and precommit hooks so their errors surface here
+            cr.flush()
+        finally:
+            try:
+                savepoint.close(rollback=True)
+            finally:
+                cr.prerollback, cr.postcommit, cr.postrollback = hooks
+        _logger.info("[%s].dry_run(%s): rolled back", model, function)
+        return res

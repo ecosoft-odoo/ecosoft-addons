@@ -4,10 +4,12 @@
 import json
 from unittest.mock import patch
 
+import psycopg2
+
 from odoo import Command
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import new_test_user
-from odoo.tools import json_default
+from odoo.tools import json_default, mute_logger
 
 from .common import WebhookTestCommon
 
@@ -772,3 +774,143 @@ class TestWebhookUtils(WebhookTestCommon):
         # name and id batched, the 2 others alone
         self.assertEqual(search.call_count, 4)
         self.assertEqual(res["tag_ids"], [Command.set([self.tag_a.id, self.tag_b.id])])
+
+    # ----- dry run -----
+
+    def test_29_dry_run_create_data(self):
+        """dry_run create returns success but persists nothing"""
+        count = self.Record.search_count([])
+        vals = {
+            "payload": {"name": "Dry Run", "tag_id": {"name": "Dry Run Tag"}},
+            "auto_create": {"tag_id": {"name": "Dry Run Tag"}},
+            "result_field": ["name", "tag_id{name}"],
+        }
+        result = self.webhook_utils.dry_run(RECORD, vals, "create_data")
+        self.assertTrue(result["is_success"])
+        self.assertEqual(result["records"][0]["tag_id"][0]["name"], "Dry Run Tag")
+        self.assertFalse(self.Record.browse(result["result"]["id"]).exists())
+        self.assertEqual(self.Record.search_count([]), count)
+        self.assertFalse(self.Tag.search([("name", "=", "Dry Run Tag")]))
+        # Real call after the dry run: auto_create again, no stale lookup
+        result = self.webhook_utils.create_data(RECORD, vals)
+        record = self.Record.browse(result["result"]["id"])
+        self.assertEqual(record.tag_id, self.Tag.search([("name", "=", "Dry Run Tag")]))
+
+    def test_30_dry_run_update_data(self):
+        """dry_run update does not change the record"""
+        vals = {
+            "search_key": {"id": self.record.id},
+            "payload": {"name": "Changed"},
+        }
+        result = self.webhook_utils.dry_run(RECORD, vals, "update_data")
+        self.assertTrue(result["is_success"])
+        self.assertEqual(self.record.name, "Common Test")
+
+    def test_31_dry_run_error_raised(self):
+        """dry_run raises the same error as a normal call and rolls back its
+        own savepoint (no assertRaises: it would add one)"""
+        count = self.Record.search_count([])
+        lines = self.env["webhook.test.line"]
+        line_count = lines.search_count([])
+        vals = {
+            "payload": {"name": "Dry Run", "tag_id": {"name": "No Such Tag"}},
+        }
+        # Write first, then the error
+        Utils = type(self.webhook_utils)
+        create_data = Utils.create_data
+
+        def write_then_create(utils, model, vals):
+            utils.env[model].create({"name": "Written before error"})
+            return create_data(utils, model, vals)
+
+        with patch.object(Utils, "create_data", write_then_create):
+            try:
+                self.webhook_utils.dry_run(RECORD, vals, "create_data")
+            except ValidationError as error:
+                self.assertIn("found no match", str(error))
+            else:
+                self.fail("ValidationError not raised")
+        self.assertEqual(self.Record.search_count([]), count)
+        # Database error at flush (record_id is NOT NULL): cursor still usable
+        with mute_logger("odoo.sql_db"):
+            try:
+                self.webhook_utils.dry_run(
+                    "webhook.test.line", {"payload": {"name": "x"}}, "create_data"
+                )
+            except psycopg2.IntegrityError as error:
+                self.assertIn("record_id", str(error))
+            else:
+                self.fail("IntegrityError not raised")
+        self.assertEqual(lines.search_count([]), line_count)
+        self.assertEqual(self.Record.search_count([]), count)
+
+    def test_32_dry_run_sequence_no_gap_not_consumed(self):
+        """dry_run does not consume a no_gap sequence (standard Odoo rollback)"""
+        seq = self.env["ir.sequence"].create(
+            {
+                "name": "Dry Run",
+                "prefix": "DRY",
+                "padding": 3,
+                "implementation": "no_gap",
+            }
+        )
+        vals = {"search_key": {"id": seq.id}, "payload": {"method": "next_by_id"}}
+        result = self.webhook_utils.dry_run("ir.sequence", vals, "call_function")
+        self.assertEqual(result["result"], "DRY001")
+        self.assertEqual(seq.next_by_id(), "DRY001")
+
+    def test_33_dry_run_resets_ormcache(self):
+        """An ormcache filled during dry_run is dropped by the rollback, also
+        when the dry run only wrote with raw SQL, or failed"""
+        for raw_sql, fail in ((False, False), (True, False), (True, True)):
+            name = f"Cached Tag {raw_sql} {fail}"
+            vals = {
+                "search_key": {"id": self.record.id},
+                "payload": {
+                    "method": "action_create_cached_tag",
+                    "parameter": {"name": name, "raw_sql": raw_sql, "fail": fail},
+                },
+            }
+            # As at the start of a request: the ORM saw no write yet
+            self.env.transaction._wrote__ = False
+            try:
+                result = self.webhook_utils.dry_run(RECORD, vals, "call_function")
+            except UserError as error:
+                self.assertTrue(fail, error)
+            else:
+                self.assertEqual(len(result["result"]), 1)
+            self.assertFalse(self.Record._test_tag_ids(name))
+
+    def test_34_dry_run_only_public_functions(self):
+        """dry_run dispatches public webhook.utils functions only"""
+        vals = {"search_key": {"id": self.record.id}}
+        for function in ("_search_object", "dry_run"):
+            with self.assertRaisesRegex(AccessError, "Private methods"):
+                self.webhook_utils.dry_run(RECORD, vals, function)
+
+    def test_35_dry_run_hooks(self):
+        """Hooks added during a dry run are dropped (they may send or write
+        without the dry run guards). Hooks and data registered before are kept
+        as they were"""
+        cr = self.env.cr
+        before = []
+        cr.postcommit.data["webhook.test"] = before
+        cr.postcommit.add(lambda: None)
+        postcommit = cr.postcommit
+        prerollback = cr.prerollback
+        postrollback = cr.postrollback
+        count = len(postcommit)
+        vals = {
+            "search_key": {"id": self.record.id},
+            "payload": {"method": "action_add_hooks"},
+        }
+        with patch.object(type(self.Record), "_test_on_rollback") as on_rollback:
+            result = self.webhook_utils.dry_run(RECORD, vals, "call_function")
+        self.assertTrue(result["result"])
+        on_rollback.assert_not_called()
+        self.assertIs(cr.prerollback, prerollback)
+        self.assertIs(cr.postcommit, postcommit)
+        self.assertIs(cr.postrollback, postrollback)
+        self.assertEqual(len(postcommit), count)
+        self.assertIs(postcommit.data["webhook.test"], before)
+        self.assertFalse(before)

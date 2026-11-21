@@ -210,6 +210,44 @@ Use `field{subfield1,subfield2}` to expand relational fields inline.
 }
 ```
 
+### Dry Run (validate only)
+
+Add `"dry_run": true` in `vals` of any route to run the full logic
+(lookups, `auto_create`, defaults, constraints, method call) and then roll back
+everything. The response is the same as a normal call (errors included) plus
+`"dry_run": true`.
+
+- Only JSON `true` enables it (a string like `"false"` is a normal call).
+- Nothing is saved, so the `id` of a created record does not exist
+  (database ids are still consumed, like any rolled back insert;
+  files of rolled back attachments are removed by the filestore garbage collector).
+- The request is still logged in `api.log` (if enabled) for audit.
+- `ir.sequence` follows standard Odoo: `no_gap` is rolled back (no gap),
+  `standard` (PostgreSQL sequence) still consumes the number.
+  Set `no_gap` on sequences that must not skip numbers.
+- Always run inline: overrides of `_call_function_api` (e.g. to queue the call)
+  are skipped, `callback_url` is not linked and outbound webhooks are not sent.
+- Actions registered to run after commit or on rollback are dropped: mails
+  (sent after commit) and *Send Webhook Notification* of automation rules are
+  not sent. Web push notifications of messages posted during the call are sent
+  from the request, like in a normal call.
+- Other external calls made during the call (e.g. a `call_function` method
+  calling another system) and changes committed with another cursor (e.g.
+  running a scheduled action) are not rolled back: do not dry run such methods.
+
+```json
+{
+  "params": {
+    "model": "res.partner",
+    "vals": {
+      "dry_run": true,
+      "payload": {"name": "Customer A"},
+      "result_field": ["ref"]
+    }
+  }
+}
+```
+
 ### Attaching Files
 
 Add `attachment_ids` at any payload level:

@@ -145,3 +145,38 @@ class TestWebhookController(HttpCase):
         self.assertEqual(log.callback_url, vals["callback_url"])
         # Request logs do not create followers or tracking messages
         self.assertFalse(log.message_follower_ids)
+
+    def test_08_dry_run_logged_not_saved(self):
+        """dry_run: same answer as a normal call, request logged, nothing saved"""
+        self.ICP.set_bool("webhook.create_data_log", True)
+        vals = {"dry_run": True, "payload": {"function_name": "Http Dry Run"}}
+        res = self._call_api("create_data", "api.log", vals)
+        self.assertTrue(res["is_success"], res.get("messages"))
+        self.assertTrue(res["dry_run"])
+        self.assertFalse(self.env["api.log"].browse(res["result"]["id"]).exists())
+        log = self._search_logs("/api/create_data")
+        self.assertEqual(log.state, "done")
+        self.assertTrue(json.loads(log.data_preview)["dry_run"])
+        # Only JSON true runs a dry run
+        vals["dry_run"] = "false"
+        res = self._call_api("create_data", "api.log", vals)
+        self.assertNotIn("dry_run", res)
+        self.assertTrue(self.env["api.log"].browse(res["result"]["id"]).exists())
+
+    def test_09_failed_dry_run_logged(self):
+        """A failed dry run is answered and logged, nothing else is saved"""
+        self.ICP.set_bool("webhook.create_data_log", True)
+        self.ICP.set_bool("webhook.rollback_except", False)
+        vals = {
+            "dry_run": True,
+            "payload": {"function_name": "Http Dry Run", "log_type": "wrong"},
+        }
+        with mute_logger(CONTROLLER_LOGGER):
+            res = self._call_api("create_data", "api.log", vals)
+        self.assertFalse(res["is_success"])
+        self.assertTrue(res["dry_run"])
+        log = self._search_logs("/api/create_data")
+        self.assertEqual(log.state, "failed")
+        self.assertFalse(
+            self.env["api.log"].search([("function_name", "=", "Http Dry Run")])
+        )
