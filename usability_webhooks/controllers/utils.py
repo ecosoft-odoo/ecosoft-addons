@@ -2,18 +2,17 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
 import ast
+import json
 import logging
 import re
 
 from odoo import api, models
 from odoo.exceptions import ValidationError
 from odoo.service.model import get_public_method
+from odoo.tools import json_default
+from odoo.tools.misc import Callbacks
 
 _logger = logging.getLogger(__name__)
-
-
-class DryRunRollback(Exception):
-    """Raised on purpose to roll back the savepoint of a dry run."""
 
 
 class WebhookUtils(models.AbstractModel):
@@ -763,10 +762,8 @@ class WebhookUtils(models.AbstractModel):
         if not method_name:
             raise ValidationError(self.env._("Missing 'method' in payload"))
 
-        # Dry run guards are server-owned, client context can't change them
+        # Dry run guard is server-owned, client context can't change it
         context = dict(context, webhook_dry_run=self.env.context.get("webhook_dry_run"))
-        if context["webhook_dry_run"]:
-            context["mail_notify_force_send"] = False
         rec = self._search_object(model, vals).with_context(**context)
 
         if not hasattr(rec, method_name):
@@ -791,37 +788,40 @@ class WebhookUtils(models.AbstractModel):
         Same idea as ``base_import`` with ``dryrun=True``: the ORM runs for real
         (defaults, computes, ``@api.constrains``, SQL constraints), so errors are
         raised exactly as in a normal call, but nothing is persisted.
+        Outbound webhooks are not sent and the rollback and postcommit hooks
+        added during the dry run (e.g. mails sent after commit) are dropped.
         Note: ``ir.sequence`` with ``standard`` implementation (PostgreSQL
         sequence) still consumes numbers, use ``no_gap`` to avoid gaps.
         """
         _logger.info("[%s].dry_run(%s)", model, function)
-        utils = self.with_context(webhook_dry_run=True, mail_notify_force_send=False)
+        utils = self.with_context(webhook_dry_run=True)
         # Same guard as RPC call_kw, only public functions of webhook.utils
         get_public_method(utils, function)
+        cr = self.env.cr
         registry = self.env.registry
-        postcommit = self.env.cr.postcommit
-        # Savepoint creation flushes (runs precommit), snapshot after it
-        savepoint = self.env.cr.savepoint()
+        # Savepoint creation flushes (runs precommit hooks), snapshot after it
+        savepoint = cr.savepoint()
         registry_invalidated = registry.registry_invalidated
         cache_invalidated = set(registry.cache_invalidated)
-        postcommit_funcs = list(postcommit._funcs)
-        postcommit_data = dict(postcommit.data)
-        res = {}
+        hooks = (cr.prerollback, cr.postcommit, cr.postrollback)
+        cr.prerollback, cr.postcommit, cr.postrollback = (
+            Callbacks(),
+            Callbacks(),
+            Callbacks(),
+        )
         try:
-            with savepoint:
-                res = getattr(utils, function)(model, vals)
-                # Run pending SQL and precommit hooks so their errors surface here
-                self.env.cr.flush()
-                raise DryRunRollback()
-        except DryRunRollback:
-            _logger.info("[%s].dry_run(%s): rolled back", model, function)
+            res = getattr(utils, function)(model, vals)
+            # Serialize now, the answer may hold values read lazily
+            res = json.loads(json.dumps(res, default=json_default))
+            # Run pending SQL and precommit hooks so their errors surface here
+            cr.flush()
         finally:
-            # Savepoint rollback keeps postcommit hooks (e.g. send_after_commit)
-            postcommit._funcs.clear()
-            postcommit._funcs.extend(postcommit_funcs)
-            postcommit.data.clear()
-            postcommit.data.update(postcommit_data)
-            self._dry_run_reset_registry(registry_invalidated, cache_invalidated)
+            try:
+                savepoint.close(rollback=True)
+            finally:
+                cr.prerollback, cr.postcommit, cr.postrollback = hooks
+                self._dry_run_reset_registry(registry_invalidated, cache_invalidated)
+        _logger.info("[%s].dry_run(%s): rolled back", model, function)
         return res
 
     def _dry_run_reset_registry(self, registry_invalidated, cache_invalidated):

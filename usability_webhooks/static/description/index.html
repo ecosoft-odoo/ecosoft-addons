@@ -825,7 +825,7 @@ plus <tt class="docutils literal">&quot;dry_run&quot;: true</tt>.</p>
 <ul class="simple">
 <li>Only JSON <tt class="docutils literal">true</tt> enables it (a string like <tt class="docutils literal">&quot;false&quot;</tt> is a normal
 call).</li>
-<li>Nothing is saved, so any <tt class="docutils literal">id</tt> returned in <tt class="docutils literal">result</tt> does not exist
+<li>Nothing is saved, so the <tt class="docutils literal">id</tt> of a created record does not exist
 (database ids are still consumed, like any rolled back insert; files
 of rolled back attachments are removed by Odoo filestore GC).</li>
 <li>Request is still logged in <tt class="docutils literal">api.log</tt> (if enabled) for audit.</li>
@@ -834,12 +834,15 @@ gap), <tt class="docutils literal">standard</tt> (PostgreSQL sequence) still con
 Set <tt class="docutils literal">no_gap</tt> on sequences that must not skip numbers.</li>
 <li>Always run inline (<tt class="docutils literal">_call_function_api</tt> hooks are skipped),
 <tt class="docutils literal">callback_url</tt> is not linked and outbound webhooks are not sent.</li>
-<li>Mails are only queued (rolled back), <tt class="docutils literal">send_after_commit</tt> hooks are
-dropped.</li>
-<li>External calls made synchronously during the call are not protected by
-the rollback: <tt class="docutils literal">call_function</tt> methods that call another system or
-commit, and automation rules (<tt class="docutils literal">base.automation</tt>) with a <em>Send
-Webhook Notification</em> action.</li>
+<li>Actions registered to run after commit or on rollback are dropped:
+mails (sent after commit) are not sent. Web push notifications of
+messages posted during the call are sent from the request, like in a
+normal call.</li>
+<li>Other external calls made during the call (e.g. a <tt class="docutils literal">call_function</tt>
+method calling another system, automation rules with a <em>Send Webhook
+Notification</em> action) and changes committed with another cursor (e.g.
+running a scheduled action) are not rolled back: do not dry run such
+methods.</li>
 </ul>
 <pre class="code json literal-block">
 <span class="p">{</span><span class="w">

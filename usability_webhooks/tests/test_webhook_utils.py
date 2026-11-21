@@ -3,11 +3,13 @@
 
 from unittest.mock import patch
 
+import psycopg2
 from odoo_test_helper import FakeModelLoader
 
 from odoo import Command
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests.common import TransactionCase
+from odoo.tools import mute_logger
 
 
 class TestWebhookUtils(TransactionCase):
@@ -353,12 +355,38 @@ class TestWebhookUtils(TransactionCase):
         self.assertEqual(self.test_log.function_name, "Common Test")
 
     def test_13_dry_run_error_raised(self):
-        """dry_run raises the same error as a normal call, nothing persisted"""
+        """dry_run raises the same error as a normal call and rolls back its
+        own savepoint (no assertRaises: it would add one)"""
         Log = self.env[self.api_log_model]
         count = Log.search_count([])
         vals = {"payload": {"log_type": "wrong", "function_name": "Dry Run"}}
-        with self.assertRaises(ValueError):
-            self.webhook_utils.dry_run(self.api_log_model, vals, "create_data")
+        Utils = type(self.webhook_utils)
+        create_data = Utils.create_data
+
+        def write_then_create(utils, model, vals):
+            utils.env[model].create({"function_name": "Written before error"})
+            return create_data(utils, model, vals)
+
+        with patch.object(Utils, "create_data", write_then_create):
+            try:
+                self.webhook_utils.dry_run(self.api_log_model, vals, "create_data")
+            except ValueError as error:
+                self.assertIn("wrong", str(error))
+            else:
+                self.fail("ValueError not raised")
+        self.assertEqual(Log.search_count([]), count)
+        # Database error at flush (name is NOT NULL): cursor still usable
+        Subtype = self.env["mail.message.subtype"]
+        subtype_count = Subtype.search_count([])
+        vals = {"payload": {"description": "No name"}}
+        with mute_logger("odoo.sql_db"):
+            try:
+                self.webhook_utils.dry_run("mail.message.subtype", vals, "create_data")
+            except psycopg2.IntegrityError as error:
+                self.assertIn("name", str(error))
+            else:
+                self.fail("IntegrityError not raised")
+        self.assertEqual(Subtype.search_count([]), subtype_count)
         self.assertEqual(Log.search_count([]), count)
 
     def test_14_dry_run_sequence_no_gap_not_consumed(self):
@@ -510,19 +538,31 @@ class TestWebhookUtils(TransactionCase):
             with self.assertRaisesRegex(AccessError, "Private methods"):
                 self.webhook_utils.dry_run(self.api_log_model, vals, function)
 
-    def test_21_dry_run_drops_postcommit(self):
-        """postcommit hooks added in dry_run (e.g. send_after_commit) are
-        dropped, hooks registered before are kept"""
-        postcommit = self.env.cr.postcommit
-        postcommit.add(lambda: None)
-        count = len(postcommit._funcs)
+    def test_21_dry_run_hooks(self):
+        """Hooks added during a dry run are dropped (they may send or write
+        without the dry run guards). Hooks and data registered before are kept
+        as they were"""
+        cr = self.env.cr
+        before = []
+        cr.postcommit.data["webhook.test"] = before
+        cr.postcommit.add(lambda: None)
+        hooks = (cr.prerollback, cr.postcommit, cr.postrollback)
+        count = len(cr.postcommit._funcs)
         vals = {
             "search_key": {"id": self.test_log.id},
-            "payload": {"method": "action_add_postcommit"},
+            "payload": {"method": "action_add_hooks"},
         }
-        result = self.webhook_utils.dry_run(self.api_log_model, vals, "call_function")
+        Log = type(self.env[self.api_log_model])
+        with patch.object(Log, "_test_on_rollback") as on_rollback:
+            result = self.webhook_utils.dry_run(
+                self.api_log_model, vals, "call_function"
+            )
         self.assertTrue(result["result"])
-        self.assertEqual(len(postcommit._funcs), count)
+        on_rollback.assert_not_called()
+        self.assertEqual((cr.prerollback, cr.postcommit, cr.postrollback), hooks)
+        self.assertEqual(len(cr.postcommit._funcs), count)
+        self.assertIs(cr.postcommit.data["webhook.test"], before)
+        self.assertFalse(before)
 
     def test_22_lookup_memo_per_context(self):
         """Memo is per search environment, e.g. active_test"""

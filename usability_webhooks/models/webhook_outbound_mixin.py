@@ -32,6 +32,7 @@ class WebhookOutboundMixin(models.AbstractModel):
     )
 
     def write(self, vals):
+        # Nothing is sent while a dry run is rolled back
         if self.env.context.get(
             "_webhook_outbound_dispatching"
         ) or self.env.context.get("webhook_dry_run"):

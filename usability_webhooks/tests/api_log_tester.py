@@ -29,7 +29,14 @@ class APILogTester(models.Model):
         self.env["res.partner.category"].create({"name": name})
         return self._test_lookup_category_ids(name)
 
-    def action_add_postcommit(self):
-        """Register a postcommit hook, like mail.mail.send_after_commit."""
-        self.env.cr.postcommit.add(lambda: None)
+    def action_add_hooks(self):
+        """Register hooks like bus (postcommit data) or rollback cleanups."""
+        cr = self.env.cr
+        cr.postcommit.add(lambda: None)
+        cr.postcommit.data.setdefault("webhook.test", []).append(self.id)
+        cr.prerollback.add(self._test_on_rollback)
+        cr.postrollback.add(self._test_on_rollback)
         return True
+
+    def _test_on_rollback(self):
+        """Patched in tests."""

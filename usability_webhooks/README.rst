@@ -373,7 +373,7 @@ plus ``"dry_run": true``.
 
 - Only JSON ``true`` enables it (a string like ``"false"`` is a normal
   call).
-- Nothing is saved, so any ``id`` returned in ``result`` does not exist
+- Nothing is saved, so the ``id`` of a created record does not exist
   (database ids are still consumed, like any rolled back insert; files
   of rolled back attachments are removed by Odoo filestore GC).
 - Request is still logged in ``api.log`` (if enabled) for audit.
@@ -382,12 +382,15 @@ plus ``"dry_run": true``.
   Set ``no_gap`` on sequences that must not skip numbers.
 - Always run inline (``_call_function_api`` hooks are skipped),
   ``callback_url`` is not linked and outbound webhooks are not sent.
-- Mails are only queued (rolled back), ``send_after_commit`` hooks are
-  dropped.
-- External calls made synchronously during the call are not protected by
-  the rollback: ``call_function`` methods that call another system or
-  commit, and automation rules (``base.automation``) with a *Send
-  Webhook Notification* action.
+- Actions registered to run after commit or on rollback are dropped:
+  mails (sent after commit) are not sent. Web push notifications of
+  messages posted during the call are sent from the request, like in a
+  normal call.
+- Other external calls made during the call (e.g. a ``call_function``
+  method calling another system, automation rules with a *Send Webhook
+  Notification* action) and changes committed with another cursor (e.g.
+  running a scheduled action) are not rolled back: do not dry run such
+  methods.
 
 .. code:: json
 
