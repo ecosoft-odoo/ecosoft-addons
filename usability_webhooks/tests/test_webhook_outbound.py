@@ -326,3 +326,13 @@ class TestWebhookOutbound(TransactionCase):
 
         self.rule_static.payload_fields = False
         self.rule_callback.active = True
+
+    def test_13_dry_run_no_outbound(self):
+        """dry_run update matching trigger_domain -> no POST, record unchanged"""
+        log = self._new_log(state="draft")
+        vals = {"search_key": {"id": log.id}, "payload": {"state": "done"}}
+        with patch(REQUESTS_PATH) as mock_post:
+            res = self.env["webhook.utils"].dry_run("api.log", vals, "update_data")
+        self.assertTrue(res["is_success"])
+        mock_post.assert_not_called()
+        self.assertEqual(log.state, "draft")

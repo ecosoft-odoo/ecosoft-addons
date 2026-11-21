@@ -1,9 +1,11 @@
 # Copyright 2025 Ecosoft Co., Ltd. (http://ecosoft.co.th)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+from unittest.mock import patch
+
 from odoo_test_helper import FakeModelLoader
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -247,6 +249,19 @@ class TestWebhookUtils(TransactionCase):
         self.assertTrue(result["is_success"])
         self.assertEqual(self.test_log.function_name, "is_context=1")
 
+    def test_06e_call_function_private_method_rejected(self):
+        """call_function rejects private methods, same as JSON-RPC call_kw"""
+        vals = {
+            "search_key": {"id": self.test_log.id},
+            "payload": {
+                "method": "_write",
+                "parameter": {"vals": {"function_name": "Hacked"}},
+            },
+        }
+        with self.assertRaisesRegex(AccessError, "Private methods"):
+            self.webhook_utils.call_function(self.api_log_model, vals)
+        self.assertEqual(self.test_log.function_name, "Common Test")
+
     def test_07_invalid_search_key(self):
         """Test error handling for invalid search key"""
         vals = {
@@ -305,3 +320,119 @@ class TestWebhookUtils(TransactionCase):
 
         self.assertFalse(self.env["api.log"].browse(log_id).exists())
         self.assertFalse(self.env["ir.attachment"].browse(attachment_id).exists())
+
+    # ----- dry run -----
+
+    def test_11_dry_run_create_data(self):
+        """dry_run create returns success but persists nothing"""
+        Log = self.env[self.api_log_model]
+        count = Log.search_count([])
+        vals = {"payload": {"log_type": "receive", "function_name": "Dry Run"}}
+        result = self.webhook_utils.dry_run(self.api_log_model, vals, "create_data")
+        self.assertTrue(result["is_success"])
+        self.assertFalse(Log.browse(result["result"]["id"]).exists())
+        self.assertEqual(Log.search_count([]), count)
+
+    def test_12_dry_run_update_data(self):
+        """dry_run update does not change the record"""
+        vals = {
+            "search_key": {"id": self.test_log.id},
+            "payload": {"function_name": "Changed"},
+        }
+        result = self.webhook_utils.dry_run(self.api_log_model, vals, "update_data")
+        self.assertTrue(result["is_success"])
+        self.assertEqual(self.test_log.function_name, "Common Test")
+
+    def test_13_dry_run_error_raised(self):
+        """dry_run raises the same error as a normal call, nothing persisted"""
+        Log = self.env[self.api_log_model]
+        count = Log.search_count([])
+        vals = {"payload": {"log_type": "wrong", "function_name": "Dry Run"}}
+        with self.assertRaises(ValueError):
+            self.webhook_utils.dry_run(self.api_log_model, vals, "create_data")
+        self.assertEqual(Log.search_count([]), count)
+
+    def test_14_dry_run_sequence_no_gap_not_consumed(self):
+        """dry_run does not consume no_gap sequence (standard Odoo rollback)"""
+        seq = self.env["ir.sequence"].create(
+            {
+                "name": "Dry Run",
+                "prefix": "DRY",
+                "padding": 3,
+                "implementation": "no_gap",
+            }
+        )
+        vals = {
+            "search_key": {"id": seq.id},
+            "payload": {"method": "next_by_id"},
+        }
+        result = self.webhook_utils.dry_run("ir.sequence", vals, "call_function")
+        self.assertEqual(result["result"], "DRY001")
+        self.assertEqual(seq.next_by_id(), "DRY001")
+
+    # ----- lookup memo -----
+
+    def test_15_lookup_memo_within_one_call(self):
+        """Same lookup is searched once per API call"""
+        Tag = self.env["res.partner.category"]
+        tag = Tag.create({"name": "Webhook Tag A"})
+        utils = self.webhook_utils._with_lookup_memo()
+        args = ("name", str(["Webhook Tag A"]))
+        found = utils._call_field_search_cache(Tag, *args)
+        self.assertEqual(found, tag)
+        with patch.object(type(Tag), "search") as search:
+            self.assertEqual(utils._call_field_search_cache(Tag, *args), tag)
+        search.assert_not_called()
+
+    def test_16_lookup_memo_per_user(self):
+        """Memo never gives a user a record hidden by its record rules"""
+        Tag = self.env["res.partner.category"]
+        hidden = Tag.create({"name": "Hidden Tag"})
+        user = self.env["res.users"].create(
+            {
+                "name": "Webhook User",
+                "login": "webhook_memo_user",
+                "groups_id": [(6, 0, [self.env.ref("base.group_user").id])],
+            }
+        )
+        self.env["ir.rule"].create(
+            {
+                "name": "Hide tag",
+                "model_id": self.env["ir.model"]._get_id("res.partner.category"),
+                "groups": [(6, 0, [self.env.ref("base.group_user").id])],
+                "domain_force": f"[('id', '!=', {hidden.id})]",
+            }
+        )
+        args = ("name", str(["Hidden Tag"]))
+        # Same memo dict for both users, as worst case
+        utils = self.webhook_utils._with_lookup_memo()
+        self.assertEqual(utils._call_field_search_cache(Tag, *args), hidden)
+        found = utils.with_user(user)._call_field_search_cache(
+            Tag.with_user(user), *args
+        )
+        self.assertFalse(found)
+
+    def test_17_no_registry_cache_clear(self):
+        """create/search must not clear the registry-wide ormcache"""
+        self.env["mail.message.subtype"].create({"name": "Webhook Subtype"})
+        Registry = type(self.env.registry)
+        with patch.object(Registry, "_clear_cache") as clear_cache:
+            self.webhook_utils.create_data(
+                self.api_log_model,
+                {
+                    "payload": {
+                        "function_name": "No Clear Cache",
+                        "subtype_test_id": {"name": "Webhook Subtype"},
+                    }
+                },
+            )
+            self.webhook_utils.search_data(
+                self.api_log_model,
+                {
+                    "payload": {
+                        "search_field": ["function_name", "subtype_test_id{name}"],
+                        "search_domain": "[('function_name', '=', 'No Clear Cache')]",
+                    }
+                },
+            )
+        clear_cache.assert_not_called()

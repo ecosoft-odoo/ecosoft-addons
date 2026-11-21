@@ -187,6 +187,35 @@ Following successful authentication, you can proceed with five API routes:
          }
       }
 
+**Dry Run (validate only)**:
+Add ``"dry_run": true`` in ``vals`` of any route to run the full logic
+(defaults, constraints, auto create, method call) and then roll back everything.
+The response is the same as a normal call (errors included) plus ``"dry_run": true``.
+
+* Nothing is saved, so any ``id`` returned in ``result`` does not exist
+  (database ids are still consumed, like any rolled back insert).
+* Request is still logged in ``api.log`` (if enabled) for audit.
+* ``ir.sequence`` follows standard Odoo: ``no_gap`` is rolled back (no gap),
+  ``standard`` (PostgreSQL sequence) still consumes the number.
+  Set ``no_gap`` on sequences that must not skip numbers.
+* ``queue_job`` is ignored (always run inline), ``callback_url`` is not linked
+  and outbound webhooks are not sent.
+* ``call_function`` with a method that has external side effects (send email,
+  call another system, commit) is not protected by the rollback.
+
+   .. code-block:: python
+
+      {
+         "params": {
+            "model": "res.partner",
+            "vals": {
+               "dry_run": true,
+               "payload": {"name": "Customer A"},
+               "result_field": ["ref"]
+            }
+         }
+      }
+
 **Note**:
 If you want to attach a file to a record, you can add the key "attachment_ids" at any level of the payload.
 

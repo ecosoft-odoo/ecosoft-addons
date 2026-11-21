@@ -17,7 +17,9 @@ class WebhookOutboundMixin(models.AbstractModel):
     callback_url = fields.Char(readonly=True, copy=False)
 
     def write(self, vals):
-        if self.env.context.get("_webhook_outbound_dispatching"):
+        if self.env.context.get(
+            "_webhook_outbound_dispatching"
+        ) or self.env.context.get("webhook_dry_run"):
             return super().write(vals)
         candidates = self._collect_trigger_candidates(vals)
         res = super().write(vals)
