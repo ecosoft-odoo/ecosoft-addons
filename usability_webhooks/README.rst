@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ====================
 REST API for Webhook
 ====================
@@ -348,6 +344,10 @@ Use ``field{subfield1,subfield2}`` to expand relational fields inline.
 - ``context`` *(dict, optional)*: merged into ``env.context`` before the
   call
 
+Same rule as Odoo RPC: private methods (``_`` prefix or
+``@api.private``, e.g. ``_write``, ``sudo``) are rejected with an
+``AccessError``.
+
 .. code:: json
 
    {
@@ -359,6 +359,45 @@ Use ``field{subfield1,subfield2}`` to expand relational fields inline.
            "method": "action_post",
            "context": {"lang": "th_TH"}
          }
+       }
+     }
+   }
+
+Dry Run (validate only)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ``"dry_run": true`` in ``vals`` of any route to run the full logic
+(defaults, constraints, auto create, method call) and then roll back
+everything. The response is the same as a normal call (errors included)
+plus ``"dry_run": true``.
+
+- Only JSON ``true`` enables it (a string like ``"false"`` is a normal
+  call).
+- Nothing is saved, so any ``id`` returned in ``result`` does not exist
+  (database ids are still consumed, like any rolled back insert; files
+  of rolled back attachments are removed by Odoo filestore GC).
+- Request is still logged in ``api.log`` (if enabled) for audit.
+- ``ir.sequence`` follows standard Odoo: ``no_gap`` is rolled back (no
+  gap), ``standard`` (PostgreSQL sequence) still consumes the number.
+  Set ``no_gap`` on sequences that must not skip numbers.
+- Always run inline (``_call_function_api`` hooks are skipped),
+  ``callback_url`` is not linked and outbound webhooks are not sent.
+- Mails are only queued (rolled back), ``send_after_commit`` hooks are
+  dropped.
+- External calls made synchronously during the call are not protected by
+  the rollback: ``call_function`` methods that call another system or
+  commit, and automation rules (``base.automation``) with a *Send
+  Webhook Notification* action.
+
+.. code:: json
+
+   {
+     "params": {
+       "model": "res.partner",
+       "vals": {
+         "dry_run": true,
+         "payload": {"name": "Customer A"},
+         "result_field": ["ref"]
        }
      }
    }

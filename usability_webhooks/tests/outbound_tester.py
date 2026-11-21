@@ -13,3 +13,8 @@ class APILogOutboundTester(models.Model):
 
     def _webhook_boom(self):
         raise ValueError("boom")
+
+    def action_webhook_done(self):
+        """Public method for call_function tests: state -> done."""
+        self.write({"state": "done"})
+        return True
