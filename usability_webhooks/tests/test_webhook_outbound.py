@@ -724,3 +724,59 @@ class TestWebhookOutbound(WebhookTestCommon):
         with patch(REQUESTS_PATH, return_value=self._mock_ok_response()) as mock_post:
             self._new_record().write({"state": "done"})
         self.assertTrue(mock_post.call_args[1]["allow_redirects"])
+
+    # ----- dry run -----
+
+    def test_31_dry_run_no_outbound(self):
+        """dry_run update matching trigger_domain -> no POST, record unchanged"""
+        record = self._new_record()
+        vals = {"search_key": {"id": record.id}, "payload": {"state": "done"}}
+        with patch(REQUESTS_PATH) as mock_post:
+            res = self.env["webhook.utils"].dry_run(record._name, vals, "update_data")
+        self.assertTrue(res["is_success"])
+        mock_post.assert_not_called()
+        self.assertEqual(record.state, "draft")
+
+    def test_32_dry_run_client_context_cannot_send(self):
+        """call_function context can't turn off the dry run guards"""
+        record = self._new_record()
+        vals = {
+            "search_key": {"id": record.id},
+            "payload": {"method": "action_done", "context": {"webhook_dry_run": False}},
+        }
+        with patch(REQUESTS_PATH) as mock_post:
+            self.env["webhook.utils"].dry_run(record._name, vals, "call_function")
+        mock_post.assert_not_called()
+        self.assertEqual(record.state, "draft")
+
+    def test_33_client_context_cannot_skip_outbound(self):
+        """A live call_function can't fake a dry run to skip outbound"""
+        self.rule_callback.active = False
+        record = self._new_record()
+        vals = {
+            "search_key": {"id": record.id},
+            "payload": {"method": "action_done", "context": {"webhook_dry_run": True}},
+        }
+        with patch(REQUESTS_PATH, return_value=self._mock_ok_response()) as mock_post:
+            self.env["webhook.utils"].call_function(record._name, vals)
+        mock_post.assert_called_once()
+        self.assertEqual(record.state, "done")
+
+    def test_34_dry_run_callback_url_not_linked(self):
+        """dry_run through the controller: no callback URL linked"""
+        record = self._new_record()
+        controller = WebhookController()
+        request = MagicMock(env=self.env)
+        vals = {
+            "dry_run": True,
+            "callback_url": CALLBACK_URL,
+            "is_create_log": False,
+            "search_key": {"id": record.id},
+            "payload": {"name": "Dry"},
+        }
+        with patch("odoo.addons.usability_webhooks.controllers.main.request", request):
+            res = controller._create_api_logs(record._name, vals, "update_data")
+        self.assertTrue(res["is_success"])
+        self.assertTrue(res["dry_run"])
+        self.assertFalse(record.callback_url)
+        self.assertEqual(record.name, "test")

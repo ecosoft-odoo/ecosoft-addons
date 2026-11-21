@@ -431,28 +431,29 @@ success/failed state</li>
 <li><a class="reference internal" href="#api-call-function-call-a-method-on-a-record" id="toc-entry-16">5. <tt class="docutils literal">/api/call_function</tt> - call a method on a record</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#attaching-files" id="toc-entry-17">Attaching Files</a></li>
+<li><a class="reference internal" href="#dry-run-validate-only" id="toc-entry-17">Dry Run (validate only)</a></li>
+<li><a class="reference internal" href="#attaching-files" id="toc-entry-18">Attaching Files</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#outbound-odoo-external" id="toc-entry-18">Outbound (Odoo → External)</a><ul>
-<li><a class="reference internal" href="#step-1-add-mixin-to-the-target-model" id="toc-entry-19">Step 1 - Add mixin to the target model</a></li>
-<li><a class="reference internal" href="#step-2-configure-an-outbound-webhook-rule" id="toc-entry-20">Step 2 - Configure an Outbound Webhook Rule</a></li>
-<li><a class="reference internal" href="#payload-fields" id="toc-entry-21">Payload Fields</a><ul>
-<li><a class="reference internal" href="#expanding-one2many-many2many-fields-line-items" id="toc-entry-22">Expanding one2many/many2many fields (line items)</a></li>
+<li><a class="reference internal" href="#outbound-odoo-external" id="toc-entry-19">Outbound (Odoo → External)</a><ul>
+<li><a class="reference internal" href="#step-1-add-mixin-to-the-target-model" id="toc-entry-20">Step 1 - Add mixin to the target model</a></li>
+<li><a class="reference internal" href="#step-2-configure-an-outbound-webhook-rule" id="toc-entry-21">Step 2 - Configure an Outbound Webhook Rule</a></li>
+<li><a class="reference internal" href="#payload-fields" id="toc-entry-22">Payload Fields</a><ul>
+<li><a class="reference internal" href="#expanding-one2many-many2many-fields-line-items" id="toc-entry-23">Expanding one2many/many2many fields (line items)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#per-record-callback-url" id="toc-entry-23">Per-record Callback URL</a></li>
-<li><a class="reference internal" href="#access-rights" id="toc-entry-24">Access Rights</a></li>
-<li><a class="reference internal" href="#outbound-logs" id="toc-entry-25">Outbound Logs</a></li>
+<li><a class="reference internal" href="#per-record-callback-url" id="toc-entry-24">Per-record Callback URL</a></li>
+<li><a class="reference internal" href="#access-rights" id="toc-entry-25">Access Rights</a></li>
+<li><a class="reference internal" href="#outbound-logs" id="toc-entry-26">Outbound Logs</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-26">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-27">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-28">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-29">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-30">Maintainers</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-27">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-28">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-29">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-30">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-31">Maintainers</a></li>
 </ul>
 </li>
 </ul>
@@ -878,8 +879,51 @@ call</li>
 </pre>
 </div>
 </div>
+<div class="section" id="dry-run-validate-only">
+<h3><a class="toc-backref" href="#toc-entry-17">Dry Run (validate only)</a></h3>
+<p>Add <tt class="docutils literal">&quot;dry_run&quot;: true</tt> in <tt class="docutils literal">vals</tt> of any route to run the full logic
+(lookups, <tt class="docutils literal">auto_create</tt>, defaults, constraints, method call) and then
+roll back everything. The response is the same as a normal call (errors
+included) plus <tt class="docutils literal">&quot;dry_run&quot;: true</tt>.</p>
+<ul class="simple">
+<li>Only JSON <tt class="docutils literal">true</tt> enables it (a string like <tt class="docutils literal">&quot;false&quot;</tt> is a normal
+call).</li>
+<li>Nothing is saved, so the <tt class="docutils literal">id</tt> of a created record does not exist
+(database ids are still consumed, like any rolled back insert; files
+of rolled back attachments are removed by the filestore garbage
+collector).</li>
+<li>The request is still logged in <tt class="docutils literal">api.log</tt> (if enabled) for audit.</li>
+<li><tt class="docutils literal">ir.sequence</tt> follows standard Odoo: <tt class="docutils literal">no_gap</tt> is rolled back (no
+gap), <tt class="docutils literal">standard</tt> (PostgreSQL sequence) still consumes the number.
+Set <tt class="docutils literal">no_gap</tt> on sequences that must not skip numbers.</li>
+<li>Always run inline: overrides of <tt class="docutils literal">_call_function_api</tt> (e.g. to queue
+the call) are skipped, <tt class="docutils literal">callback_url</tt> is not linked and outbound
+webhooks are not sent.</li>
+<li>Actions registered to run after commit or on rollback are dropped:
+mails (sent after commit) and <em>Send Webhook Notification</em> of
+automation rules are not sent. Web push notifications of messages
+posted during the call are sent from the request, like in a normal
+call.</li>
+<li>Other external calls made during the call (e.g. a <tt class="docutils literal">call_function</tt>
+method calling another system) and changes committed with another
+cursor (e.g. running a scheduled action) are not rolled back: do not
+dry run such methods.</li>
+</ul>
+<pre class="code json literal-block">
+<span class="p">{</span><span class="w">
+  </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;res.partner&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="nt">&quot;vals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">&quot;dry_run&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+      </span><span class="nt">&quot;payload&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Customer A&quot;</span><span class="p">},</span><span class="w">
+      </span><span class="nt">&quot;result_field&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ref&quot;</span><span class="p">]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span>
+</pre>
+</div>
 <div class="section" id="attaching-files">
-<h3><a class="toc-backref" href="#toc-entry-17">Attaching Files</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-18">Attaching Files</a></h3>
 <p>Add <tt class="docutils literal">attachment_ids</tt> at any payload level:</p>
 <pre class="code json literal-block">
 <span class="nt">&quot;attachment_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;filename&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;datas&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;base64&gt;&quot;</span><span class="p">}]</span>
@@ -888,12 +932,12 @@ call</li>
 </div>
 <hr class="docutils" />
 <div class="section" id="outbound-odoo-external">
-<h2><a class="toc-backref" href="#toc-entry-18">Outbound (Odoo → External)</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-19">Outbound (Odoo → External)</a></h2>
 <p>When Odoo performs an action (confirm, validate, etc.), the outbound
 webhook automatically POSTs updated record data back to the external
 system - no per-model code required.</p>
 <div class="section" id="step-1-add-mixin-to-the-target-model">
-<h3><a class="toc-backref" href="#toc-entry-19">Step 1 - Add mixin to the target model</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-20">Step 1 - Add mixin to the target model</a></h3>
 <p>In any private addon, add one <tt class="docutils literal">_inherit</tt> line:</p>
 <pre class="code python literal-block">
 <span class="kn">from</span><span class="w"> </span><span class="nn">odoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span><span class="w">
@@ -906,7 +950,7 @@ system - no per-model code required.</p>
 <p>All outbound behaviour is driven by rules configured in the UI.</p>
 </div>
 <div class="section" id="step-2-configure-an-outbound-webhook-rule">
-<h3><a class="toc-backref" href="#toc-entry-20">Step 2 - Configure an Outbound Webhook Rule</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-21">Step 2 - Configure an Outbound Webhook Rule</a></h3>
 <p>Go to <em>Settings &gt; Technical &gt; API Configuration &gt; Outbound Webhook
 Rules</em>. See <tt class="docutils literal">CONFIGURE.md</tt> for the full field reference.</p>
 <p><strong>Trigger domain examples:</strong></p>
@@ -926,7 +970,7 @@ prevents re-triggering when unrelated fields are edited on an
 already-matching record.</p>
 </div>
 <div class="section" id="payload-fields">
-<h3><a class="toc-backref" href="#toc-entry-21">Payload Fields</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-22">Payload Fields</a></h3>
 <p><tt class="docutils literal">payload_fields</tt> is always a JSON object. Two kinds of values are
 supported:</p>
 <ul class="simple">
@@ -957,7 +1001,7 @@ itself, not its name.</li>
 </pre>
 <p>Leave <tt class="docutils literal">payload_fields</tt> empty to send <tt class="docutils literal">{&quot;id&quot;: &lt;record_id&gt;}</tt> only.</p>
 <div class="section" id="expanding-one2many-many2many-fields-line-items">
-<h4><a class="toc-backref" href="#toc-entry-22">Expanding one2many/many2many fields (line items)</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-23">Expanding one2many/many2many fields (line items)</a></h4>
 <p>To send a list of objects (e.g. sale order lines), use a key matching
 the field name, with a <strong>one-item array</strong> as its value - that single
 item is the per-line template, applied once for every related record:</p>
@@ -997,7 +1041,7 @@ as a literal value.</p>
 </div>
 </div>
 <div class="section" id="per-record-callback-url">
-<h3><a class="toc-backref" href="#toc-entry-23">Per-record Callback URL</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-24">Per-record Callback URL</a></h3>
 <p>Pass <tt class="docutils literal">callback_url</tt> in the inbound <tt class="docutils literal">create_data</tt> request. Odoo
 stores it linked to the created record. When the outbound rule fires
 with <em>Endpoint Source = Record Callback URL</em>, the system looks up that
@@ -1021,7 +1065,7 @@ URL and POSTs to it.</p>
 Callback URL</strong> allows it (e.g. <tt class="docutils literal"><span class="pre">https://ext-system/webhook</span></tt>).</p>
 </div>
 <div class="section" id="access-rights">
-<h3><a class="toc-backref" href="#toc-entry-24">Access Rights</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-25">Access Rights</a></h3>
 <ul class="simple">
 <li>API logs: internal users can read them, only administrators can change
 them.</li>
@@ -1040,7 +1084,7 @@ filled.</li>
 </ul>
 </div>
 <div class="section" id="outbound-logs">
-<h3><a class="toc-backref" href="#toc-entry-25">Outbound Logs</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-26">Outbound Logs</a></h3>
 <p>All outbound calls appear in <em>API Logs</em> with <strong>Log Type = Send</strong>. Failed
 calls are marked <tt class="docutils literal">state = failed</tt> with the error in the response
 preview.</p>
@@ -1048,7 +1092,7 @@ preview.</p>
 </div>
 </div>
 <div class="section" id="bug-tracker">
-<h1><a class="toc-backref" href="#toc-entry-26">Bug Tracker</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-27">Bug Tracker</a></h1>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -1056,15 +1100,15 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#toc-entry-27">Credits</a></h1>
+<h1><a class="toc-backref" href="#toc-entry-28">Credits</a></h1>
 <div class="section" id="authors">
-<h2><a class="toc-backref" href="#toc-entry-28">Authors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-29">Authors</a></h2>
 <ul class="simple">
 <li>Ecosoft</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h2><a class="toc-backref" href="#toc-entry-29">Contributors</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-30">Contributors</a></h2>
 <ul class="simple">
 <li>Kitti Upariphutthiphong <a class="reference external" href="mailto:kittiu&#64;ecosoft.co.th">kittiu&#64;ecosoft.co.th</a></li>
 <li>Saran Lim. <a class="reference external" href="mailto:saranl&#64;ecosoft.co.th">saranl&#64;ecosoft.co.th</a></li>
@@ -1072,7 +1116,7 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h2><a class="toc-backref" href="#toc-entry-30">Maintainers</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-31">Maintainers</a></h2>
 <p>This module is part of the <a class="reference external" href="https://github.com/ecosoft-odoo/ecosoft-addons/tree/20.0/usability_webhooks">ecosoft-odoo/ecosoft-addons</a> project on GitHub.</p>
 <p>You are welcome to contribute.</p>
 </div>
